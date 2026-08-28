@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
-import { parseStremioMediaRequest } from '../addon/stremio-adapter';
+import { parseStremioMediaRequest, RuntimeStremioAdapter } from '../addon/stremio-adapter';
 import { diffDirectory, FmhyDirectoryProvider, FmhyMaintenanceService, parseFmhyDirectory } from '../discovery/fmhy';
 import { extractorRegistry } from '../extractors/registry.generated';
 import { DooplayFamily } from '../extractors/sources/dooplay-family';
@@ -84,6 +84,7 @@ describe('FMHY registry and health', () => {
     const registry = new SourceRegistry();
     registry.apply(snapshot);
     expect(registry.list(['unknown'])).toHaveLength(2);
+    expect(registry.list(['unknown'])[0]).toMatchObject({ canonicalDomain: 'alpha.example', aliases: ['mirror.example'] });
   });
 
   test('parses a durable fixture matching the maintained FMHY format', () => {
@@ -256,12 +257,20 @@ describe('protocol vertical slice', () => {
     expect(parseStremioMediaRequest('movie', 'tmdb:42')).toEqual({ type: 'movie', tmdbId: 42 });
   });
 
+  test('applies configured FMHY source exclusions to runtime selection', async () => {
+    const engine = { findStreams: jest.fn().mockResolvedValue({ streams: [], failures: [], unverified: [], deadline: { budgetMs: 1, elapsedMs: 1, exceeded: false, sourcesAttempted: 0, sourcesCompleted: 0, sourcesCancelled: 0 } }) };
+    const ctx = { hostUrl: new URL('https://addon.test/'), id: 'request', config: { 'disableFmhySource_aether:aether.test': 'on', 'multi': 'on' } };
+    await new RuntimeStremioAdapter(engine).findStreams(ctx, 'movie', 'tmdb:27205');
+    expect(engine.findStreams).toHaveBeenCalledWith({ type: 'movie', tmdbId: 27205 }, { excludedSourceIds: ['aether:aether.test'] });
+  });
+
   test('returns a fast validated result while cancelling a slow source', async () => {
     const services: RequestServices = {
       request: jest.fn().mockResolvedValue(response('https://cdn.test/master.m3u8', '#EXTM3U\n#EXTINF:4,\nsegment.ts', 'application/vnd.apple.mpegurl')),
     };
     const registry = new SourceRegistry();
     for (const id of ['fast', 'slow']) registry.set({ id, canonicalDomain: `${id}.test`, aliases: [], fmhy: { firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'fixture', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'supported' });
+    for (const id of ['fast', 'slow']) registry.recordHealth({ sourceId: id, lastOutcome: 'healthy', recentSuccesses: 1, recentFailures: 0, observedAt: new Date(0) });
     const family = {
       id: 'fixture',
       classify: () => null,

@@ -8,9 +8,10 @@ export function landingTemplate(manifest: CustomManifest) {
 
   const MISC_KEYS = ['showErrors', 'includeExternalUrls', 'mediaFlowProxyUrl', 'mediaFlowProxyPassword'];
   const languageConfigs = manifest.config.filter(c =>
-    !c.key.startsWith('excludeResolution_') && !c.key.startsWith('disableExtractor_') && !MISC_KEYS.includes(c.key));
+    !c.key.startsWith('excludeResolution_') && !c.key.startsWith('disableExtractor_') && !c.key.startsWith('disableFmhySource_') && !MISC_KEYS.includes(c.key));
   const resolutionConfigs = manifest.config.filter(c => c.key.startsWith('excludeResolution_'));
   const extractorConfigs = manifest.config.filter(c => c.key.startsWith('disableExtractor_'));
+  const fmhySourceConfigs = manifest.config.filter(c => c.key.startsWith('disableFmhySource_'));
   const optionConfigs = manifest.config.filter(c => ['showErrors', 'includeExternalUrls'].includes(c.key));
   const proxyConfigs = manifest.config.filter(c => ['mediaFlowProxyUrl', 'mediaFlowProxyPassword'].includes(c.key));
 
@@ -31,6 +32,11 @@ export function landingTemplate(manifest: CustomManifest) {
     const isOff = c.default === 'checked';
     const label = (c.title ?? '').replace('Disable extractor ', '');
     return `<div class="ec${isOff ? ' ec-off' : ''}" data-key="${c.key}">${label}</div>`;
+  }).join('');
+
+  const sourceChips = fmhySourceConfigs.map((c) => {
+    const isOff = c.default === 'checked';
+    return `<div class="ec${isOff ? ' ec-off' : ''}" data-key="${c.key}">${c.title}</div>`;
   }).join('');
 
   const proxyFields = proxyConfigs.map((c) => {
@@ -166,6 +172,14 @@ body{position:relative;z-index:1;display:flex;justify-content:center;padding:2re
       <div class="ct">📺 Resolution Filter</div>
       <div class="rgrid">${resChips}</div>
       <div class="hint">Click a resolution to exclude it (turns red).</div>
+    </div>`
+      : ''}
+
+    ${fmhySourceConfigs.length
+      ? `<div class="card">
+      <div class="ct">🕸 FMHY Sources</div>
+      <div class="egrid">${sourceChips}</div>
+      <div class="hint">Current health appears after each site. Click a site to disable it for this addon URL.</div>
     </div>`
       : ''}
 

@@ -14,7 +14,7 @@ export class SourceRegistry {
       const id = canonicalEntryId(entry.name, entry.urls);
       seen.add(id);
       const existing = this.records.get(id);
-      const domains = [...new Set(entry.urls.map(url => url.hostname))].sort();
+      const domains = [...new Set(entry.urls.map(url => url.hostname))];
       this.records.set(id, {
         id, canonicalDomain: domains[0] ?? entry.urls[0]?.hostname ?? id, aliases: domains.slice(1),
         fmhy: { section: entry.section, tags: entry.tags, firstSeenAt: existing?.fmhy.firstSeenAt ?? snapshot.fetchedAt, lastSeenAt: snapshot.fetchedAt },
@@ -26,6 +26,13 @@ export class SourceRegistry {
   }
 
   public list(statuses?: readonly SourceRecord['status'][]): SourceRecord[] { return [...this.records.values()].filter(record => !statuses || statuses.includes(record.status)).sort((a, b) => a.id.localeCompare(b.id)); }
+  public runtimeEligible(): SourceRecord[] {
+    return this.list(['supported', 'degraded']).filter((source) => {
+      const health = this.history.get(source.id);
+      return Boolean(health && health.lastOutcome !== 'failed' && health.recentSuccesses > 0);
+    });
+  }
+
   public get(id: string): SourceRecord | undefined { return this.records.get(id); }
   public set(record: SourceRecord): void { this.records.set(record.id, record); }
   public recordHealth(value: SourceHealthHistory): void { this.history.set(value.sourceId, value); }

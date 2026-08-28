@@ -18,3 +18,5 @@ export const isExtractorDisabled = (config: Config, extractor: Extractor): boole
 export const excludeResolutionConfigKey = (resolution: string): string => `excludeResolution_${resolution}`;
 
 export const isResolutionExcluded = (config: Config, resolution: string): boolean => excludeResolutionConfigKey(resolution) in config;
+
+export const disableFmhySourceConfigKey = (sourceId: string): `disableFmhySource_${string}` => `disableFmhySource_${sourceId}`;

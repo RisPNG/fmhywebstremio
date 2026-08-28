@@ -20,9 +20,8 @@ export function normalizedStreamToStremio(stream: NormalizedStream): Stream {
 
 export class RuntimeStremioAdapter {
   public constructor(private readonly engine: StreamEngine) {}
-  public async findStreams(_ctx: Context, type: string, rawId: string): Promise<StremioStreamResult> {
-    void _ctx;
-    const result = await this.engine.findStreams(parseStremioMediaRequest(type, rawId));
+  public async findStreams(ctx: Context, type: string, rawId: string): Promise<StremioStreamResult> {
+    const result = await this.engine.findStreams(parseStremioMediaRequest(type, rawId), { excludedSourceIds: Object.keys(ctx.config).flatMap(key => key.startsWith('disableFmhySource_') ? [key.slice('disableFmhySource_'.length)] : []) });
     return { streams: result.streams.map(normalizedStreamToStremio) };
   }
 }

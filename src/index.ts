@@ -10,14 +10,16 @@ import winston from 'winston';
 import { CombinedStremioAdapter, LegacyStremioAdapter, RuntimeStremioAdapter } from './addon/stremio-adapter';
 import { ConfigureController, ExtractController, ManifestController, StreamController } from './controller';
 import { RuntimeStreamEngine, TmdbMediaResolver } from './engine/core';
-import { DependencyGraph, JsonDependencyStore } from './engine/health';
+import { DependencyGraph, JsonDependencyStore, type SourceFamily } from './engine/health';
 import { JsonSourceRegistryStore, MatcherRegistry, RegistryExtractorLookup, SourceRegistry } from './engine/registry';
 import { ExtractionResolver } from './engine/resolver';
 import { TransportDirector } from './engine/transport';
 import { BlockedError, logErrorAndReturnNiceString } from './error';
 import { createExtractors, ExtractorRegistry } from './extractor';
 import { extractorRegistry as runtimeExtractorRegistry } from './extractors/registry.generated';
+import { CinriftFamily } from './extractors/sources/cinrift-family';
 import { DooplayFamily } from './extractors/sources/dooplay-family';
+import { PStreamFamily } from './extractors/sources/pstream-family';
 import { createSources, Source } from './source';
 import { HomeCine } from './source/HomeCine';
 import { MeineCloud } from './source/MeineCloud';
@@ -104,18 +106,18 @@ addon.use((_req: Request, res: Response, next: NextFunction) => {
 });
 
 const extractorRegistry = new ExtractorRegistry(logger, extractors);
-
-addon.use('/', (new ExtractController(logger, fetcher, extractorRegistry)).router);
-addon.use('/', (new ConfigureController(sources, extractors)).router);
-addon.use('/', (new ManifestController(sources, extractors)).router);
-
-const streamResolver = new StreamResolver(logger, extractorRegistry);
 const runtimeTransport = new TransportDirector();
 const runtimeSourceRegistry = new SourceRegistry();
 const runtimeSourceRegistryStore = new JsonSourceRegistryStore(`${envGet('EXTRACTABILITY_DATA_DIR') ?? '.data/extractability'}/sources.json`);
 const runtimeDependencies = new DependencyGraph();
 const runtimeDependencyStore = new JsonDependencyStore(`${envGet('EXTRACTABILITY_DATA_DIR') ?? '.data/extractability'}/dependencies.json`);
-const runtimeFamilies = new Map([['dooplay', new DooplayFamily()]]);
+const runtimeFamilies = new Map<string, SourceFamily>([['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()]]);
+
+addon.use('/', (new ExtractController(logger, fetcher, extractorRegistry)).router);
+addon.use('/', (new ConfigureController(sources, extractors, runtimeSourceRegistry)).router);
+addon.use('/', (new ManifestController(sources, extractors, runtimeSourceRegistry)).router);
+
+const streamResolver = new StreamResolver(logger, extractorRegistry);
 const runtimeResolver = new ExtractionResolver(new RegistryExtractorLookup(new MatcherRegistry(runtimeExtractorRegistry)), runtimeTransport, { onDelegation: (_parent, child) => {
   const sourceId = child.hints?.['sourceId'];
   const familyId = child.hints?.['sourceExtractor'];

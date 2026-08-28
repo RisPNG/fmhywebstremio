@@ -1,8 +1,11 @@
+import type { SourceHealthHistory } from '../engine/core/models';
+import type { SourceRegistry } from '../engine/registry';
 import { Extractor } from '../extractor';
 import { Source } from '../source';
 import { Config, CountryCode, CustomManifest } from '../types';
 import {
   disableExtractorConfigKey,
+  disableFmhySourceConfigKey,
   excludeResolutionConfigKey,
   isExtractorDisabled,
   isResolutionExcluded,
@@ -13,7 +16,7 @@ import { RESOLUTIONS } from './resolution';
 
 const typedEntries = <T extends object>(obj: T): [keyof T, T[keyof T]][] => (Object.entries(obj) as [keyof T, T[keyof T]][]);
 
-export const buildManifest = (sources: Source[], extractors: Extractor[], config: Config): CustomManifest => {
+export const buildManifest = (sources: Source[], extractors: Extractor[], config: Config, fmhySources?: SourceRegistry): CustomManifest => {
   const manifest: CustomManifest = {
     id: envGetAppId(),
     version: '1.0.0', // x-release-please-version
@@ -119,6 +122,17 @@ export const buildManifest = (sources: Source[], extractors: Extractor[], config
       ...(isExtractorDisabled(config, extractor) && { default: 'checked' }),
     });
   });
+
+  for (const source of fmhySources?.runtimeEligible() ?? []) {
+    const key = disableFmhySourceConfigKey(source.id);
+    const health = fmhySources?.health().get(source.id) as SourceHealthHistory;
+    manifest.config.push({
+      key,
+      type: 'checkbox',
+      title: `${source.canonicalDomain} — ${health.lastOutcome}`,
+      ...(key in config && { default: 'checked' }),
+    });
+  }
 
   manifest.description += `\n\nSupported languages: ${languages.filter(language => language !== 'Multi').join(', ')}`;
   manifest.description += `\n\nSupported sources: ${sources.map(source => source.label).join(', ')}`;
