@@ -1,0 +1,8 @@
+node_modules/
+.verify-build/
+dist/
+coverage/
+*.log
+.env
+.env.*
+!.env.example

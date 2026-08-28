@@ -123,7 +123,7 @@ describe('resolve', () => {
 
     const stream = result.streams[0];
     expect(stream).toBeDefined();
-    expect(stream?.name).toBe('WebStreamrMBG');
+    expect(stream?.name).toBe('FMHY WebStream');
   });
 
   test('uses priority for sorting', async () => {

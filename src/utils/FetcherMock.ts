@@ -99,13 +99,13 @@ export class FetcherMock extends Fetcher {
         config: { } as InternalAxiosRequestConfig,
       };
     } else {
+      if (!envGet('TEST_UPDATE_FIXTURES')) {
+        throw new Error(`No fixture found at "${path}".`);
+      }
+
       let response;
       try {
-        if (envGet('TEST_UPDATE_FIXTURES')) {
-          response = await super.fetchWithTimeout(ctx, url, requestConfig);
-        } else {
-          throw new Error(`No fixture found at "${path}".`);
-        }
+        response = await super.fetchWithTimeout(ctx, url, requestConfig);
       } catch (error) {
         fs.writeFileSync(errorPath, `${error}`);
         throw error;

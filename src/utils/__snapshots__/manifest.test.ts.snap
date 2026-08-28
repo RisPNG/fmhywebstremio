@@ -154,13 +154,13 @@ Supported languages: Albanian, German, Castilian Spanish, French, Gujarati, Hind
 Supported sources: 4KHDHub, CineHDPlus, Cuevana, Einschalten, Eurostreaming, Filmpalast, Frembed, FrenchCloud, HDHub4u, HomeCine, KinoGer, Kokoshka, MegaKino, MeineCloud, MostraGuarda, MovieBox, Movix, VerHdLink, VidSrc, VidZee, VixSrc
 
 Supported extractors: ",
-  "id": "webstreamr-mbg",
+  "id": "fmhy-webstream",
   "idPrefixes": [
     "tmdb:",
     "tt",
   ],
   "logo": "https://emojiapi.dev/api/v1/spider_web/256.png",
-  "name": "WebStreamrMBG",
+  "name": "FMHY WebStream",
   "resources": [
     "stream",
   ],

@@ -15,7 +15,7 @@ describe('env', () => {
   });
 
   test('envGetAppId', () => {
-    expect(envGetAppId()).toBe('webstreamr-mbg');
+    expect(envGetAppId()).toBe('fmhy-webstream');
 
     process.env['MANIFEST_ID'] = 'webstreamr-mbg.dev';
     expect(envGetAppId()).toBe('webstreamr-mbg.dev');
@@ -23,7 +23,7 @@ describe('env', () => {
   });
 
   test('envGetAppName', () => {
-    expect(envGetAppName()).toBe('WebStreamrMBG');
+    expect(envGetAppName()).toBe('FMHY WebStream');
 
     process.env['MANIFEST_NAME'] = 'WebStreamrMBG | dev';
     expect(envGetAppName()).toBe('WebStreamrMBG | dev');

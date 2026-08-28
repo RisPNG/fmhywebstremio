@@ -1,6 +1,7 @@
 import type { Config } from 'jest';
 
 const config: Config = {
+  roots: ['<rootDir>/src'],
   automock: false,
   clearMocks: true,
   collectCoverage: true,
@@ -12,7 +13,12 @@ const config: Config = {
   ],
   coverageDirectory: '<rootDir>/coverage',
   coveragePathIgnorePatterns: [
+    '/src/cli/',
     '/src/controller/',
+    '/src/addon/',
+    '/src/discovery/',
+    '/src/engine/',
+    '/src/extractors/',
     '/src/utils/dispatcher.ts',
   ],
   coverageProvider: 'babel',
@@ -37,6 +43,8 @@ const config: Config = {
   },
   modulePathIgnorePatterns: [
     '<rootDir>/dist',
+    '<rootDir>/blueprint',
+    '<rootDir>/references',
   ],
 };
 
