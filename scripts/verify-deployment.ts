@@ -1,8 +1,13 @@
 import { spawn } from 'node:child_process';
+import { mkdtemp, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 async function verifyDeploymentContract(): Promise<void> {
   const port = Number(process.env['VERIFY_DEPLOYMENT_PORT'] ?? 55146);
-  const server = spawn(process.execPath, ['dist/index.js'], { env: { ...process.env, NODE_ENV: 'development', PORT: String(port), EXTRACTABILITY_RELOAD_INTERVAL_MS: '0' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const dataDirectory = await mkdtemp(join(tmpdir(), 'fmhy-webstream-deployment-'));
+  await writeFile(join(dataDirectory, 'sources.json'), '{"records":[],"health":[]}');
+  const server = spawn(process.execPath, ['dist/index.js'], { env: { ...process.env, NODE_ENV: 'development', PORT: String(port), EXTRACTABILITY_DATA_DIR: dataDirectory, EXTRACTABILITY_RELOAD_INTERVAL_MS: '0' }, stdio: ['ignore', 'pipe', 'pipe'] });
   let logs = '';
   server.stdout.on('data', (chunk) => {
     logs += String(chunk);
