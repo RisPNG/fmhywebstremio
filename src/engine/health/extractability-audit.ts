@@ -12,6 +12,8 @@ export type SiteExtractability = 'extractable' | 'degraded' | 'failed' | 'unsupp
 export interface SiteExtractabilityResult {
   sourceId: string;
   domain: string;
+  section?: string;
+  tags?: readonly string[];
   familyId?: string;
   status: SiteExtractability;
   runtimeEligible: boolean;
@@ -28,7 +30,7 @@ export interface SiteExtractabilityResult {
 export interface ExtractabilityReport {
   generatedAt: Date;
   ok: boolean;
-  totals: { sites: number; extractable: number; degraded: number; failed: number; unsupported: number; redirected: number; unreachable: number; blocked: number; inconclusive: number; unknown: number; disabled: number; notTested: number; runtimeEligible: number };
+  totals: { sites: number; passed: number; extractable: number; degraded: number; failed: number; unsupported: number; redirected: number; unreachable: number; blocked: number; inconclusive: number; unknown: number; disabled: number; notTested: number; runtimeEligible: number };
   rootCauses: Readonly<Record<string, readonly string[]>>;
   sites: readonly SiteExtractabilityResult[];
 }
@@ -40,38 +42,40 @@ export class ExtractabilityAuditRunner {
     const sites: SiteExtractabilityResult[] = [];
     for (const source of this.registry.list()) {
       if (signal.aborted) break;
+      const provenance = { ...(source.fmhy.section && { section: source.fmhy.section }), ...(source.fmhy.tags?.length && { tags: source.fmhy.tags }) };
       if (source.status === 'disabled') {
-        sites.push({ sourceId: source.id, domain: source.canonicalDomain, ...(source.family && { familyId: source.family.id }), status: 'disabled', runtimeEligible: false, stages: { recognition: Boolean(source.family), discovery: false, extraction: false, validation: false }, successes: 0, failures: 0 });
+        sites.push({ sourceId: source.id, domain: source.canonicalDomain, ...provenance, ...(source.family && { familyId: source.family.id }), status: 'disabled', runtimeEligible: false, stages: { recognition: Boolean(source.family), discovery: false, extraction: false, validation: false }, successes: 0, failures: 0 });
         continue;
       }
       if (source.probe?.outcome === 'redirected' || source.probe?.outcome === 'unreachable' || source.probe?.outcome === 'blocked' || source.probe?.outcome === 'ambiguous' || source.probe?.outcome === 'budget-exceeded') {
         const status = source.probe.outcome === 'ambiguous' || source.probe.outcome === 'budget-exceeded' ? 'inconclusive' : source.probe.outcome;
-        sites.push({ sourceId: source.id, domain: source.canonicalDomain, status, runtimeEligible: false, stages: { recognition: false, discovery: false, extraction: false, validation: false }, successes: 0, failures: 0, ...(source.probe.finalUrl && { observedFinalUrl: source.probe.finalUrl }), ...(source.probe.failureCode && { probeFailureCode: source.probe.failureCode }), ...(source.probe.message && { probeMessage: source.probe.message }) });
+        sites.push({ sourceId: source.id, domain: source.canonicalDomain, ...provenance, status, runtimeEligible: false, stages: { recognition: false, discovery: false, extraction: false, validation: false }, successes: 0, failures: 0, ...(source.probe.finalUrl && { observedFinalUrl: source.probe.finalUrl }), ...(source.probe.failureCode && { probeFailureCode: source.probe.failureCode }), ...(source.probe.message && { probeMessage: source.probe.message }) });
         continue;
       }
       if (!source.family) {
-        sites.push({ sourceId: source.id, domain: source.canonicalDomain, status: source.status === 'unsupported' ? 'unsupported' : 'unknown', runtimeEligible: false, stages: { recognition: false, discovery: false, extraction: false, validation: false }, successes: 0, failures: 0, ...(source.probe?.finalUrl && { observedFinalUrl: source.probe.finalUrl }), ...(source.probe?.failureCode && { probeFailureCode: source.probe.failureCode }), ...(source.probe?.message && { probeMessage: source.probe.message }) });
+        sites.push({ sourceId: source.id, domain: source.canonicalDomain, ...provenance, status: source.status === 'unsupported' ? 'unsupported' : 'unknown', runtimeEligible: false, stages: { recognition: false, discovery: false, extraction: false, validation: false }, successes: 0, failures: 0, ...(source.probe?.finalUrl && { observedFinalUrl: source.probe.finalUrl }), ...(source.probe?.failureCode && { probeFailureCode: source.probe.failureCode }), ...(source.probe?.message && { probeMessage: source.probe.message }) });
         continue;
       }
       const family = this.families.get(source.family.id);
       const corpus = this.corpora.get(source.family.id);
       if (!family || !corpus) {
-        sites.push({ sourceId: source.id, domain: source.canonicalDomain, familyId: source.family.id, status: 'not-tested', runtimeEligible: false, stages: { recognition: true, discovery: false, extraction: false, validation: false }, successes: 0, failures: 0 });
+        sites.push({ sourceId: source.id, domain: source.canonicalDomain, ...provenance, familyId: source.family.id, status: 'not-tested', runtimeEligible: false, stages: { recognition: true, discovery: false, extraction: false, validation: false }, successes: 0, failures: 0 });
         continue;
       }
       try {
         const outcome = await this.health.run(source, family, corpus, signal);
         const history = this.registry.health().get(source.id);
-        sites.push({ sourceId: source.id, domain: source.canonicalDomain, familyId: source.family.id, status: outcome.extractable ? outcome.status === 'healthy' ? 'extractable' : 'degraded' : 'failed', runtimeEligible: outcome.extractable, stages: { recognition: true, ...outcome.stages }, successes: history?.recentSuccesses ?? 0, failures: history?.recentFailures ?? 0, cases: outcome.cases });
+        sites.push({ sourceId: source.id, domain: source.canonicalDomain, ...provenance, familyId: source.family.id, status: outcome.extractable ? outcome.status === 'healthy' ? 'extractable' : 'degraded' : 'failed', runtimeEligible: outcome.extractable, stages: { recognition: true, ...outcome.stages }, successes: history?.recentSuccesses ?? 0, failures: history?.recentFailures ?? 0, cases: outcome.cases });
       } catch (error) {
         const failure: Failure = { code: 'INTERNAL_ERROR', message: error instanceof Error ? error.message : String(error), stage: 'stage:engine', sourceId: source.id, familyId: family.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false } };
         this.registry.set({ ...source, status: 'degraded' });
         this.registry.recordHealth({ sourceId: source.id, lastOutcome: 'failed', recentSuccesses: 0, recentFailures: corpus.cases.filter(test => test.expected === 'discoverable').length, observedAt: new Date() });
-        sites.push({ sourceId: source.id, domain: source.canonicalDomain, familyId: family.id, status: 'failed', runtimeEligible: false, stages: { recognition: true, discovery: false, extraction: false, validation: false }, successes: 0, failures: corpus.cases.filter(test => test.expected === 'discoverable').length, failure });
+        sites.push({ sourceId: source.id, domain: source.canonicalDomain, ...provenance, familyId: family.id, status: 'failed', runtimeEligible: false, stages: { recognition: true, discovery: false, extraction: false, validation: false }, successes: 0, failures: corpus.cases.filter(test => test.expected === 'discoverable').length, failure });
       }
     }
     const totals = {
       sites: sites.length,
+      passed: sites.filter(site => site.status === 'extractable' || site.status === 'degraded').length,
       extractable: sites.filter(site => site.status === 'extractable').length,
       degraded: sites.filter(site => site.status === 'degraded').length,
       failed: sites.filter(site => site.status === 'failed').length,
@@ -95,8 +99,8 @@ export class JsonExtractabilityReportStore {
 
   public async load(): Promise<ExtractabilityReport | undefined> {
     try {
-      const value = JSON.parse(await readFile(this.path, 'utf8')) as Omit<ExtractabilityReport, 'generatedAt'> & { generatedAt: string };
-      return { ...value, generatedAt: new Date(value.generatedAt), rootCauses: value.rootCauses ?? {}, sites: value.sites.map(site => ({ ...site, ...(site.cases && { cases: site.cases.map(test => ({ ...test, ...(test.failure && { failure: { ...test.failure, observedAt: new Date(test.failure.observedAt) } }) })) }), ...(site.failure && { failure: { ...site.failure, observedAt: new Date(site.failure.observedAt) } }) })) };
+      const value = JSON.parse(await readFile(this.path, 'utf8')) as Omit<ExtractabilityReport, 'generatedAt' | 'totals'> & { generatedAt: string; totals: Omit<ExtractabilityReport['totals'], 'passed'> & { passed?: number } };
+      return { ...value, generatedAt: new Date(value.generatedAt), totals: { ...value.totals, passed: value.totals.passed ?? value.totals.extractable + value.totals.degraded }, rootCauses: value.rootCauses ?? {}, sites: value.sites.map(site => ({ ...site, ...(site.cases && { cases: site.cases.map(test => ({ ...test, ...(test.failure && { failure: { ...test.failure, observedAt: new Date(test.failure.observedAt) } }) })) }), ...(site.failure && { failure: { ...site.failure, observedAt: new Date(site.failure.observedAt) } }) })) };
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
       throw error;

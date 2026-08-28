@@ -7,8 +7,16 @@ export default class EmbedPageExtractor implements Extractor {
   public async extract(target: ExtractionTarget, services: RequestServices, signal: AbortSignal): Promise<ExtractionResult> {
     const response = await services.request({ url: target.url, ...(target.referrer && { referrer: target.referrer }), expectedContent: 'html', stateScope: { kind: 'source', key: String(target.hints?.['sourceId'] ?? target.url.hostname) } }, signal);
     const $ = cheerio.load(response.text());
+    const lazyPlayerId = $('[movie-id]').first().attr('movie-id');
+    let lazyPlayerUrls: string[] = [];
+    if (lazyPlayerId) {
+      const player = await services.request({ url: new URL('/wp-admin/admin-ajax.php', response.finalUrl), method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'x-requested-with': 'XMLHttpRequest' }, body: new URLSearchParams({ action: 'lazy_player', movieID: lazyPlayerId }).toString(), referrer: response.finalUrl, expectedContent: 'binary', stateScope: { kind: 'source', key: String(target.hints?.['sourceId'] ?? target.url.hostname) } }, signal);
+      const playerPage = cheerio.load(player.text());
+      lazyPlayerUrls = playerPage('iframe[src],[data-vs]').map((_index, element) => playerPage(element).attr('src') || playerPage(element).attr('data-vs')).get();
+    }
     const urls = [...new Set([
       ...$('iframe[src],video[src],video source[src]').map((_index, element) => $(element).attr('src')).get(),
+      ...lazyPlayerUrls,
       ...[...response.text().matchAll(/https?:\\?\/\\?\/[^\s"'<>]+?\.(?:m3u8|mpd|mp4)(?:\?[^\s"'<>]*)?/gi)].map(match => match[0]?.replace(/\\\//g, '/') as string),
     ].filter((value): value is string => Boolean(value)).map(value => new URL(value, response.finalUrl).href))];
     if (!urls.length) return { type: 'failure', failure: { code: 'EMBED_NOT_FOUND', message: 'No supported embeds or media URLs were found', extractorId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: response.status, finalUrl: response.finalUrl.href, bodyCaptured: false } } };
