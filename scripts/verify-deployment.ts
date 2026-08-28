@@ -29,14 +29,17 @@ async function verifyDeploymentContract(): Promise<void> {
       if (!response.ok || (await response.json() as { status?: string }).status !== 'ok') throw new Error(`${path} did not return the expected health response`);
     }
     const manifestResponse = await fetch(`http://127.0.0.1:${port}/manifest.json`);
-    const manifest = await manifestResponse.json() as { id?: string; version?: string; name?: string; description?: string; resources?: unknown[] };
-    if (!manifestResponse.ok || manifest.id !== 'fmhy-webstream' || manifest.version !== '1.0.0' || manifest.name !== 'FMHY\'s Website Streamer' || !manifest.description?.startsWith('Provides video HTTP URLs from streaming websites listed by FMHY.') || !manifest.resources?.length) throw new Error('Manifest contract is invalid');
+    const manifest = await manifestResponse.json() as { id?: string; version?: string; name?: string; description?: string; resources?: unknown[]; config?: { key: string }[] };
+    if (!manifestResponse.ok || manifest.id !== 'fmhy-webstream' || manifest.version !== '1.0.0' || manifest.name !== 'FMHY\'s Website Streamer' || !manifest.description?.startsWith('Provides video HTTP URLs from streaming websites listed by FMHY.') || !manifest.resources?.length || !manifest.config?.some(field => field.key === 'disableFmhySource_7movies:7movies.in') || manifest.config.some(field => /mediaFlow|disableExtractor/i.test(field.key))) throw new Error('Manifest contract is invalid');
     const configure = await fetch(`http://127.0.0.1:${port}/configure`);
     const configureBody = await configure.text();
-    if (!configure.ok || !configure.headers.get('content-type')?.includes('text/html') || !configureBody.includes('FMHY\'s Website Streamer') || !configureBody.includes('Provides video HTTP URLs from streaming websites listed by FMHY.') || /torbox|debrid|debris/i.test(configureBody)) throw new Error('Configuration endpoint contract is invalid');
+    if (!configure.ok || !configure.headers.get('content-type')?.includes('text/html') || !configureBody.includes('FMHY\'s Website Streamer') || !configureBody.includes('Provides video HTTP URLs from streaming websites listed by FMHY.') || !configureBody.includes('7movies.in — healthy') || /torbox|debrid|debris|MediaFlow|WebStreamrMBG/i.test(configureBody)) throw new Error('Configuration endpoint contract is invalid');
+    const live = await fetch(`http://127.0.0.1:${port}/live`);
+    const liveBody = await live.json() as { status?: string; details?: Record<string, string> };
+    if (!live.ok || liveBody.status !== 'ok' || liveBody.details?.['7movies.in'] !== 'healthy') throw new Error('Runtime source registry was not loaded');
     const stream = await fetch(`http://127.0.0.1:${port}/%7B%7D/stream/movie/tmdb%3A27205.json`);
     const streamBody = await stream.json() as { streams?: unknown[] };
-    if (!stream.ok || !Array.isArray(streamBody.streams)) throw new Error('Stream route did not reach the Stremio adapter');
+    if (!stream.ok || !Array.isArray(streamBody.streams) || JSON.stringify(streamBody).includes('WebStreamrMBG')) throw new Error('Stream route did not reach the Stremio adapter');
     process.stdout.write(`Deployment contract verified at http://127.0.0.1:${port}\n`);
   } finally {
     server.kill('SIGTERM');

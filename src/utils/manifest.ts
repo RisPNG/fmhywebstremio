@@ -1,22 +1,10 @@
 import type { SourceHealthHistory } from '../engine/core/models';
 import type { SourceRegistry } from '../engine/registry';
-import { Extractor } from '../extractor';
-import { Source } from '../source';
-import { Config, CountryCode, CustomManifest } from '../types';
-import {
-  disableExtractorConfigKey,
-  disableFmhySourceConfigKey,
-  excludeResolutionConfigKey,
-  isExtractorDisabled,
-  isResolutionExcluded,
-} from './config';
+import { Config, CustomManifest } from '../types';
+import { disableFmhySourceConfigKey } from './config';
 import { envGetAppId, envGetAppName } from './env';
-import { flagFromCountryCode, languageFromCountryCode } from './language';
-import { RESOLUTIONS } from './resolution';
 
-const typedEntries = <T extends object>(obj: T): [keyof T, T[keyof T]][] => (Object.entries(obj) as [keyof T, T[keyof T]][]);
-
-export const buildManifest = (sources: Source[], extractors: Extractor[], config: Config, fmhySources?: SourceRegistry): CustomManifest => {
+export const buildManifest = (config: Config, fmhySources: SourceRegistry): CustomManifest => {
   const manifest: CustomManifest = {
     id: envGetAppId(),
     version: '1.0.0', // x-release-please-version
@@ -44,105 +32,15 @@ export const buildManifest = (sources: Source[], extractors: Extractor[], config
     },
   };
 
-  sources.sort((sourceA, sourceB) => sourceA.label.localeCompare(sourceB.label));
-
-  const countryCodeSources: Partial<Record<CountryCode, Source[]>> = {};
-  sources.forEach(source =>
-    source.countryCodes
-      .forEach(countryCode => countryCodeSources[countryCode] = [...(countryCodeSources[countryCode] ?? []), source]));
-
-  const sortedLanguageSources = typedEntries(countryCodeSources)
-    .sort(([countryCodeA], [countryCodeB]) => {
-      if (countryCodeB === CountryCode.multi) {
-        return 1;
-      }
-
-      return countryCodeA.localeCompare(countryCodeB);
-    });
-
-  const languages: string[] = [];
-  for (const [countryCode, sources] of sortedLanguageSources) {
-    const language = languageFromCountryCode(countryCode);
-    languages.push(language);
-
-    manifest.config.push({
-      key: countryCode,
-      type: 'checkbox',
-      title: `${language} ${flagFromCountryCode(countryCode)} (${(sources as Source[]).map(source => source.label).sort().join(', ')})`,
-      ...(countryCode in config && { default: 'checked' }),
-    });
-  }
-
-  manifest.config.push({
-    key: 'showErrors',
-    type: 'checkbox',
-    title: 'Show errors',
-    ...('showErrors' in config && { default: 'checked' }),
-  });
-
-  manifest.config.push({
-    key: 'includeExternalUrls',
-    type: 'checkbox',
-    title: 'Include external URLs in results',
-    ...('includeExternalUrls' in config && { default: 'checked' }),
-  });
-
-  manifest.config.push({
-    key: 'mediaFlowProxyUrl',
-    type: 'text',
-    title: 'MediaFlow Proxy URL',
-    default: config['mediaFlowProxyUrl'] ?? '',
-  });
-
-  manifest.config.push({
-    key: 'mediaFlowProxyPassword',
-    type: 'password',
-    title: 'MediaFlow Proxy Password',
-    default: config['mediaFlowProxyPassword'] ?? '',
-  });
-
-  RESOLUTIONS.forEach((resolution) => {
-    manifest.config.push({
-      key: excludeResolutionConfigKey(resolution),
-      type: 'checkbox',
-      title: `Exclude resolution ${resolution}`,
-      ...(isResolutionExcluded(config, resolution) && { default: 'checked' }),
-    });
-  });
-
-  extractors.forEach((extractor) => {
-    if (extractor.id === 'external') {
-      return;
-    }
-
-    manifest.config.push({
-      key: disableExtractorConfigKey(extractor),
-      type: 'checkbox',
-      title: `Disable extractor ${extractor.label}`,
-      ...(isExtractorDisabled(config, extractor) && { default: 'checked' }),
-    });
-  });
-
-  for (const source of fmhySources?.runtimeEligible() ?? []) {
+  for (const source of fmhySources.runtimeEligible()) {
     const key = disableFmhySourceConfigKey(source.id);
-    const health = fmhySources?.health().get(source.id) as SourceHealthHistory;
+    const health = fmhySources.health().get(source.id) as SourceHealthHistory;
     manifest.config.push({
       key,
       type: 'checkbox',
       title: `${source.canonicalDomain} — ${health.lastOutcome}`,
       ...(key in config && { default: 'checked' }),
     });
-  }
-
-  const supportedLanguages = languages.filter(language => language !== 'Multi');
-  if (supportedLanguages.length > 0) {
-    manifest.description += `\n\nSupported languages: ${supportedLanguages.join(', ')}`;
-  }
-  if (sources.length > 0) {
-    manifest.description += `\n\nSupported sources: ${sources.map(source => source.label).join(', ')}`;
-  }
-  if (extractors.length > 0) {
-    manifest.description += `\n\nSupported extractors: ${extractors.map(extractor => extractor.label).join(', ')}`;
   }
 
   return manifest;

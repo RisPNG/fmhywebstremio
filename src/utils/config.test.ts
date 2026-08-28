@@ -1,7 +1,7 @@
 import { getDefaultConfig } from './config';
 
 describe('getDefaultConfig', () => {
-  test('has English enabled', () => {
-    expect(getDefaultConfig().en).toBe('on');
+  test('enables every runtime-eligible source', () => {
+    expect(getDefaultConfig()).toEqual({});
   });
 });

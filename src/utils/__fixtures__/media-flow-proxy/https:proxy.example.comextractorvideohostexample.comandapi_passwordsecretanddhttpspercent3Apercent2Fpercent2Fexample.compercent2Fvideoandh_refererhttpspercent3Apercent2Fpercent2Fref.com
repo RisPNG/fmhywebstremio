@@ -1,1 +1,0 @@
-{"mediaflow_proxy_url":"https://proxy.example.com/proxy/hls/manifest.m3u8","destination_url":"https://example.com/stream.m3u8","request_headers":{"Referer":"https://ref.com"},"query_params":{"token":"abc123"}}

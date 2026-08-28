@@ -1,6 +1,0 @@
-#EXTM3U
-#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=2500000,RESOLUTION=1920x1080,CODECS="avc1.64002a,mp4a.40.2"
-https://st-us-01.vidsonic.net/secure/98/6kdnd2tr020f/1080/index.m3u8?server_id=3&expires=1234567890
-#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=1200000,RESOLUTION=1280x720,CODECS="avc1.64002a,mp4a.40.2"
-https://st-us-01.vidsonic.net/secure/98/6kdnd2tr020f/720/index.m3u8?server_id=3&expires=1234567890
-

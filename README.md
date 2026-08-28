@@ -15,7 +15,7 @@ Stremio request
     -> Stremio response
 ```
 
-Runtime sources come from the freshly audited FMHY registry. New integrations belong in focused source-family or host-extractor modules rather than route handlers, and historical source modules are not registered when their sites are absent from the current FMHY list or fail fresh stream validation.
+Runtime sources come from the freshly audited FMHY registry. Every one-shot audit also generates the committed deployment registry, so the same passed sources are available on stateless hosts after the audit changes are committed. New integrations belong in focused source-family or host-extractor modules rather than route handlers. Sites absent from the current FMHY list or without fresh stream validation are not shipped.
 
 ## Development
 
@@ -37,7 +37,7 @@ Run the opt-in live audit separately from deterministic CI tests:
 mise exec -- npm run test:extractability
 ```
 
-The audit fetches the FMHY video directory, reports every normalized entry, recognizes supported site families, and tests known positive and negative media cases through discovery, extraction, and fresh stream validation. Its JSON report is saved to `.data/extractability/report.json`, while runtime eligibility and health history are saved to `.data/extractability/sources.json`.
+The audit fetches the FMHY video directory, reports every normalized entry, recognizes supported site families, and tests known positive and negative media cases through discovery, extraction, and fresh stream validation. Its JSON report is saved to `.data/extractability/report.json`, while runtime eligibility and health history are saved to `.data/extractability/sources.json`. Passed sources are also written to `src/engine/registry/deployment-registry.generated.ts` for stateless deployment.
 
 Provider dependency edges are saved to `.data/extractability/dependencies.json`. The report includes root-cause groups that connect a typed provider or protocol failure to every affected source.
 
@@ -45,7 +45,7 @@ An individual site failure is a report result rather than a test-process failure
 
 The report keeps site disposition separate from extractability. `redirected` records include the observed final URL when a candidate resolves to an unrelated domain. `unreachable` records include timeout, DNS, connection, TLS, or equivalent probe failures. `blocked` distinguishes access denial or rate limiting from a site that appears down. `inconclusive` covers ambiguous recognition or an exhausted probe budget, while `unsupported` means the site responded successfully but did not match an implemented source family. Tested family cases retain their discovery, extraction, validation, and typed failure details.
 
-The server loads the persisted eligibility and dependency registries at startup and checks for atomic registry updates every minute by default, so a completed audit becomes active without a restart. Set `EXTRACTABILITY_RELOAD_INTERVAL_MS=0` to disable live reload or choose another positive interval. Every freshly passed FMHY site is added to the configure page with its current health outcome. The enabled or disabled value is encoded into that configured add-on URL and filters runtime source selection. The audit currently recognizes only source families implemented by this repository, so broad directory reporting does not imply broad extraction support.
+The server loads a persisted eligibility registry when one exists and otherwise uses the committed deployment registry. It checks for atomic registry updates every minute by default, so a maintenance process with shared persistent storage can activate a completed audit without a restart. Set `EXTRACTABILITY_RELOAD_INTERVAL_MS=0` to disable live reload or choose another positive interval. Every shipped passed FMHY site is added to the configure page with its current health outcome. The enabled or disabled value is encoded into that configured add-on URL and filters runtime source selection. The audit currently recognizes only source families implemented by this repository, so broad directory reporting does not imply broad extraction support.
 
 The implemented reusable families are Cinrift frontends backed by the Vidrift grant and source APIs, P-Stream-compatible frontends backed by the shared provider architecture, and Dooplay sites backed by their shared discovery routes. P-Stream sites remain non-eligible when the provider architecture cannot find the known health-corpus media from the deployment network. Dooplay sites remain non-eligible when search discovery is incomplete or delegated players fail fresh validation. Browser-only anti-bot challenges, authenticated sites, client applications without a server-reproducible playback contract, and hosts that return expired media remain typed blocked, unsupported, failed, or inconclusive results rather than passes.
 
