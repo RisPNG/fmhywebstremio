@@ -10,71 +10,6 @@ exports[`buildManifest default manifest 1`] = `
   "catalogs": [],
   "config": [
     {
-      "key": "multi",
-      "title": "Multi 🌐 (4KHDHub, HDHub4u, MovieBox, VidSrc, VidZee, VixSrc)",
-      "type": "checkbox",
-    },
-    {
-      "key": "al",
-      "title": "Albanian 🇦🇱 (Kokoshka)",
-      "type": "checkbox",
-    },
-    {
-      "key": "de",
-      "title": "German 🇩🇪 (Einschalten, Filmpalast, KinoGer, MegaKino, MeineCloud)",
-      "type": "checkbox",
-    },
-    {
-      "key": "es",
-      "title": "Castilian Spanish 🇪🇸 (CineHDPlus, Cuevana, HomeCine, VerHdLink)",
-      "type": "checkbox",
-    },
-    {
-      "key": "fr",
-      "title": "French 🇫🇷 (Frembed, FrenchCloud, Movix)",
-      "type": "checkbox",
-    },
-    {
-      "key": "gu",
-      "title": "Gujarati 🇮🇳 (HDHub4u)",
-      "type": "checkbox",
-    },
-    {
-      "key": "hi",
-      "title": "Hindi 🇮🇳 (4KHDHub, HDHub4u)",
-      "type": "checkbox",
-    },
-    {
-      "key": "it",
-      "title": "Italian 🇮🇹 (Eurostreaming, MostraGuarda)",
-      "type": "checkbox",
-    },
-    {
-      "key": "ml",
-      "title": "Malayalam 🇮🇳 (HDHub4u)",
-      "type": "checkbox",
-    },
-    {
-      "key": "mx",
-      "title": "Latin American Spanish 🇲🇽 (CineHDPlus, Cuevana, HomeCine, VerHdLink)",
-      "type": "checkbox",
-    },
-    {
-      "key": "pa",
-      "title": "Punjabi 🇮🇳 (HDHub4u)",
-      "type": "checkbox",
-    },
-    {
-      "key": "ta",
-      "title": "Tamil 🇮🇳 (4KHDHub, HDHub4u)",
-      "type": "checkbox",
-    },
-    {
-      "key": "te",
-      "title": "Telugu 🇮🇳 (4KHDHub, HDHub4u)",
-      "type": "checkbox",
-    },
-    {
       "key": "showErrors",
       "title": "Show errors",
       "type": "checkbox",
@@ -147,13 +82,7 @@ exports[`buildManifest default manifest 1`] = `
       "type": "checkbox",
     },
   ],
-  "description": "Provides video HTTP URLs from streaming websites listed by FMHY.
-
-Supported languages: Albanian, German, Castilian Spanish, French, Gujarati, Hindi, Italian, Malayalam, Latin American Spanish, Punjabi, Tamil, Telugu
-
-Supported sources: 4KHDHub, CineHDPlus, Cuevana, Einschalten, Eurostreaming, Filmpalast, Frembed, FrenchCloud, HDHub4u, HomeCine, KinoGer, Kokoshka, MegaKino, MeineCloud, MostraGuarda, MovieBox, Movix, VerHdLink, VidSrc, VidZee, VixSrc
-
-Supported extractors: ",
+  "description": "Provides video HTTP URLs from streaming websites listed by FMHY.",
   "id": "fmhy-webstream",
   "idPrefixes": [
     "tmdb:",
@@ -595,6 +524,11 @@ exports[`buildManifest has checked source with appropriate config 1`] = `
 exports[`buildManifest has unchecked source without a config 1`] = `
 [
   {
+    "key": "multi",
+    "title": "Multi 🌐 (4KHDHub, VixSrc)",
+    "type": "checkbox",
+  },
+  {
     "key": "de",
     "title": "German 🇩🇪 (MeineCloud)",
     "type": "checkbox",
@@ -605,13 +539,23 @@ exports[`buildManifest has unchecked source without a config 1`] = `
     "type": "checkbox",
   },
   {
-    "key": "multi",
-    "title": "Multi 🌐 (VixSrc)",
+    "key": "hi",
+    "title": "Hindi 🇮🇳 (4KHDHub)",
     "type": "checkbox",
   },
   {
     "key": "mx",
     "title": "Latin American Spanish 🇲🇽 (VerHdLink)",
+    "type": "checkbox",
+  },
+  {
+    "key": "ta",
+    "title": "Tamil 🇮🇳 (4KHDHub)",
+    "type": "checkbox",
+  },
+  {
+    "key": "te",
+    "title": "Telugu 🇮🇳 (4KHDHub)",
     "type": "checkbox",
   },
   {

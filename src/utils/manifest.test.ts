@@ -4,6 +4,7 @@ import { DoodStream } from '../extractor/DoodStream';
 import { ExternalUrl } from '../extractor/ExternalUrl';
 import { SuperVideo } from '../extractor/SuperVideo';
 import { createSources } from '../source';
+import { FourKHDHub } from '../source/FourKHDHub';
 import { MeineCloud } from '../source/MeineCloud';
 import { VerHdLink } from '../source/VerHdLink';
 import { VixSrc } from '../source/VixSrc';
@@ -24,6 +25,7 @@ describe('buildManifest', () => {
 
   test('has unchecked source without a config', () => {
     const sources = [
+      new FourKHDHub(fetcher),
       new VixSrc(fetcher),
       new VerHdLink(fetcher),
       new MeineCloud(fetcher),
