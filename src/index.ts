@@ -6,7 +6,7 @@ import rateLimit from 'express-rate-limit';
 import winston from 'winston';
 import { RuntimeStremioAdapter } from './addon/stremio-adapter';
 import { ConfigureController, ManifestController, StreamController } from './controller';
-import { RuntimeStreamEngine, TmdbMediaResolver } from './engine/core';
+import { RuntimeStreamEngine, StremioMediaResolver } from './engine/core';
 import { DependencyGraph, JsonDependencyStore, type SourceFamily } from './engine/health';
 import { deploymentSourceRegistry, JsonSourceRegistryStore, MatcherRegistry, RegistryExtractorLookup, SourceRegistry, type SourceRegistryState } from './engine/registry';
 import { ExtractionResolver } from './engine/resolver';
@@ -103,7 +103,7 @@ const runtimeResolver = new ExtractionResolver(new RegistryExtractorLookup(new M
   const familyId = child.hints?.['sourceExtractor'];
   if (typeof sourceId === 'string' && typeof familyId === 'string') runtimeDependencies.record({ sourceId, familyId, provider: child.url.hostname, observedAt: new Date() });
 } });
-const runtimeEngine = new RuntimeStreamEngine(new TmdbMediaResolver(runtimeTransport, envGet('TMDB_ACCESS_TOKEN') ?? ''), runtimeSourceRegistry, runtimeFamilies, runtimeResolver, runtimeTransport, runtimeDependencies, runtimeDependencyStore);
+const runtimeEngine = new RuntimeStreamEngine(new StremioMediaResolver(runtimeTransport, envGet('TMDB_ACCESS_TOKEN') ?? ''), runtimeSourceRegistry, runtimeFamilies, runtimeResolver, runtimeTransport, runtimeDependencies, runtimeDependencyStore);
 addon.use('/', (new StreamController(logger, new RuntimeStremioAdapter(runtimeEngine))).router);
 
 // error handler needs to stay at the end of the stack

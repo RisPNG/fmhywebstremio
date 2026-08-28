@@ -14,6 +14,7 @@ export class DooplayFamily implements SourceFamily {
   }
 
   public async discoverMedia(media: MediaIdentity, source: SourceRecord, services: RequestServices, signal: AbortSignal): Promise<ExtractionResult> {
+    if (!media.title) return { type: 'empty', reason: 'not-found' };
     const query = new URL(`https://${source.canonicalDomain}/`);
     query.searchParams.set('s', `${media.title}${media.year ? ` ${media.year}` : ''}`);
     const response = await services.request({ url: query, expectedContent: 'html', stateScope: { kind: 'source', key: source.id } }, signal);
