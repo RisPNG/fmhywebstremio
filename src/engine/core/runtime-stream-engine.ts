@@ -23,7 +23,8 @@ export class RuntimeStreamEngine implements StreamEngine {
     let completed = 0;
     let cancelled = 0;
     let attempted = 0;
-    const selectedSources = this.sources.list(['supported', 'degraded']).filter(source => this.sources.health().get(source.id)?.lastOutcome !== 'failed').sort((a, b) => ({ healthy: 0, degraded: 1, failed: 2 }[this.sources.health().get(a.id)?.lastOutcome ?? 'healthy']) - ({ healthy: 0, degraded: 1, failed: 2 }[this.sources.health().get(b.id)?.lastOutcome ?? 'healthy']) || (this.sources.health().get(b.id)?.recentSuccesses ?? 0) - (this.sources.health().get(a.id)?.recentSuccesses ?? 0) || (this.sources.health().get(a.id)?.recentFailures ?? 0) - (this.sources.health().get(b.id)?.recentFailures ?? 0) || a.id.localeCompare(b.id)).slice(0, options.maxSources ?? Number.MAX_SAFE_INTEGER);
+    const excludedSourceIds = new Set(options.excludedSourceIds ?? []);
+    const selectedSources = this.sources.runtimeEligible().filter(source => !excludedSourceIds.has(source.id)).sort((a, b) => ({ healthy: 0, degraded: 1, failed: 2 }[this.sources.health().get(a.id)?.lastOutcome ?? 'healthy']) - ({ healthy: 0, degraded: 1, failed: 2 }[this.sources.health().get(b.id)?.lastOutcome ?? 'healthy']) || (this.sources.health().get(b.id)?.recentSuccesses ?? 0) - (this.sources.health().get(a.id)?.recentSuccesses ?? 0) || (this.sources.health().get(a.id)?.recentFailures ?? 0) - (this.sources.health().get(b.id)?.recentFailures ?? 0) || a.id.localeCompare(b.id)).slice(0, options.maxSources ?? Number.MAX_SAFE_INTEGER);
     if (!selectedSources.length) return { streams: [], failures, unverified: candidates, deadline: { budgetMs, elapsedMs: Date.now() - started, exceeded: false, sourcesAttempted: 0, sourcesCompleted: 0, sourcesCancelled: 0 } };
     try {
       const media = await this.mediaResolver.resolve(request, controller.signal);

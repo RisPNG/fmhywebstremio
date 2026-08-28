@@ -13,7 +13,7 @@ export interface ExtractionResponse {
   truncated: boolean;
   timing: { startedAt: Date; elapsedMs: number };
 }
-export interface QueryOptions { deadlineMs?: number; preferredLanguages?: readonly string[]; validationTopK?: number; maxSources?: number; initialSourceBatch?: number; minimumCandidates?: number }
+export interface QueryOptions { deadlineMs?: number; preferredLanguages?: readonly string[]; validationTopK?: number; maxSources?: number; initialSourceBatch?: number; minimumCandidates?: number; excludedSourceIds?: readonly string[] }
 export interface StreamQueryResult {
   streams: readonly NormalizedStream[];
   failures: readonly Failure[];

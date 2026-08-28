@@ -1,4 +1,5 @@
 import { Request, Response, Router } from 'express';
+import type { SourceRegistry } from '../engine/registry';
 import { Extractor } from '../extractor';
 import { Source } from '../source';
 import { Config } from '../types';
@@ -10,7 +11,7 @@ export class ManifestController {
   private readonly sources: Source[];
   private readonly extractors: Extractor[];
 
-  public constructor(sources: Source[], extractors: Extractor[]) {
+  public constructor(sources: Source[], extractors: Extractor[], private readonly fmhySources?: SourceRegistry) {
     this.router = Router();
 
     this.sources = sources;
@@ -31,7 +32,7 @@ export class ManifestController {
       }
     }
 
-    const manifest = buildManifest(this.sources, this.extractors, config);
+    const manifest = buildManifest(this.sources, this.extractors, config, this.fmhySources);
 
     res.setHeader('Content-Type', 'application/json');
     res.send(manifest);

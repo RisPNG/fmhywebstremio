@@ -1,18 +1,21 @@
 import { resolve } from 'node:path';
 import { FmhyDirectoryProvider, FmhyMaintenanceService, JsonDirectorySnapshotStore } from '../discovery/fmhy';
+import type { SourceFamily } from '../engine/health';
 import { defaultFamilyHealthCorpora, DependencyGraph, ExtractabilityAuditRunner, FamilyHealthRunner, JsonDependencyStore, JsonExtractabilityReportStore, SourceFamilyProbeRunner } from '../engine/health';
 import { StreamSelector } from '../engine/protocols';
 import { JsonSourceRegistryStore, MatcherRegistry, RegistryExtractorLookup, SourceRegistry } from '../engine/registry';
 import { ExtractionResolver } from '../engine/resolver';
 import { TransportDirector } from '../engine/transport';
 import { extractorRegistry } from '../extractors/registry.generated';
+import { CinriftFamily } from '../extractors/sources/cinrift-family';
 import { DooplayFamily } from '../extractors/sources/dooplay-family';
+import { PStreamFamily } from '../extractors/sources/pstream-family';
 
 const dataDirectory = resolve(process.env['EXTRACTABILITY_DATA_DIR'] ?? '.data/extractability');
 const transport = new TransportDirector({ globalConcurrency: 24, perHostConcurrency: 3, maxRetries: 1 });
 const registry = new SourceRegistry();
 const registryStore = new JsonSourceRegistryStore(resolve(dataDirectory, 'sources.json'));
-const families = new Map([['dooplay', new DooplayFamily()]]);
+const families = new Map<string, SourceFamily>([['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()]]);
 const controller = new AbortController();
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => controller.abort(new Error(signal)));
 
