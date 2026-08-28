@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.blueprint.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "outDir": ".verify-build",
+    "rootDir": "src"
+  },
+  "include": [
+    "src/engine/core/models/**/*.ts",
+    "src/engine/core/testing/**/*.ts"
+  ]
+}

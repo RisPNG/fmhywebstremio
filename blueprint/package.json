@@ -1,0 +1,15 @@
+{
+  "name": "webstreamrmbg-blueprint",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "verify:diagnostics": "sh scripts/verify-diagnostics.sh",
+    "verify": "npm run typecheck && npm run verify:contracts && npm run verify:diagnostics && npm run verify:package",
+    "verify:package": "sh scripts/verify-package.sh",
+    "verify:contracts": "sh scripts/verify-contracts.sh"
+  },
+  "devDependencies": {
+    "typescript": "5.9.2"
+  }
+}

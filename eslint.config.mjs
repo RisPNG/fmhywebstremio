@@ -14,7 +14,7 @@ export default tseslint.config(
     semi: true,
   }),
   {
-    ignores: ['./dist'],
+    ignores: ['./dist', './blueprint', './references'],
   },
   {
     rules: {

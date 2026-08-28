@@ -7,9 +7,17 @@ import express, { NextFunction, Request, Response } from 'express';
 // eslint-disable-next-line import/no-named-as-default
 import rateLimit from 'express-rate-limit';
 import winston from 'winston';
+import { CombinedStremioAdapter, LegacyStremioAdapter, RuntimeStremioAdapter } from './addon/stremio-adapter';
 import { ConfigureController, ExtractController, ManifestController, StreamController } from './controller';
+import { RuntimeStreamEngine, TmdbMediaResolver } from './engine/core';
+import { DependencyGraph, JsonDependencyStore } from './engine/health';
+import { JsonSourceRegistryStore, MatcherRegistry, RegistryExtractorLookup, SourceRegistry } from './engine/registry';
+import { ExtractionResolver } from './engine/resolver';
+import { TransportDirector } from './engine/transport';
 import { BlockedError, logErrorAndReturnNiceString } from './error';
 import { createExtractors, ExtractorRegistry } from './extractor';
+import { extractorRegistry as runtimeExtractorRegistry } from './extractors/registry.generated';
+import { DooplayFamily } from './extractors/sources/dooplay-family';
 import { createSources, Source } from './source';
 import { HomeCine } from './source/HomeCine';
 import { MeineCloud } from './source/MeineCloud';
@@ -102,7 +110,19 @@ addon.use('/', (new ConfigureController(sources, extractors)).router);
 addon.use('/', (new ManifestController(sources, extractors)).router);
 
 const streamResolver = new StreamResolver(logger, extractorRegistry);
-addon.use('/', (new StreamController(logger, sources, streamResolver)).router);
+const runtimeTransport = new TransportDirector();
+const runtimeSourceRegistry = new SourceRegistry();
+const runtimeSourceRegistryStore = new JsonSourceRegistryStore(`${envGet('EXTRACTABILITY_DATA_DIR') ?? '.data/extractability'}/sources.json`);
+const runtimeDependencies = new DependencyGraph();
+const runtimeDependencyStore = new JsonDependencyStore(`${envGet('EXTRACTABILITY_DATA_DIR') ?? '.data/extractability'}/dependencies.json`);
+const runtimeFamilies = new Map([['dooplay', new DooplayFamily()]]);
+const runtimeResolver = new ExtractionResolver(new RegistryExtractorLookup(new MatcherRegistry(runtimeExtractorRegistry)), runtimeTransport, { onDelegation: (_parent, child) => {
+  const sourceId = child.hints?.['sourceId'];
+  const familyId = child.hints?.['sourceExtractor'];
+  if (typeof sourceId === 'string' && typeof familyId === 'string') runtimeDependencies.record({ sourceId, familyId, provider: child.url.hostname, observedAt: new Date() });
+} });
+const runtimeEngine = new RuntimeStreamEngine(new TmdbMediaResolver(runtimeTransport, envGet('TMDB_ACCESS_TOKEN') ?? ''), runtimeSourceRegistry, runtimeFamilies, runtimeResolver, runtimeTransport, runtimeDependencies, runtimeDependencyStore);
+addon.use('/', (new StreamController(logger, new CombinedStremioAdapter([new LegacyStremioAdapter(streamResolver, sources), new RuntimeStremioAdapter(runtimeEngine)]))).router);
 
 // error handler needs to stay at the end of the stack
 addon.use((err: Error, _req: Request, _res: Response, next: NextFunction) => {
@@ -188,6 +208,16 @@ const port = parseInt(envGet('PORT') || '51546');
   if (envGet('CACHE_FILES_DELETE_ON_START')) {
     await clearCache(logger);
   }
+  const runtimeSources = await runtimeSourceRegistryStore.load();
+  if (runtimeSources) runtimeSourceRegistry.restore(runtimeSources);
+  runtimeDependencies.restore(await runtimeDependencyStore.load());
+  const registryReloadIntervalMs = Number(envGet('EXTRACTABILITY_RELOAD_INTERVAL_MS') ?? 60000);
+  if (registryReloadIntervalMs > 0) setInterval(() => {
+    void runtimeSourceRegistryStore.load().then((state) => {
+      if (state) runtimeSourceRegistry.restore(state);
+    }).catch((error: unknown) => logger.error(`Could not reload extractability registry: ${error instanceof Error ? error.message : String(error)}`));
+    void runtimeDependencyStore.load().then(edges => edges.forEach(edge => runtimeDependencies.record(edge))).catch((error: unknown) => logger.error(`Could not reload extraction dependencies: ${error instanceof Error ? error.message : String(error)}`));
+  }, registryReloadIntervalMs).unref();
   addon.listen(port, () => {
     logger.info(`Add-on Repository URL: http://127.0.0.1:${port}/manifest.json`);
   });

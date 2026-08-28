@@ -11,9 +11,9 @@ export const envGetRequired = (name: string): string => {
   return value;
 };
 
-export const envGetAppId = (): string => process.env['MANIFEST_ID'] || 'webstreamr-mbg';
+export const envGetAppId = (): string => process.env['MANIFEST_ID'] || 'fmhy-webstream';
 
-export const envGetAppName = (): string => process.env['MANIFEST_NAME'] || 'WebStreamrMBG';
+export const envGetAppName = (): string => process.env['MANIFEST_NAME'] || 'FMHY WebStream';
 
 export const envIsProd = (): boolean => process.env['NODE_ENV'] === 'production';
 

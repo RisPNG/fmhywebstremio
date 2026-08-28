@@ -1,44 +1,30 @@
 import { Mutex } from 'async-mutex';
 import { Request, Response, Router } from 'express';
-import { ContentType } from 'stremio-addon-sdk';
 import winston from 'winston';
-import { Source } from '../source';
-import { contextFromRequestAndResponse, envIsProd, Id, ImdbId, StreamResolver, TmdbId } from '../utils';
+import type { StremioStreamProvider } from '../addon/stremio-adapter';
+import { contextFromRequestAndResponse, envIsProd } from '../utils';
 
 export class StreamController {
   public readonly router: Router;
 
   private readonly logger: winston.Logger;
-  private readonly sources: Source[];
-  private readonly streamResolver: StreamResolver;
+  private readonly streams: StremioStreamProvider;
 
   private readonly locks = new Map<string, Mutex>();
 
-  public constructor(logger: winston.Logger, sources: Source[], streams: StreamResolver) {
+  public constructor(logger: winston.Logger, streams: StremioStreamProvider) {
     this.router = Router();
 
     this.logger = logger;
-    this.sources = sources;
-    this.streamResolver = streams;
+    this.streams = streams;
 
     this.router.get('/stream/:type/:id.json', this.getStream.bind(this));
     this.router.get('/:config/stream/:type/:id.json', this.getStream.bind(this));
   }
 
   private async getStream(req: Request, res: Response) {
-    const type: ContentType = (req.params['type'] || '') as ContentType;
+    const type = String(req.params['type'] || '');
     const rawId: string = req.params['id'] as string || '';
-
-    let id: Id;
-    if (rawId.startsWith('tmdb:')) {
-      id = TmdbId.fromString(rawId.replace('tmdb:', ''));
-    } else if (rawId.startsWith('tt')) {
-      id = ImdbId.fromString(rawId);
-    } else {
-      res.status(400).send(`Unsupported ID: ${rawId}`);
-
-      return;
-    }
 
     let ctx;
     try {
@@ -50,8 +36,6 @@ export class StreamController {
 
     this.logger.info(`Search stream for type "${type}" and id "${rawId}" for ip ${ctx.ip}`, ctx);
 
-    const sources = this.sources.filter(source => source.countryCodes.filter(countryCode => countryCode in ctx.config).length);
-
     let mutex = this.locks.get(rawId);
     if (!mutex) {
       mutex = new Mutex();
@@ -59,7 +43,14 @@ export class StreamController {
     }
 
     await mutex.runExclusive(async () => {
-      const { streams, ttl } = await this.streamResolver.resolve(ctx, sources, type, id);
+      let result;
+      try {
+        result = await this.streams.findStreams(ctx, type, rawId);
+      } catch (error) {
+        res.status(400).send((error as Error).message);
+        return;
+      }
+      const { streams, ttl } = result;
 
       if (ttl && envIsProd()) {
         res.setHeader('Cache-Control', `public, max-age=${Math.floor(ttl / 1000)}`);

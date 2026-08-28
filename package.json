@@ -7,12 +7,19 @@
     "analyse": "tsc --noEmit --project ./tsconfig.dev.json",
     "build": "rm -rf ./dist && tsc",
     "dev": "nodemon src/index.ts",
+    "generate:registry": "ts-node scripts/generate-registry.ts",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "start": "node dist/index.js",
     "test": "jest",
+    "test:extractability": "ts-node src/cli/audit-extractability.ts",
+    "maintain:extractability": "ts-node src/cli/audit-extractability.ts --watch",
+    "verify:contracts": "npm run analyse && npm test -- --runInBand --coverage=false src/engine/blueprint.test.ts",
+    "verify:diagnostics": "npm test -- --runInBand --coverage=false src/engine/blueprint.test.ts -t diagnostics",
+    "verify:deployment": "npm run build && ts-node scripts/verify-deployment.ts",
+    "verify:registry": "npm run generate:registry && git diff --exit-code -- src/extractors/registry.generated.ts && npm test -- --runInBand --coverage=false src/engine/blueprint.test.ts -t matcher",
     "test:update-fixtures": "TEST_UPDATE_FIXTURES=1 npm run test",
-    "ci": "npm run lint && npm run analyse && npm run test"
+    "ci": "npm run lint && npm run analyse && npm run verify:registry && npm run test"
   },
   "repository": {
     "type": "git",

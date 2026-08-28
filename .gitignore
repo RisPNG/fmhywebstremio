@@ -1,6 +1,7 @@
 /.idea
 /coverage/
 /dist/
+/.data/
 /node_modules/
 .env
 beamup-host.json
