@@ -1,5 +1,5 @@
 {
-  "name": "webstreamr-mbg",
+  "name": "fmhy-webstream",
   "description": "Provides video HTTP URLs from streaming websites listed by FMHY.",
   "version": "1.0.0",
   "type": "commonjs",
@@ -23,16 +23,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/newman2x/WebStreamrMBG.git"
+    "url": "https://github.com/RisPNG/fmhywebstremio.git"
   },
   "keywords": [
     "stremio",
     "stream"
   ],
-  "author": "newman2x",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/newman2x/WebStreamrMBG/issues"
+    "url": "https://github.com/RisPNG/fmhywebstremio/issues"
   },
   "engines": {
     "node": "^22.0.0 || ^24.0.0"
@@ -48,46 +47,21 @@
     }
   },
   "dependencies": {
-    "@keyv/sqlite": "^4.0.5",
     "@movie-web/providers": "^2.4.13",
     "async-mutex": "^0.5.0",
-    "axios": "^1.13.2",
-    "axios-cache-interceptor": "^1.8.3",
-    "axios-mock-adapter": "^2.1.0",
-    "axios-retry": "^4.5.0",
-    "bytes": "^3.1.2",
-    "cacheable": "^2.0.0",
     "cheerio": "^1.0.0",
     "express": "^5.1.0",
     "express-rate-limit": "^8.2.1",
-    "fast-levenshtein": "^3.0.0",
-    "fuse.js": "^7.3.0",
-    "glob": "^13.0.0",
-    "got-scraping": "^4.2.1",
-    "http-proxy-agent": "^7.0.2",
-    "https-proxy-agent": "^7.0.6",
-    "memoizee": "^0.4.17",
-    "minimatch": "^10.0.3",
-    "randomstring": "^1.3.1",
-    "rot13-cipher": "^1.0.0",
-    "slugify": "^1.6.6",
-    "socks-proxy-agent": "^8.0.5",
-    "sqlite3": "^5.1.7",
     "tough-cookie": "^6.0.0",
-    "unpacker": "^1.0.1",
     "winston": "^3.17.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",
     "@stylistic/eslint-plugin": "^5.0.0",
     "@tsconfig/node24": "^24.0.0",
-    "@types/bytes": "^3.1.5",
     "@types/express": "^5.0.1",
-    "@types/fast-levenshtein": "^0.0.4",
     "@types/jest": "^30.0.0",
-    "@types/memoizee": "^0.4.12",
     "@types/node": "^24.0.0",
-    "@types/randomstring": "^1.3.0",
     "@types/stremio-addon-sdk": "^1.6.11",
     "babel-jest": "^30.0.0",
     "eslint": "^9.26.0",

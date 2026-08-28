@@ -2,7 +2,9 @@ import type { Stream } from 'stremio-addon-sdk';
 import type { MediaRequest, NormalizedStream, StreamEngine } from '../../engine/core';
 import type { Context } from '../../types';
 import { envGetAppName } from '../../utils';
-import type { StremioStreamResult } from './legacy-adapter';
+
+export interface StremioStreamResult { streams: Stream[]; ttl?: number }
+export interface StremioStreamProvider { findStreams(ctx: Context, type: string, rawId: string): Promise<StremioStreamResult> }
 
 export function parseStremioMediaRequest(type: string, rawId: string): MediaRequest {
   if (type !== 'movie' && type !== 'series') throw new Error(`Unsupported type: ${type}`);
@@ -18,7 +20,7 @@ export function normalizedStreamToStremio(stream: NormalizedStream): Stream {
   return { url: stream.url.href, name: `${envGetAppName()}${stream.resolution ? `\n${stream.resolution.height}p` : ''}`, title: [stream.language, stream.sourceId, stream.hostExtractor].filter(Boolean).join(' · '), behaviorHints: { ...(stream.protocol !== 'http' && { notWebReady: true }), ...(stream.headers && { notWebReady: true, proxyHeaders: { request: stream.headers } }) } };
 }
 
-export class RuntimeStremioAdapter {
+export class RuntimeStremioAdapter implements StremioStreamProvider {
   public constructor(private readonly engine: StreamEngine) {}
   public async findStreams(ctx: Context, type: string, rawId: string): Promise<StremioStreamResult> {
     const result = await this.engine.findStreams(parseStremioMediaRequest(type, rawId), { excludedSourceIds: Object.keys(ctx.config).flatMap(key => key.startsWith('disableFmhySource_') ? [key.slice('disableFmhySource_'.length)] : []) });

@@ -1,22 +1,14 @@
 import { Request, Response, Router } from 'express';
 import type { SourceRegistry } from '../engine/registry';
-import { Extractor } from '../extractor';
 import { landingTemplate } from '../landingTemplate';
-import { Source } from '../source';
 import { Config } from '../types';
-import { buildManifest, getDefaultConfig, isElfHostedInstance } from '../utils';
+import { buildManifest, getDefaultConfig } from '../utils';
 
 export class ConfigureController {
   public readonly router: Router;
 
-  private readonly sources: Source[];
-  private readonly extractors: Extractor[];
-
-  public constructor(sources: Source[], extractors: Extractor[], private readonly fmhySources?: SourceRegistry) {
+  public constructor(private readonly fmhySources: SourceRegistry) {
     this.router = Router();
-
-    this.sources = sources;
-    this.extractors = extractors;
 
     this.router.get('/configure', this.getConfigure.bind(this));
     this.router.get('/:config/configure', this.getConfigure.bind(this));
@@ -33,12 +25,7 @@ export class ConfigureController {
       }
     }
 
-    // Convenience preset for ElfHosted WebStreamrMBG bundle including Media Flow Proxy
-    if (!req.params['config'] && isElfHostedInstance(req)) {
-      config.mediaFlowProxyUrl = `${req.protocol}://${req.host.replace('webstreamr-mbg', 'mediaflow-proxy')}`;
-    }
-
-    const manifest = buildManifest(this.sources, this.extractors, config, this.fmhySources);
+    const manifest = buildManifest(config, this.fmhySources);
 
     res.setHeader('content-type', 'text/html');
     res.send(landingTemplate(manifest));

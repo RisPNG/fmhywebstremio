@@ -5,7 +5,6 @@
     ":maintainLockFilesWeekly",
     ":rebaseStalePrs"
   ],
-  "assignees": ["newman2x"],
   "configMigration": true,
   "osvVulnerabilityAlerts": true,
   "postUpdateOptions": [
@@ -17,22 +16,6 @@
       "matchDatasources": ["npm"],
       "matchPackageNames": ["/^@types/"],
       "extends": ["schedule:weekly"]
-    },
-    {
-      "description": "Update user-agents once per month",
-      "matchDatasources": ["npm"],
-      "matchPackageNames": ["/^user-agents$/"],
-      "extends": ["schedule:monthly"]
-    },
-    {
-      "description": "Pin proxy agents below ESM-only versions",
-      "matchPackageNames": ["http-proxy-agent", "https-proxy-agent", "socks-proxy-agent"],
-      "allowedVersions": "<8"
-    },
-    {
-      "description": "Pin sqlite3 below v6 (major breaking change)",
-      "matchPackageNames": ["sqlite3"],
-      "allowedVersions": "<6"
     },
     {
       "description": "Pin resolve to stable v1 only (block pre-release)",

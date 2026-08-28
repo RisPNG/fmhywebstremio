@@ -1,9 +1,0 @@
-export class TimeoutError extends Error {
-  public readonly url: URL;
-
-  public constructor(url: URL) {
-    super();
-
-    this.url = url;
-  }
-}

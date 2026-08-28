@@ -6,49 +6,11 @@ export function landingTemplate(manifest: CustomManifest) {
   const logo = manifest.logo || 'https://dl.strem.io/addon-logo.png';
   const shortDesc = manifest.description.split('\n\n')[0];
 
-  const MISC_KEYS = ['showErrors', 'includeExternalUrls', 'mediaFlowProxyUrl', 'mediaFlowProxyPassword'];
-  const languageConfigs = manifest.config.filter(c =>
-    !c.key.startsWith('excludeResolution_') && !c.key.startsWith('disableExtractor_') && !c.key.startsWith('disableFmhySource_') && !MISC_KEYS.includes(c.key));
-  const resolutionConfigs = manifest.config.filter(c => c.key.startsWith('excludeResolution_'));
-  const extractorConfigs = manifest.config.filter(c => c.key.startsWith('disableExtractor_'));
   const fmhySourceConfigs = manifest.config.filter(c => c.key.startsWith('disableFmhySource_'));
-  const optionConfigs = manifest.config.filter(c => ['showErrors', 'includeExternalUrls'].includes(c.key));
-  const proxyConfigs = manifest.config.filter(c => ['mediaFlowProxyUrl', 'mediaFlowProxyPassword'].includes(c.key));
-
-  const langChips = languageConfigs.map((c) => {
-    const checked = c.default === 'checked' ? ' checked' : '';
-    const shortTitle = (c.title ?? '').replace(/\s*\(.*\)$/, '').trim();
-    const search = shortTitle.toLowerCase().replace(/[^\w ]/g, '');
-    return `<label class="lc" data-s="${search}"><input type="checkbox" name="${c.key}"${checked}><span>${shortTitle}</span></label>`;
-  }).join('');
-
-  const resChips = resolutionConfigs.map((c) => {
-    const isOff = c.default === 'checked';
-    const label = (c.title ?? '').replace('Exclude resolution ', '');
-    return `<div class="rc${isOff ? ' rc-off' : ''}" data-key="${c.key}">${label}</div>`;
-  }).join('');
-
-  const extChips = extractorConfigs.map((c) => {
-    const isOff = c.default === 'checked';
-    const label = (c.title ?? '').replace('Disable extractor ', '');
-    return `<div class="ec${isOff ? ' ec-off' : ''}" data-key="${c.key}">${label}</div>`;
-  }).join('');
 
   const sourceChips = fmhySourceConfigs.map((c) => {
     const isOff = c.default === 'checked';
     return `<div class="ec${isOff ? ' ec-off' : ''}" data-key="${c.key}">${c.title}</div>`;
-  }).join('');
-
-  const proxyFields = proxyConfigs.map((c) => {
-    const val = c.default ? ` value="${c.default}"` : '';
-    const type = c.type === 'password' ? 'password' : 'text';
-    const ph = type === 'password' ? '' : 'https://your-mediaflow-proxy/';
-    return `<div class="field"><label class="fl">${c.title}</label><input type="${type}" name="${c.key}" class="fi"${val} placeholder="${ph}" autocomplete="off"></div>`;
-  }).join('');
-
-  const optFields = optionConfigs.map((c) => {
-    const checked = c.default === 'checked' ? ' checked' : '';
-    return `<label class="or"><input type="checkbox" name="${c.key}"${checked}><span>${c.title}</span></label>`;
   }).join('');
 
   const customDesc = envGet('CONFIGURATION_DESCRIPTION')
@@ -141,55 +103,19 @@ body{position:relative;z-index:1;display:flex;justify-content:center;padding:2re
   </div>
 
   <div class="links">
-    <a href="https://github.com/newman2x/WebStreamrMBG" target="_blank" class="lnk">⬡ GitHub</a>
-    <a href="https://github.com/newman2x/WebStreamrMBG/issues" target="_blank" class="lnk">⚠ Issues</a>
-    <a href="https://github.com/newman2x/WebStreamrMBG/blob/main/CHANGELOG.md" target="_blank" class="lnk">📋 Changelog</a>
-    <a href="https://ko-fi.com/newman2x" target="_blank" class="lnk">☕ Support Us!</a>
+    <a href="https://github.com/RisPNG/fmhywebstremio" target="_blank" class="lnk">⬡ GitHub</a>
+    <a href="https://github.com/RisPNG/fmhywebstremio/issues" target="_blank" class="lnk">⚠ Issues</a>
   </div>
 
   ${customDesc}
 
   <form id="mainForm">
 
-    ${languageConfigs.length
-      ? `<div class="card">
-      <div class="ct">🌐 Languages</div>
-      <input type="text" class="ls" id="ls" placeholder="Filter languages…" autocomplete="off">
-      <div class="lgrid" id="lgrid">${langChips}</div>
-    </div>`
-      : ''}
-
-    ${proxyConfigs.length
-      ? `<div class="card">
-      <div class="ct">🔗 MediaFlow Proxy</div>
-      ${proxyFields}
-      <div class="note" style="margin-top:.6rem">Required for VixSrc and protected HLS streams. Set <code>MEDIAFLOW_PROXY_URL</code> server-side, or enter it here.</div>
-    </div>`
-      : ''}
-
-    ${resolutionConfigs.length
-      ? `<div class="card">
-      <div class="ct">📺 Resolution Filter</div>
-      <div class="rgrid">${resChips}</div>
-      <div class="hint">Click a resolution to exclude it (turns red).</div>
-    </div>`
-      : ''}
-
     ${fmhySourceConfigs.length
       ? `<div class="card">
       <div class="ct">🕸 FMHY Sources</div>
       <div class="egrid">${sourceChips}</div>
       <div class="hint">Current health appears after each site. Click a site to disable it for this addon URL.</div>
-    </div>`
-      : ''}
-
-    ${(optionConfigs.length || extractorConfigs.length)
-      ? `<div class="card">
-      <button type="button" class="ab" id="ab">⚙ Advanced <span class="ar">▾</span></button>
-      <div class="abody" id="abody">
-        ${optFields ? `<div style="margin-bottom:.25rem">${optFields}</div>` : ''}
-        ${extractorConfigs.length ? `<hr class="divider"><div class="esub">Extractors — check to disable</div><div class="egrid">${extChips}</div>` : ''}
-      </div>
     </div>`
       : ''}
 
@@ -202,19 +128,12 @@ body{position:relative;z-index:1;display:flex;justify-content:center;padding:2re
 <script>
 const form=document.getElementById('mainForm');
 const ilink=document.getElementById('installLink');
-const ls=document.getElementById('ls');
-const ab=document.getElementById('ab');
-const abody=document.getElementById('abody');
-if(ls){ls.addEventListener('input',()=>{const q=ls.value.toLowerCase().trim();document.querySelectorAll('.lc').forEach(c=>{c.classList.toggle('hidden',q.length>0&&!(c.dataset.s||'').includes(q));});})}
-if(ab){ab.addEventListener('click',()=>{ab.classList.toggle('open');abody.classList.toggle('open');})}
 const updateLink=()=>{
   const data=new FormData(form);
   const config=Object.fromEntries([...data.entries()].filter(([,v])=>v!==''));
-  if(config.mediaFlowProxyUrl){config.mediaFlowProxyUrl=config.mediaFlowProxyUrl.replace(/^https?:\\/\\//, '');}
   ilink.href='stremio://'+window.location.host+'/'+encodeURIComponent(JSON.stringify(config))+'/manifest.json';
 };
 form.addEventListener('change',updateLink);
-form.querySelectorAll('input[type=text],input[type=password]').forEach(el=>el.addEventListener('input',updateLink));
 
 document.querySelectorAll('.ec.ec-off').forEach(chip=>{
   const inp=document.createElement('input');
@@ -236,25 +155,6 @@ document.querySelectorAll('.ec').forEach(chip=>{
   });
 });
 
-document.querySelectorAll('.rc.rc-off').forEach(chip=>{
-  const inp=document.createElement('input');
-  inp.type='hidden';inp.name=chip.dataset.key;inp.value='on';inp.id='hx_'+chip.dataset.key;
-  form.appendChild(inp);
-});
-
-document.querySelectorAll('.rc').forEach(chip=>{
-  chip.addEventListener('click',()=>{
-    chip.classList.toggle('rc-off');
-    const key=chip.dataset.key;
-    const ex=document.getElementById('hx_'+key);
-    if(chip.classList.contains('rc-off')){
-      if(!ex){const inp=document.createElement('input');inp.type='hidden';inp.name=key;inp.value='on';inp.id='hx_'+key;form.appendChild(inp);}
-    } else {
-      if(ex)ex.remove();
-    }
-    updateLink();
-  });
-});
 const copyBtn=document.getElementById('copyBtn');
 if(copyBtn){
   copyBtn.addEventListener('click',()=>{

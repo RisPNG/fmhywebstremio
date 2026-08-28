@@ -1,199 +1,49 @@
 import { Request, Response } from 'express';
 import { contextFromRequestAndResponse } from './context';
 
-describe('contextFromRequest', () => {
-  test('with config and ip', () => {
+describe('contextFromRequestAndResponse', () => {
+  test('reads source selection and request identity', () => {
     const req = {
       protocol: 'https',
-      host: 'localhost',
-      headers: {
-        'X-Request-ID': 'fake-id',
-      },
+      host: 'addon.example',
+      headers: {},
       ip: '127.0.0.1',
-      params: { config: '{"de":"on"}' },
+      params: { config: '{"disableFmhySource_7movies:7movies.in":"on"}' },
     };
-    const res = {
-      getHeader: (name: string) => ({ 'X-Request-ID': 'fake-id' })[name],
-    };
+    const res = { getHeader: () => 'request-id' };
 
-    expect(contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response)).toMatchSnapshot();
+    expect(contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response)).toEqual({
+      hostUrl: new URL('https://addon.example'),
+      id: 'request-id',
+      ip: '127.0.0.1',
+      config: { 'disableFmhySource_7movies:7movies.in': 'on' },
+    });
   });
 
-  test('without config', () => {
-    const req = {
-      protocol: 'https',
-      host: 'localhost',
-      headers: {
-        'X-Request-ID': 'fake-id',
-      },
-      params: { },
-    };
-    const res = {
-      getHeader: (name: string) => ({ 'X-Request-ID': 'fake-id' })[name],
-    };
+  test('uses the default configuration', () => {
+    const req = { protocol: 'https', host: 'addon.example', headers: {}, params: {} };
+    const res = { getHeader: () => 'request-id' };
 
-    expect(contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response)).toMatchSnapshot();
+    expect(contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response).config).toEqual({});
   });
 
-  test('prefers HOST env var over truncated req.host (Cloudflare/Beamup scenario)', () => {
-    process.env['HOST'] = '//full.domain.baby-beamup.club';
+  test('uses the forwarded protocol', () => {
+    const req = { protocol: 'http', host: 'addon.example', headers: { 'x-forwarded-proto': 'https' }, params: {} };
+    const res = { getHeader: () => 'request-id' };
 
-    const req = {
-      protocol: 'https',
-      host: 'truncated-subdomain',
-      headers: {},
-      params: {},
-    };
-    const res = {
-      getHeader: () => undefined,
-    };
-
-    const ctx = contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response);
-    expect(ctx.hostUrl.hostname).toBe('full.domain.baby-beamup.club');
-    expect(ctx.hostUrl.protocol).toBe('https:');
-
-    process.env['HOST'] = 'example.test';
+    expect(contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response).hostUrl).toEqual(new URL('https://addon.example'));
   });
 
-  test('falls back to beamup-host.json when HOST env var is not set', () => {
-    const originalHost = process.env['HOST'];
-    delete process.env['HOST'];
+  test('uses the request protocol when the forwarded protocol is empty', () => {
+    const req = { protocol: 'http', host: 'addon.example', headers: { 'x-forwarded-proto': '' }, params: {} };
+    const res = { getHeader: () => 'request-id' };
 
-    const req = {
-      protocol: 'http',
-      host: 'truncated-app-name',
-      headers: {},
-      params: {},
-    };
-    const res = {
-      getHeader: () => undefined,
-    };
-
-    const ctx = contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response);
-    // beamup-host.json provides the host when available, otherwise falls back to req.host
-    let beamupHostname: string | undefined;
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      beamupHostname = (require('../../beamup-host.json') as { host?: string }).host?.replace(/^\/\//, '');
-    } catch { /* file may not exist */ }
-    const expected = beamupHostname ? [beamupHostname, 'truncated-app-name'] : ['truncated-app-name'];
-    expect(expected).toContain(ctx.hostUrl.hostname);
-
-    if (originalHost) process.env['HOST'] = originalHost;
+    expect(contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response).hostUrl).toEqual(new URL('http://addon.example'));
   });
 
-  test('prefers HOST env var over beamup-host.json', () => {
-    process.env['HOST'] = 'custom-host.example.com';
-
-    const req = {
-      protocol: 'https',
-      host: 'truncated-app-name',
-      headers: {},
-      params: {},
-    };
-    const res = {
-      getHeader: () => undefined,
-    };
-
-    const ctx = contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response);
-    expect(ctx.hostUrl.hostname).toBe('custom-host.example.com');
-
-    process.env['HOST'] = 'example.test';
-  });
-
-  test('uses x-forwarded-proto header when available', () => {
-    const originalHost = process.env['HOST'];
-    delete process.env['HOST'];
-
-    const req = {
-      protocol: 'http',
-      host: 'app.baby-beamup.club',
-      headers: { 'x-forwarded-proto': 'https' },
-      params: {},
-    };
-    const res = {
-      getHeader: () => undefined,
-    };
-
-    const ctx = contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response);
-    expect(ctx.hostUrl.protocol).toBe('https:');
-
-    if (originalHost) process.env['HOST'] = originalHost;
-  });
-  test('falls back to req.protocol when x-forwarded-proto is empty', () => {
-    const originalHost = process.env['HOST'];
-    delete process.env['HOST'];
-
-    const req = {
-      protocol: 'http',
-      host: 'app.baby-beamup.club',
-      headers: { 'x-forwarded-proto': '' },
-      params: {},
-    };
-    const res = {
-      getHeader: () => undefined,
-    };
-
-    const ctx = contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response);
-    expect(ctx.hostUrl.protocol).toBe('http:');
-
-    if (originalHost) process.env['HOST'] = originalHost;
-  });
-  test('falls back to BEAMUP_HOST when HOST is not set', () => {
-    const originalHost = process.env['HOST'];
-    delete process.env['HOST'];
-    process.env['BEAMUP_HOST'] = 'be-host.example.com';
-
-    const req = {
-      protocol: 'http',
-      host: 'truncated-app-name',
-      headers: {},
-      params: {},
-    };
-    const res = {
-      getHeader: () => undefined,
-    };
-
-    const ctx = contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response);
-    expect(ctx.hostUrl.hostname).toBe('be-host.example.com');
-
-    delete process.env['BEAMUP_HOST'];
-    if (originalHost) process.env['HOST'] = originalHost;
-  });
-
-  test('prefers HOST over BEAMUP_HOST', () => {
-    process.env['HOST'] = 'host.example.com';
-    process.env['BEAMUP_HOST'] = 'be-host.example.com';
-
-    const req = {
-      protocol: 'https',
-      host: 'truncated-app-name',
-      headers: {},
-      params: {},
-    };
-    const res = {
-      getHeader: () => undefined,
-    };
-
-    const ctx = contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response);
-    expect(ctx.hostUrl.hostname).toBe('host.example.com');
-
-    process.env['HOST'] = 'example.test';
-    delete process.env['BEAMUP_HOST'];
-  });
-
-  test('throws on malformed config JSON', () => {
-    const req = {
-      protocol: 'https',
-      host: 'localhost',
-      headers: {
-        'X-Request-ID': 'fake-id',
-      },
-      params: { config: '{de:"on"}' },
-    };
-    const res = {
-      getHeader: (name: string) => ({ 'X-Request-ID': 'fake-id' })[name],
-    };
+  test('rejects malformed configuration JSON', () => {
+    const req = { protocol: 'https', host: 'addon.example', headers: {}, params: { config: '{invalid}' } };
+    const res = { getHeader: () => 'request-id' };
 
     expect(() => contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response)).toThrow('Invalid config: malformed JSON');
   });

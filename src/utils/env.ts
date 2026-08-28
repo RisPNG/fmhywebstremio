@@ -1,22 +1,7 @@
-import { Request } from 'express';
-
 export const envGet = (name: string): string | undefined => process.env[name];
-
-export const envGetRequired = (name: string): string => {
-  const value = envGet(name);
-  if (!value) {
-    throw new Error(`Environment variable "${name}" is not configured.`);
-  }
-
-  return value;
-};
 
 export const envGetAppId = (): string => process.env['MANIFEST_ID'] || 'fmhy-webstream';
 
 export const envGetAppName = (): string => process.env['MANIFEST_NAME'] || 'FMHY\'s Website Streamer';
 
 export const envIsProd = (): boolean => process.env['NODE_ENV'] === 'production';
-
-export const envIsTest = (): boolean => process.env['NODE_ENV'] === 'test';
-
-export const isElfHostedInstance = (req: Request): boolean => req.host.endsWith('elfhosted.com');
