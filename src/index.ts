@@ -8,7 +8,7 @@ import { RuntimeStremioAdapter } from './addon/stremio-adapter';
 import { ConfigureController, ManifestController, StreamController } from './controller';
 import { RuntimeStreamEngine, TmdbMediaResolver } from './engine/core';
 import { DependencyGraph, JsonDependencyStore, type SourceFamily } from './engine/health';
-import { deploymentSourceRegistry, JsonSourceRegistryStore, MatcherRegistry, RegistryExtractorLookup, SourceRegistry } from './engine/registry';
+import { deploymentSourceRegistry, JsonSourceRegistryStore, MatcherRegistry, RegistryExtractorLookup, SourceRegistry, type SourceRegistryState } from './engine/registry';
 import { ExtractionResolver } from './engine/resolver';
 import { TransportDirector } from './engine/transport';
 import { extractorRegistry as runtimeExtractorRegistry } from './extractors/registry.generated';
@@ -90,6 +90,10 @@ const runtimeSourceRegistryStore = new JsonSourceRegistryStore(`${envGet('EXTRAC
 const runtimeDependencies = new DependencyGraph();
 const runtimeDependencyStore = new JsonDependencyStore(`${envGet('EXTRACTABILITY_DATA_DIR') ?? '.data/extractability'}/dependencies.json`);
 const runtimeFamilies = new Map<string, SourceFamily>([['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()]]);
+const restoreRuntimeSources = (state: SourceRegistryState | undefined) => {
+  runtimeSourceRegistry.restore(state ?? deploymentSourceRegistry);
+  if (!runtimeSourceRegistry.runtimeEligible().length) runtimeSourceRegistry.restore(deploymentSourceRegistry);
+};
 
 addon.use('/', (new ConfigureController(runtimeSourceRegistry)).router);
 addon.use('/', (new ManifestController(runtimeSourceRegistry)).router);
@@ -134,12 +138,12 @@ addon.get('/stats', async (_req: Request, res: Response) => {
 const port = parseInt(envGet('PORT') || '51546');
 (async () => {
   const runtimeSources = await runtimeSourceRegistryStore.load();
-  runtimeSourceRegistry.restore(runtimeSources ?? deploymentSourceRegistry);
+  restoreRuntimeSources(runtimeSources);
   runtimeDependencies.restore(await runtimeDependencyStore.load());
   const registryReloadIntervalMs = Number(envGet('EXTRACTABILITY_RELOAD_INTERVAL_MS') ?? 60000);
   if (registryReloadIntervalMs > 0) setInterval(() => {
     void runtimeSourceRegistryStore.load().then((state) => {
-      if (state) runtimeSourceRegistry.restore(state);
+      if (state) restoreRuntimeSources(state);
     }).catch((error: unknown) => logger.error(`Could not reload extractability registry: ${error instanceof Error ? error.message : String(error)}`));
     void runtimeDependencyStore.load().then(edges => edges.forEach(edge => runtimeDependencies.record(edge))).catch((error: unknown) => logger.error(`Could not reload extraction dependencies: ${error instanceof Error ? error.message : String(error)}`));
   }, registryReloadIntervalMs).unref();
