@@ -43,7 +43,8 @@ export class FamilyHealthRunner {
       failures.push(...validation.failures);
       if (test.expected === 'discoverable' && !discovered && failures.length === 0) failures.push({ code: 'KNOWN_PROBE_MEDIA_NOT_FOUND', message: 'Known probe media was not found', stage: 'stage:discovery', sourceId: source.id, familyId: family.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false } });
       if (candidates.length > 0) discovered = true;
-      outcomes.push({ caseId: test.id, expected: test.expected, discovered, stages: { discovery: discovered, extraction: candidates.length > 0, validation: validation.streams.some(stream => stream.validation === 'validated') }, ...(failures[0] && { failure: failures[0] }) });
+      const decisiveFailure = validation.failures[0] ?? failures[0];
+      outcomes.push({ caseId: test.id, expected: test.expected, discovered, stages: { discovery: discovered, extraction: candidates.length > 0, validation: validation.streams.some(stream => stream.validation === 'validated') }, ...(decisiveFailure && { failure: decisiveFailure }) });
     }
     const health = evaluateFamilyHealth(corpus, outcomes, this.quorum);
     this.registry.set({ ...source, status: health.extractable && health.status === 'healthy' ? 'supported' : 'degraded' });

@@ -71,8 +71,6 @@ body{position:relative;z-index:1;display:flex;justify-content:center;padding:2re
 .links{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.25rem}
 .lnk{display:inline-flex;align-items:center;padding:.3rem .75rem;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);border-radius:8px;color:#fff;text-decoration:none;font-size:.75rem;font-weight:500;transition:background .15s}
 .lnk:hover{background:rgba(255,255,255,.14)}
-.torbox{display:inline-flex;align-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);border-radius:8px;color:#fff;text-decoration:none;font-size:.75rem;font-weight:500;transition:background .15s}
-.torbox:hover{background:rgba(255,255,255,.14)}
 .card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.11);border-radius:12px;padding:1.25rem;margin-bottom:.875rem}
 .ct{font-size:.63rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.42;margin-bottom:.875rem}
 .ls{width:100%;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:#fff;font-family:inherit;font-size:.83rem;padding:.42rem .72rem;outline:none;margin-bottom:.72rem}
@@ -133,7 +131,6 @@ body{position:relative;z-index:1;display:flex;justify-content:center;padding:2re
       <div class="hdr-name">${manifest.name}</div>
       <div class="hdr-ver">v${manifest.version || '0.0.0'}</div>
       <div class="hdr-desc">${shortDesc}</div>
-      <div class="hdr-desc">💡 HTTP streams have limitations. For best results, use a Debrid service like <a href="https://torbox.app/subscription?referral=10c5caa4-4be7-424c-a92f-ae01bad60cda" target="_blank" class="torbox" style="padding:.15rem .5rem">⚡ TorBox</a>.</div>
     </div>
   </div>
 
@@ -184,7 +181,6 @@ body{position:relative;z-index:1;display:flex;justify-content:center;padding:2re
 
   </form>
 
-  <div class="note">💡 HTTP streams have limitations. For best results, use a Debrid service like <a href="https://torbox.app/subscription?referral=10c5caa4-4be7-424c-a92f-ae01bad60cda" target="_blank">TorBox</a>.</div>
 </div>
 
 <div class="ibar" style="gap:.75rem"><a id="installLink" class="ibtn" href="#">INSTALL</a><button type="button" id="copyBtn" class="cbtn">📋 Copy URL</button></div>

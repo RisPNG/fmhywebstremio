@@ -23,7 +23,7 @@ describe('env', () => {
   });
 
   test('envGetAppName', () => {
-    expect(envGetAppName()).toBe('FMHY WebStream');
+    expect(envGetAppName()).toBe('FMHY\'s Website Streamer');
 
     process.env['MANIFEST_NAME'] = 'WebStreamrMBG | dev';
     expect(envGetAppName()).toBe('WebStreamrMBG | dev');

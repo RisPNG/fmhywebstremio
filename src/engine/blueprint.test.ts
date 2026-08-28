@@ -142,7 +142,7 @@ describe('FMHY registry and health', () => {
   test('reports every site while succeeding when at least one is extractable', async () => {
     const services: RequestServices = { request: jest.fn().mockResolvedValue(response('https://cdn.test/master.m3u8', '#EXTM3U\n#EXTINF:4,\nsegment.ts', 'application/vnd.apple.mpegurl')) };
     const registry = new SourceRegistry();
-    for (const id of ['good', 'bad']) registry.set({ id, canonicalDomain: `${id}.test`, aliases: [], fmhy: { firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'fixture', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'unknown' });
+    for (const id of ['good', 'bad']) registry.set({ id, canonicalDomain: `${id}.test`, aliases: [], fmhy: { section: 'Movie Streaming', tags: ['recommended'], firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'fixture', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'unknown' });
     registry.set({ id: 'other', canonicalDomain: 'other.test', aliases: [], fmhy: { firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, status: 'unsupported' });
     const family = {
       id: 'fixture',
@@ -155,8 +155,8 @@ describe('FMHY registry and health', () => {
     const health = new FamilyHealthRunner(new ExtractionResolver(new StaticExtractorLookup([]), services), selector, services, registry);
     const corpus = { familyId: 'fixture', cases: [{ id: 'movie', media: { canonicalId: 'm', type: 'movie' as const, title: 'Movie' }, expected: 'discoverable' as const }] };
     const report = await new ExtractabilityAuditRunner(registry, health, new Map([['fixture', family]]), new Map([['fixture', corpus]])).run(new AbortController().signal);
-    expect(report).toMatchObject({ ok: true, totals: { sites: 3, runtimeEligible: 1, extractable: 1, failed: 1, unsupported: 1 } });
-    expect(report.sites.find(site => site.sourceId === 'good')).toMatchObject({ status: 'extractable', runtimeEligible: true, stages: { validation: true } });
+    expect(report).toMatchObject({ ok: true, totals: { sites: 3, passed: 1, runtimeEligible: 1, extractable: 1, failed: 1, unsupported: 1 } });
+    expect(report.sites.find(site => site.sourceId === 'good')).toMatchObject({ section: 'Movie Streaming', tags: ['recommended'], status: 'extractable', runtimeEligible: true, stages: { validation: true } });
     expect(registry.health().get('bad')).toMatchObject({ lastOutcome: 'failed' });
   });
 
@@ -173,6 +173,7 @@ describe('protocol vertical slice', () => {
     const fixtures = new Map([
       ['clone.test/', readFileSync(resolvePath(__dirname, '../extractors/__fixtures__/vertical-slice/search.html'), 'utf8')],
       ['clone.test/movie/inception/', readFileSync(resolvePath(__dirname, '../extractors/__fixtures__/vertical-slice/content.html'), 'utf8')],
+      ['clone.test/wp-admin/admin-ajax.php', readFileSync(resolvePath(__dirname, '../extractors/__fixtures__/vertical-slice/lazy-player.html'), 'utf8')],
       ['watch.gxplayer.xyz/watch', readFileSync(resolvePath(__dirname, '../extractors/__fixtures__/vertical-slice/gxplayer.html'), 'utf8')],
       ['watch.gxplayer.xyz/m3u8/3/30b4a92517ace5825f5944c8a794ad3e/master.txt', readFileSync(resolvePath(__dirname, '../extractors/__fixtures__/vertical-slice/master.m3u8'), 'utf8')],
     ]);
@@ -180,6 +181,7 @@ describe('protocol vertical slice', () => {
       request: jest.fn(async (request: ExtractionRequest) => {
         const key = `${request.url.hostname}${request.url.pathname}`;
         const body = fixtures.get(key);
+        if (request.url.hostname === 'failed-host.test') return response(request.url.href, '<html></html>');
         if (body === undefined) throw new Error(`Missing vertical-slice fixture for ${key}`);
         return response(request.url.href, body, request.expectedContent === 'manifest' ? 'application/vnd.apple.mpegurl' : 'text/html');
       }),
@@ -193,6 +195,7 @@ describe('protocol vertical slice', () => {
     expect(outcome).toMatchObject({ status: 'healthy', extractable: true, stages: { discovery: true, extraction: true, validation: true }, cases: [{ stages: { validation: true } }] });
     expect(registry.get('clone')).toMatchObject({ status: 'supported' });
     expect(dependencies.list()).toEqual(expect.arrayContaining([expect.objectContaining({ sourceId: 'clone', familyId: 'dooplay', provider: 'watch.gxplayer.xyz' })]));
+    expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://clone.test/wp-admin/admin-ajax.php'), method: 'POST', body: 'action=lazy_player&movieID=48162' }), expect.any(AbortSignal));
   });
 
   test('inspects HLS and deterministically selects top K', async () => {
@@ -215,6 +218,16 @@ describe('protocol vertical slice', () => {
     const services: RequestServices = { request: jest.fn().mockResolvedValue(response('https://cdn.test/broken.m3u8', '<html>not a manifest</html>', 'text/plain')) };
     const result = await new StreamSelector(services).validate([{ url: new URL('https://cdn.test/broken.m3u8'), protocol: 'hls', sourceId: 'source', sourceExtractor: 'family', hostExtractor: 'host', discoveredAt: new Date(0) }], { topK: 1 }, new AbortController().signal);
     expect(result).toMatchObject({ streams: [], failures: [{ code: 'MANIFEST_INVALID', stage: 'stage:protocol', sourceId: 'source', extractorId: 'host', targetHost: 'cdn.test' }] });
+  });
+
+  test('reports a validation failure instead of an earlier failed embed when extraction found a candidate', async () => {
+    const services: RequestServices = { request: jest.fn().mockRejectedValue(new TransportFailure({ code: 'CONNECTION_FAILED', message: 'expired stream', observedAt: new Date(0), diagnostic: { sensitivity: 'privileged', bodyCaptured: false } })) };
+    const source: SourceRecord = { id: 'clone', canonicalDomain: 'clone.test', aliases: [], fmhy: { firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'fixture', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'unknown' };
+    const registry = new SourceRegistry();
+    registry.set(source);
+    const family = { id: 'fixture', classify: () => null, discoverMedia: async () => ({ type: 'streams' as const, streams: [{ url: new URL('https://expired.test/video.mp4'), protocol: 'http' as const, sourceId: source.id, sourceExtractor: 'fixture', discoveredAt: new Date(0) }] }) };
+    const outcome = await new FamilyHealthRunner(new ExtractionResolver(new StaticExtractorLookup([]), services), new StreamSelector(services), services, registry).run(source, family, { familyId: 'fixture', cases: [{ id: 'movie', media: { canonicalId: 'm', type: 'movie', title: 'Movie' }, expected: 'discoverable' }] }, new AbortController().signal);
+    expect(outcome.cases[0]?.failure).toMatchObject({ code: 'CONNECTION_FAILED', stage: 'stage:protocol' });
   });
 
   test('returns a known-protocol candidate as explicitly unverified when validation is cancelled', async () => {

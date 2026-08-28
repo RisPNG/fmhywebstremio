@@ -1,7 +1,7 @@
 {
   "name": "webstreamr-mbg",
-  "description": "Provides HTTP URLs from streaming websites.",
-  "version": "0.73.2",
+  "description": "Provides video HTTP URLs from streaming websites listed by FMHY.",
+  "version": "1.0.0",
   "type": "commonjs",
   "scripts": {
     "analyse": "tsc --noEmit --project ./tsconfig.dev.json",

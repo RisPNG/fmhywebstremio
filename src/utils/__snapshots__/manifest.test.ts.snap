@@ -147,7 +147,7 @@ exports[`buildManifest default manifest 1`] = `
       "type": "checkbox",
     },
   ],
-  "description": "Provides HTTP URLs from streaming websites. Configure add-on for additional languages. Add MediaFlow proxy for more URLs.
+  "description": "Provides video HTTP URLs from streaming websites listed by FMHY.
 
 Supported languages: Albanian, German, Castilian Spanish, French, Gujarati, Hindi, Italian, Malayalam, Latin American Spanish, Punjabi, Tamil, Telugu
 
@@ -160,7 +160,7 @@ Supported extractors: ",
     "tt",
   ],
   "logo": "https://emojiapi.dev/api/v1/spider_web/256.png",
-  "name": "FMHY WebStream",
+  "name": "FMHY's Website Streamer",
   "resources": [
     "stream",
   ],

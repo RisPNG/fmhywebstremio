@@ -1,6 +1,7 @@
 import type { Stream } from 'stremio-addon-sdk';
 import type { MediaRequest, NormalizedStream, StreamEngine } from '../../engine/core';
 import type { Context } from '../../types';
+import { envGetAppName } from '../../utils';
 import type { StremioStreamResult } from './legacy-adapter';
 
 export function parseStremioMediaRequest(type: string, rawId: string): MediaRequest {
@@ -14,7 +15,7 @@ export function parseStremioMediaRequest(type: string, rawId: string): MediaRequ
 }
 
 export function normalizedStreamToStremio(stream: NormalizedStream): Stream {
-  return { url: stream.url.href, name: `FMHY WebStream${stream.resolution ? `\n${stream.resolution.height}p` : ''}`, title: [stream.language, stream.sourceId, stream.hostExtractor].filter(Boolean).join(' · '), behaviorHints: { ...(stream.protocol !== 'http' && { notWebReady: true }), ...(stream.headers && { notWebReady: true, proxyHeaders: { request: stream.headers } }) } };
+  return { url: stream.url.href, name: `${envGetAppName()}${stream.resolution ? `\n${stream.resolution.height}p` : ''}`, title: [stream.language, stream.sourceId, stream.hostExtractor].filter(Boolean).join(' · '), behaviorHints: { ...(stream.protocol !== 'http' && { notWebReady: true }), ...(stream.headers && { notWebReady: true, proxyHeaders: { request: stream.headers } }) } };
 }
 
 export class RuntimeStremioAdapter {
