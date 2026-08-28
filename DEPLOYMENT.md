@@ -13,6 +13,6 @@ Expose the service over HTTPS and verify these endpoints before installing it in
 
 Production deployments may set `MANIFEST_ID` and `MANIFEST_NAME`, but each independently deployed fork must keep a unique manifest ID. FMHY synchronization is maintenance work and must not run on the user stream-request path.
 
-Set `TMDB_ACCESS_TOKEN` on the addon process so Stremio IMDb/TMDB IDs can be resolved to the titles and years required by maintained source-family searches. Without it, the existing legacy providers remain available, but newly audited FMHY source-family results cannot resolve ordinary Stremio requests.
+Set `TMDB_ACCESS_TOKEN` on the addon process so Stremio IMDb/TMDB IDs can be resolved to the titles and years required by maintained source-family searches. Without it, audited FMHY source-family results cannot resolve ordinary Stremio requests.
 
 Run `mise exec -- npm run maintain:extractability` as a separate long-lived maintenance process. It refreshes the persisted FMHY source registry and dependency report every six hours by default. The addon process notices atomic registry updates every minute by default, so a successful maintenance run becomes available without restarting the server.

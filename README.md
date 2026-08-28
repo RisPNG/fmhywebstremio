@@ -15,7 +15,7 @@ Stremio request
     -> Stremio response
 ```
 
-The existing production integrations remain available through the isolated Stremio adapter while source families move onto the new runtime. New integrations belong in focused source-family or host-extractor modules rather than route handlers.
+Runtime sources come from the freshly audited FMHY registry. New integrations belong in focused source-family or host-extractor modules rather than route handlers, and historical source modules are not registered when their sites are absent from the current FMHY list or fail fresh stream validation.
 
 ## Development
 
@@ -45,7 +45,7 @@ An individual site failure is a report result rather than a test-process failure
 
 The report keeps site disposition separate from extractability. `redirected` records include the observed final URL when a candidate resolves to an unrelated domain. `unreachable` records include timeout, DNS, connection, TLS, or equivalent probe failures. `blocked` distinguishes access denial or rate limiting from a site that appears down. `inconclusive` covers ambiguous recognition or an exhausted probe budget, while `unsupported` means the site responded successfully but did not match an implemented source family. Tested family cases retain their discovery, extraction, validation, and typed failure details.
 
-The server loads the persisted eligibility and dependency registries at startup and checks for atomic registry updates every minute by default, so a completed audit becomes active without a restart. Set `EXTRACTABILITY_RELOAD_INTERVAL_MS=0` to disable live reload or choose another positive interval. Every freshly passed FMHY site is added to the configure page with its current health outcome. The enabled or disabled value is encoded into that configured add-on URL and filters runtime source selection without changing the legacy integrations. The audit currently recognizes only source families implemented by this repository, so broad directory reporting does not imply broad extraction support.
+The server loads the persisted eligibility and dependency registries at startup and checks for atomic registry updates every minute by default, so a completed audit becomes active without a restart. Set `EXTRACTABILITY_RELOAD_INTERVAL_MS=0` to disable live reload or choose another positive interval. Every freshly passed FMHY site is added to the configure page with its current health outcome. The enabled or disabled value is encoded into that configured add-on URL and filters runtime source selection. The audit currently recognizes only source families implemented by this repository, so broad directory reporting does not imply broad extraction support.
 
 The implemented reusable families are Cinrift frontends backed by the Vidrift grant and source APIs, P-Stream-compatible frontends backed by the shared provider architecture, and Dooplay sites backed by their shared discovery routes. P-Stream sites remain non-eligible when the provider architecture cannot find the known health-corpus media from the deployment network. Dooplay sites remain non-eligible when search discovery is incomplete or delegated players fail fresh validation. Browser-only anti-bot challenges, authenticated sites, client applications without a server-reproducible playback contract, and hosts that return expired media remain typed blocked, unsupported, failed, or inconclusive results rather than passes.
 

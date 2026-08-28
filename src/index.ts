@@ -21,9 +21,6 @@ import { CinriftFamily } from './extractors/sources/cinrift-family';
 import { DooplayFamily } from './extractors/sources/dooplay-family';
 import { PStreamFamily } from './extractors/sources/pstream-family';
 import { createSources, Source } from './source';
-import { HomeCine } from './source/HomeCine';
-import { MeineCloud } from './source/MeineCloud';
-import { MostraGuarda } from './source/MostraGuarda';
 import { clearCache, contextFromRequestAndResponse, envGet, envIsProd, Fetcher, StreamResolver } from './utils';
 
 if (envIsProd()) {
@@ -145,13 +142,7 @@ let lastLiveProbeRequestsTimestamp = 0;
 addon.get('/live', async (req: Request, res: Response) => {
   const ctx = contextFromRequestAndResponse(req, res);
 
-  const sources: Source[] = [
-    new HomeCine(fetcher),
-    new MeineCloud(fetcher),
-    new MostraGuarda(fetcher),
-  ];
   const hrefs = [
-    ...sources.map(source => source.baseUrl),
     'https://cloudnestra.com',
   ];
 
@@ -190,7 +181,7 @@ addon.get('/live', async (req: Request, res: Response) => {
     // TODO: fail health check and try to get a clean IP if infra is ready
     logger.warn('IP might be not clean and leading to blocking.', ctx);
     res.json({ status: 'ok', details });
-  } else if (errorCount === sources.length) {
+  } else if (errorCount === hrefs.length) {
     res.status(503).json({ status: 'error', details });
   } else {
     res.json({ status: 'ok', ipStatus: 'ok', details });
