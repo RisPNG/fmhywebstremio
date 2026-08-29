@@ -24,7 +24,7 @@ describe('P-Stream source family and provider architecture', () => {
 
   test('maps provider-host output into validated runtime streams', async () => {
     const providers: PStreamProviderArchitecture = { discover: jest.fn().mockResolvedValue({ sourceId: 'fixture-source', embedId: 'fixture-host', stream: { id: 'fixture', type: 'hls', playlist: 'https://cdn.test/master.m3u8', flags: [], captions: [], headers: { referer: 'https://host.test/' } } }) };
-    const services: RequestServices = { request: jest.fn(async (request: ExtractionRequest) => response(request.url.href, fixture('master.m3u8'))) };
+    const services: RequestServices = { request: jest.fn(async (request: ExtractionRequest) => response(request.url.href, request.expectedContent === 'binary' ? 'fixture-segment' : fixture(request.url.pathname.endsWith('1080.m3u8') ? 'media.m3u8' : 'master.m3u8'))) };
     const registry = new SourceRegistry();
     registry.set(source);
     const family = new PStreamFamily(providers);

@@ -177,6 +177,8 @@ describe('protocol vertical slice', () => {
       ['clone.test/wp-admin/admin-ajax.php', readFileSync(resolvePath(__dirname, '../extractors/__fixtures__/vertical-slice/lazy-player.html'), 'utf8')],
       ['watch.gxplayer.xyz/watch', readFileSync(resolvePath(__dirname, '../extractors/__fixtures__/vertical-slice/gxplayer.html'), 'utf8')],
       ['watch.gxplayer.xyz/m3u8/3/30b4a92517ace5825f5944c8a794ad3e/master.txt', readFileSync(resolvePath(__dirname, '../extractors/__fixtures__/vertical-slice/master.m3u8'), 'utf8')],
+      ['watch.gxplayer.xyz/m3u8/3/30b4a92517ace5825f5944c8a794ad3e/720.m3u8', readFileSync(resolvePath(__dirname, '../extractors/__fixtures__/vertical-slice/media.m3u8'), 'utf8')],
+      ['watch.gxplayer.xyz/m3u8/3/30b4a92517ace5825f5944c8a794ad3e/segment-1.ts', 'fixture-segment'],
     ]);
     const services: RequestServices = {
       request: jest.fn(async (request: ExtractionRequest) => {
@@ -184,7 +186,7 @@ describe('protocol vertical slice', () => {
         const body = fixtures.get(key);
         if (request.url.hostname === 'failed-host.test') return response(request.url.href, '<html></html>');
         if (body === undefined) throw new Error(`Missing vertical-slice fixture for ${key}`);
-        return response(request.url.href, body, request.expectedContent === 'manifest' ? 'application/vnd.apple.mpegurl' : 'text/html');
+        return response(request.url.href, body, request.expectedContent === 'manifest' ? 'application/vnd.apple.mpegurl' : request.expectedContent === 'binary' ? 'video/mp2t' : 'text/html');
       }),
     };
     const registry = new SourceRegistry();
@@ -201,7 +203,7 @@ describe('protocol vertical slice', () => {
 
   test('inspects HLS and deterministically selects top K', async () => {
     const manifest = '#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1000000,RESOLUTION=1280x720,CODECS="avc1,mp4a"\n720.m3u8\n#EXT-X-STREAM-INF:BANDWIDTH=3000000,RESOLUTION=1920x1080,CODECS="avc1,mp4a"\n1080.m3u8';
-    const services: RequestServices = { request: jest.fn().mockResolvedValue(response('https://cdn.test/master.m3u8', manifest, 'application/vnd.apple.mpegurl')) };
+    const services: RequestServices = { request: jest.fn(async request => response(request.url.href, request.expectedContent === 'binary' ? 'fixture-segment' : request.url.pathname.endsWith('/master.m3u8') || request.url.pathname.endsWith('/other.m3u8') ? manifest : '#EXTM3U\n#EXTINF:4,\nsegment.ts', request.expectedContent === 'binary' ? 'video/mp2t' : 'application/vnd.apple.mpegurl')) };
     const candidate = { url: new URL('https://cdn.test/master.m3u8'), protocol: 'hls' as const, sourceId: 'a', sourceExtractor: 'dooplay', discoveredAt: new Date(0) };
     expect(await new HlsInspector().inspect(candidate, services, new AbortController().signal)).toMatchObject({ validation: 'validated', resolution: { width: 1920, height: 1080 }, bitrate: 3000000 });
     const result = await new StreamSelector(services).validate([candidate, { ...candidate, url: new URL('https://cdn.test/other.m3u8'), sourceId: 'b' }], { topK: 1 }, new AbortController().signal);

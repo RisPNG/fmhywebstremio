@@ -13,10 +13,10 @@ export class CinegoFamily implements SourceFamily {
 
   public classify(_source: SourceRecord, snapshot: SourceProbeSnapshot): FamilyMatch | null {
     const evidence: FamilyEvidence[] = [];
-    if (snapshot.htmlSample && /\/js\/app\.min(?:\.[a-z0-9]+)?\.js/i.test(snapshot.htmlSample)) evidence.push({ type: 'script-signature', fingerprint: 'cinego-client' });
+    if (snapshot.htmlSample && /(?:^|["'])\/js\/app\.min(?:\.[a-z0-9]+)?\.js/i.test(snapshot.htmlSample)) evidence.push({ type: 'script-signature', fingerprint: 'cinego-client' });
     if (snapshot.htmlSample && /(?:\/movie\/|\/tv-serie\/)/i.test(snapshot.htmlSample)) evidence.push({ type: 'route-shape', value: 'cinego-catalog-routes' });
     if (snapshot.htmlSample && /(?:plyURL|aHR0cHM6Ly9wbG95YW4ubWU=)/i.test(snapshot.htmlSample)) evidence.push({ type: 'script-signature', fingerprint: 'cinego-player-grant' });
-    if (evidence.length < 2) return null;
+    if (evidence.length < 2 || !evidence.some(value => value.type === 'script-signature' && value.fingerprint === 'cinego-player-grant')) return null;
     return { familyId: this.id, confidence: Math.min(1, 0.45 + evidence.length * 0.2), evidence };
   }
 

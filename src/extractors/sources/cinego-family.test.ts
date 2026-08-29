@@ -44,7 +44,8 @@ describe('CineGo source family and VidsrcMe host architecture', () => {
       }
       if (request.url.hostname === 'data.vidsrcme.ru') return response(request.url.href, fixture(request.url.searchParams.get('type') === 'movie' ? 'vidsrcme-movie.json' : 'vidsrcme-episode.json'));
       if (request.url.pathname === '/generate.php') return response(request.url.href, 'fixture-token', 'text/plain');
-      return response(request.url.href, fixture('master.m3u8'), 'application/vnd.apple.mpegurl');
+      if (request.expectedContent === 'binary') return response(request.url.href, 'fixture-segment', 'video/mp2t');
+      return response(request.url.href, fixture(request.url.pathname.endsWith('video-720.m3u8') ? 'media.m3u8' : 'master.m3u8'), 'application/vnd.apple.mpegurl');
     }) };
     const registry = new SourceRegistry();
     registry.set(source);

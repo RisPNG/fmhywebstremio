@@ -1,9 +1,16 @@
 import type { ExtractorMetadata } from '../engine/registry/types';
 import EmbedPageExtractor from './generic/embed-page-extractor';
 import MediaExtractor from './generic/media-extractor';
+import CinextreamHostExtractor from './hosts/cinextream-host-extractor';
 import GxPlayerHostExtractor from './hosts/gxplayer-host-extractor';
 
 export const extractorRegistry = [
+  {
+    id: 'cinextream',
+    kind: 'host',
+    matchers: [{ id: 'cinextream-player', protocols: ['https'], hostname: 'cinextream.cc', path: '^/api/embed/(?:movie|tv)/', priority: 30, positive: ['https://cinextream.cc/api/embed/movie/27205'], negative: ['https://cinextream.cc/'] }],
+    load: async () => ({ default: CinextreamHostExtractor }),
+  },
   {
     id: 'gxplayer',
     kind: 'host',
