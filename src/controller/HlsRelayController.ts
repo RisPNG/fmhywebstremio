@@ -1,4 +1,5 @@
 import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { Request, Response, Router } from 'express';
 import type { HlsRelay } from '../addon/stremio-adapter/hls-relay';
 import { resolveHostUrl } from '../utils/context';
@@ -53,6 +54,10 @@ export class HlsRelayController {
       res.end();
       return;
     }
-    Readable.fromWeb(upstream.body).pipe(res);
+    try {
+      await pipeline(Readable.fromWeb(upstream.body), res);
+    } catch {
+      if (!res.headersSent) res.status(502).send('Upstream media transfer failed');
+    }
   }
 }
