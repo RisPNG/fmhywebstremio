@@ -6,7 +6,8 @@ export class HlsRelay {
   public createUrl(origin: URL, target: URL): URL {
     const payload = Buffer.from(target.href).toString('base64url');
     const signature = createHmac('sha256', this.secret).update(payload).digest('base64url');
-    return new URL(`/hls-relay/${signature}/${payload}`, origin);
+    const filename = /\.m3u8$/i.test(target.pathname) ? 'playlist.m3u8' : /\/page-\d+\.html$/i.test(target.pathname) ? 'segment.ts' : 'media.bin';
+    return new URL(`/hls-relay/${signature}/${payload}/${filename}`, origin);
   }
 
   public resolveTarget(signature: string, payload: string): URL | null {

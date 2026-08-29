@@ -8,7 +8,7 @@ export class HlsRelayController {
 
   public constructor(private readonly relay: HlsRelay) {
     this.router = Router();
-    this.router.get('/hls-relay/:signature/:payload', this.relayRequest.bind(this));
+    this.router.get('/hls-relay/:signature/:payload/:filename', this.relayRequest.bind(this));
   }
 
   private async relayRequest(req: Request, res: Response): Promise<void> {
@@ -47,6 +47,7 @@ export class HlsRelayController {
       res.send(rewritten);
       return;
     }
+    if (/\/page-\d+\.html$/i.test(finalUrl.pathname)) res.setHeader('content-type', 'video/mp2t');
     res.setHeader('cache-control', upstream.headers.get('cache-control') ?? 'private, max-age=3600');
     if (!upstream.body) {
       res.end();
