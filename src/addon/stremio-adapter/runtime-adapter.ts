@@ -3,7 +3,7 @@ import type { MediaRequest, NormalizedStream, StreamEngine } from '../../engine/
 import type { Context } from '../../types';
 import { envGetAppName } from '../../utils';
 
-export interface StremioStreamResult { streams: Stream[]; ttl?: number }
+export interface StremioStreamResult { streams: Stream[]; ttl?: number; diagnostics?: readonly string[] }
 export interface StremioStreamProvider { findStreams(ctx: Context, type: string, rawId: string): Promise<StremioStreamResult> }
 
 export function parseStremioMediaRequest(type: string, rawId: string): MediaRequest {
@@ -24,6 +24,6 @@ export class RuntimeStremioAdapter implements StremioStreamProvider {
   public constructor(private readonly engine: StreamEngine) {}
   public async findStreams(ctx: Context, type: string, rawId: string): Promise<StremioStreamResult> {
     const result = await this.engine.findStreams(parseStremioMediaRequest(type, rawId), { excludedSourceIds: Object.keys(ctx.config).flatMap(key => key.startsWith('disableFmhySource_') ? [key.slice('disableFmhySource_'.length)] : []) });
-    return { streams: result.streams.map(normalizedStreamToStremio) };
+    return { streams: result.streams.map(normalizedStreamToStremio), diagnostics: [...new Set(result.failures.map(failure => `${failure.code}@${failure.stage}`))] };
   }
 }
