@@ -129,6 +129,7 @@ addon.get('/live', async (_req: Request, res: Response) => {
 
 addon.get('/stats', async (_req: Request, res: Response) => {
   res.json({
+    revision: envGet('RENDER_GIT_COMMIT') ?? 'development',
     sources: runtimeSourceRegistry.list().length,
     runtimeEligible: runtimeSourceRegistry.runtimeEligible().length,
     dependencies: runtimeDependencies.list().length,

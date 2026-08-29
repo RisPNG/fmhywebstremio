@@ -7,7 +7,7 @@ async function verifyDeploymentContract(): Promise<void> {
   const port = Number(process.env['VERIFY_DEPLOYMENT_PORT'] ?? 55146);
   const dataDirectory = await mkdtemp(join(tmpdir(), 'fmhy-webstream-deployment-'));
   await writeFile(join(dataDirectory, 'sources.json'), '{"records":[],"health":[]}');
-  const server = spawn(process.execPath, ['dist/index.js'], { env: { ...process.env, NODE_ENV: 'development', PORT: String(port), EXTRACTABILITY_DATA_DIR: dataDirectory, EXTRACTABILITY_RELOAD_INTERVAL_MS: '0' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const server = spawn(process.execPath, ['dist/index.js'], { env: { ...process.env, NODE_ENV: 'development', PORT: String(port), RENDER_GIT_COMMIT: 'deployment-contract', EXTRACTABILITY_DATA_DIR: dataDirectory, EXTRACTABILITY_RELOAD_INTERVAL_MS: '0' }, stdio: ['ignore', 'pipe', 'pipe'] });
   let logs = '';
   server.stdout.on('data', (chunk) => {
     logs += String(chunk);
@@ -42,6 +42,8 @@ async function verifyDeploymentContract(): Promise<void> {
     const live = await fetch(`http://127.0.0.1:${port}/live`);
     const liveBody = await live.json() as { status?: string; details?: Record<string, string> };
     if (!live.ok || liveBody.status !== 'ok' || liveBody.details?.['7movies.in'] !== 'healthy') throw new Error('Runtime source registry was not loaded');
+    const stats = await fetch(`http://127.0.0.1:${port}/stats`);
+    if (!stats.ok || (await stats.json() as { revision?: string }).revision !== 'deployment-contract') throw new Error('Deployment revision contract is invalid');
     const stream = await fetch(`http://127.0.0.1:${port}/%7B%7D/stream/movie/tmdb%3A27205.json`);
     const streamBody = await stream.json() as { streams?: unknown[] };
     if (!stream.ok || !Array.isArray(streamBody.streams) || JSON.stringify(streamBody).includes('WebStreamrMBG')) throw new Error('Stream route did not reach the Stremio adapter');
