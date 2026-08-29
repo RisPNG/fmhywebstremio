@@ -9,7 +9,7 @@ import { ConfigureController, ManifestController, StreamController } from './con
 import { RuntimeStreamEngine, StremioMediaResolver } from './engine/core';
 import { defaultFamilyHealthCorpora, DependencyGraph, FamilyHealthRunner, JsonDependencyStore, type SourceFamily } from './engine/health';
 import { StreamSelector } from './engine/protocols';
-import { deploymentSourceRegistry, JsonSourceRegistryStore, MatcherRegistry, RegistryExtractorLookup, SourceRegistry, type SourceRegistryState } from './engine/registry';
+import { deploymentSourceRegistry, MatcherRegistry, RegistryExtractorLookup, SourceRegistry } from './engine/registry';
 import { ExtractionResolver } from './engine/resolver';
 import { TransportDirector } from './engine/transport';
 import { extractorRegistry as runtimeExtractorRegistry } from './extractors/registry.generated';
@@ -88,15 +88,9 @@ addon.use((_req: Request, res: Response, next: NextFunction) => {
 
 const runtimeTransport = new TransportDirector();
 const runtimeSourceRegistry = new SourceRegistry();
-const runtimeSourceRegistryStore = new JsonSourceRegistryStore(`${envGet('EXTRACTABILITY_DATA_DIR') ?? '.data/extractability'}/sources.json`);
 const runtimeDependencies = new DependencyGraph();
 const runtimeDependencyStore = new JsonDependencyStore(`${envGet('EXTRACTABILITY_DATA_DIR') ?? '.data/extractability'}/dependencies.json`);
 const runtimeFamilies = new Map<string, SourceFamily>([['cinego', new CinegoFamily()], ['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()]]);
-const restoreRuntimeSources = (state: SourceRegistryState | undefined) => {
-  const deploymentIds = new Set(deploymentSourceRegistry.records.map(source => source.id));
-  runtimeSourceRegistry.restore(state && [...deploymentIds].every(id => state.records.some(source => source.id === id)) ? state : deploymentSourceRegistry);
-  if (!runtimeSourceRegistry.runtimeEligible().length) runtimeSourceRegistry.restore(deploymentSourceRegistry);
-};
 
 addon.use('/', (new ConfigureController(runtimeSourceRegistry)).router);
 addon.use('/', (new ManifestController(runtimeSourceRegistry)).router);
@@ -142,8 +136,7 @@ addon.get('/stats', async (_req: Request, res: Response) => {
 
 const port = parseInt(envGet('PORT') || '51546');
 (async () => {
-  const runtimeSources = await runtimeSourceRegistryStore.load();
-  restoreRuntimeSources(runtimeSources);
+  runtimeSourceRegistry.restore(deploymentSourceRegistry);
   runtimeDependencies.restore(await runtimeDependencyStore.load());
   if (envIsProd()) {
     for (const source of runtimeSourceRegistry.runtimeEligible()) {
@@ -152,13 +145,10 @@ const port = parseInt(envGet('PORT') || '51546');
       if (family && corpus) await runtimeHealth.run(source, family, corpus, new AbortController().signal);
     }
   }
-  const registryReloadIntervalMs = Number(envGet('EXTRACTABILITY_RELOAD_INTERVAL_MS') ?? 60000);
-  if (registryReloadIntervalMs > 0) setInterval(() => {
-    void runtimeSourceRegistryStore.load().then((state) => {
-      if (state) restoreRuntimeSources(state);
-    }).catch((error: unknown) => logger.error(`Could not reload extractability registry: ${error instanceof Error ? error.message : String(error)}`));
+  const dependencyReloadIntervalMs = Number(envGet('EXTRACTABILITY_RELOAD_INTERVAL_MS') ?? 60000);
+  if (dependencyReloadIntervalMs > 0) setInterval(() => {
     void runtimeDependencyStore.load().then(edges => edges.forEach(edge => runtimeDependencies.record(edge))).catch((error: unknown) => logger.error(`Could not reload extraction dependencies: ${error instanceof Error ? error.message : String(error)}`));
-  }, registryReloadIntervalMs).unref();
+  }, dependencyReloadIntervalMs).unref();
   addon.listen(port, () => {
     logger.info(`Add-on Repository URL: http://127.0.0.1:${port}/manifest.json`);
   });
