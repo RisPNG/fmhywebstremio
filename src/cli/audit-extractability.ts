@@ -7,6 +7,7 @@ import { JsonSourceRegistryStore, MatcherRegistry, RegistryExtractorLookup, Sour
 import { ExtractionResolver } from '../engine/resolver';
 import { TransportDirector } from '../engine/transport';
 import { extractorRegistry } from '../extractors/registry.generated';
+import { CinegoFamily } from '../extractors/sources/cinego-family';
 import { CinriftFamily } from '../extractors/sources/cinrift-family';
 import { DooplayFamily } from '../extractors/sources/dooplay-family';
 import { PStreamFamily } from '../extractors/sources/pstream-family';
@@ -15,13 +16,14 @@ const dataDirectory = resolve(process.env['EXTRACTABILITY_DATA_DIR'] ?? '.data/e
 const transport = new TransportDirector({ globalConcurrency: 24, perHostConcurrency: 3, maxRetries: 1 });
 const registry = new SourceRegistry();
 const registryStore = new JsonSourceRegistryStore(resolve(dataDirectory, 'sources.json'));
-const families = new Map<string, SourceFamily>([['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()]]);
+const families = new Map<string, SourceFamily>([['cinego', new CinegoFamily()], ['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()]]);
+const watch = process.argv.includes('--watch');
 const controller = new AbortController();
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => controller.abort(new Error(signal)));
 
 const provider = new FmhyDirectoryProvider(transport, undefined, new JsonDirectorySnapshotStore(resolve(dataDirectory, 'fmhy-snapshot.json')));
 const probes = new SourceFamilyProbeRunner(transport, [...families.values()], { maxRequests: 1, maxBytes: 1024 * 1024, deadlineMs: Number(process.env['EXTRACTABILITY_RECOGNITION_TIMEOUT_MS'] ?? 10000) });
-const maintenance = new FmhyMaintenanceService(provider, registry, probes, registryStore, Number(process.env['EXTRACTABILITY_CONCURRENCY'] ?? 8), Number(process.env['EXTRACTABILITY_REPROBE_INTERVAL_MS'] ?? 24 * 60 * 60 * 1000));
+const maintenance = new FmhyMaintenanceService(provider, registry, probes, registryStore, Number(process.env['EXTRACTABILITY_CONCURRENCY'] ?? 8), Number(process.env['EXTRACTABILITY_REPROBE_INTERVAL_MS'] ?? (watch ? 24 * 60 * 60 * 1000 : 0)));
 const dependencies = new DependencyGraph();
 const dependencyStore = new JsonDependencyStore(resolve(dataDirectory, 'dependencies.json'));
 const resolver = new ExtractionResolver(new RegistryExtractorLookup(new MatcherRegistry(extractorRegistry)), transport, { onDelegation: (_parent, child) => {
@@ -34,7 +36,6 @@ const reportStore = new JsonExtractabilityReportStore(resolve(dataDirectory, 're
 
 async function runExtractabilityAudit(): Promise<void> {
   dependencies.restore(await dependencyStore.load());
-  const watch = process.argv.includes('--watch');
   const intervalMs = Number(process.env['EXTRACTABILITY_INTERVAL_MS'] ?? 6 * 60 * 60 * 1000);
   do {
     const update = await maintenance.synchronize(controller.signal);
