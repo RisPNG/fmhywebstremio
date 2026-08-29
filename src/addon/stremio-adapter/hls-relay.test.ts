@@ -5,7 +5,7 @@ describe('HlsRelay', () => {
     const relay = new HlsRelay();
     const target = new URL('https://media.example/movie/master.m3u8?token=fixture');
     const url = relay.createUrl(new URL('https://addon.example/'), target);
-    const [, signature, payload] = url.pathname.match(/^\/hls-relay\/([^/]+)\/([^/]+)$/) ?? [];
+    const [, signature, payload] = url.pathname.match(/^\/hls-relay\/([^/]+)\/([^/]+)\/playlist\.m3u8$/) ?? [];
     expect(signature).toBeDefined();
     expect(payload).toBeDefined();
     expect(relay.resolveTarget(signature as string, payload as string)).toEqual(target);

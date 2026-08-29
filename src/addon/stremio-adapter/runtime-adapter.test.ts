@@ -11,7 +11,7 @@ describe('RuntimeStremioAdapter', () => {
     const context: Context = { hostUrl: new URL('https://addon.example/'), id: 'fixture', config: {} };
     const result = await new RuntimeStremioAdapter(engine, relay).findStreams(context, 'movie', 'tt1375666');
     const url = new URL(result.streams[0]?.url as string);
-    const [, signature, payload] = url.pathname.match(/^\/hls-relay\/([^/]+)\/([^/]+)$/) ?? [];
+    const [, signature, payload] = url.pathname.match(/^\/hls-relay\/([^/]+)\/([^/]+)\/playlist\.m3u8$/) ?? [];
     expect(url.origin).toBe(context.hostUrl.origin);
     expect(relay.resolveTarget(signature as string, payload as string)).toEqual(target);
   });
