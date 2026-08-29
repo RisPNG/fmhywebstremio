@@ -6,16 +6,18 @@ interface CinextreamEncryptedResponse { enc?: string }
 interface BingrResponse { servers?: readonly { sources?: readonly { url?: string; quality?: string; type?: string }[] }[] }
 interface VidnestResponse { data?: { url?: string; streams?: readonly { url?: string; type?: string; resolution?: string }[] } }
 
+let cinextreamWasmModule: Promise<unknown> | undefined;
+
 export interface CinextreamEnvelopeDecoder {
   decrypt(envelope: string, tmdbId: number, salt: string, wasmUrl: URL, services: RequestServices, signal: AbortSignal): Promise<unknown>;
 }
 
 export class WasmCinextreamEnvelopeDecoder implements CinextreamEnvelopeDecoder {
   public async decrypt(envelope: string, tmdbId: number, salt: string, wasmUrl: URL, services: RequestServices, signal: AbortSignal): Promise<unknown> {
-    const response = await services.request({ url: wasmUrl, expectedContent: 'binary', stateScope: { kind: 'host', key: wasmUrl.hostname } }, signal);
-    const wasm = (globalThis as typeof globalThis & { WebAssembly: { instantiate(bytes: Uint8Array, imports: { env: { abort(): void } }): Promise<{ instance: { exports: unknown } }> } }).WebAssembly;
-    const module = await wasm.instantiate(response.body, { env: { abort: () => undefined } });
-    const exports = module.instance.exports as { memory?: { buffer: ArrayBuffer }; allocBuffer?: (size: number) => number; freeBuffer?: (pointer: number) => void; normalizeBuffer?: (encryptedPointer: number, encryptedLength: number, keyPointer: number, outputPointer: number) => number };
+    const wasm = (globalThis as typeof globalThis & { WebAssembly: { compile(bytes: Uint8Array): Promise<unknown>; instantiate(module: unknown, imports: { env: { abort(): void } }): Promise<{ exports: unknown }> } }).WebAssembly;
+    cinextreamWasmModule ??= services.request({ url: wasmUrl, expectedContent: 'binary', stateScope: { kind: 'host', key: wasmUrl.hostname } }, signal).then(response => wasm.compile(response.body));
+    const instance = await wasm.instantiate(await cinextreamWasmModule, { env: { abort: () => undefined } });
+    const exports = instance.exports as { memory?: { buffer: ArrayBuffer }; allocBuffer?: (size: number) => number; freeBuffer?: (pointer: number) => void; normalizeBuffer?: (encryptedPointer: number, encryptedLength: number, keyPointer: number, outputPointer: number) => number };
     if (!exports.memory || typeof exports.allocBuffer !== 'function' || typeof exports.freeBuffer !== 'function' || typeof exports.normalizeBuffer !== 'function') throw new Error('Cinextream decryption module has an unsupported interface');
     const encrypted = Buffer.from(envelope, 'base64');
     const key = createHash('sha256').update(`${tmdbId}${salt}`).digest();
