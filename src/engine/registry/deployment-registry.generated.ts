@@ -8,7 +8,9 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       aliases: [],
       fmhy: {
         section: '▷ Stream Aggregators',
-        tags: [],
+        tags: [
+          'recommended',
+        ],
         firstSeenAt: new Date(0),
         lastSeenAt: new Date(0),
       },
