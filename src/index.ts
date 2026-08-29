@@ -71,7 +71,8 @@ addon.get('/', (_req, res) => {
 });
 
 if (envIsProd()) {
-  addon.use(rateLimit({ windowMs: 60 * 1000, limit: 30 }));
+  addon.use(rateLimit({ windowMs: 60 * 1000, limit: 30, skip: req => req.path.startsWith('/hls-relay/') }));
+  addon.use('/hls-relay', rateLimit({ windowMs: 60 * 1000, limit: 300 }));
 }
 
 addon.use((_req: Request, res: Response, next: NextFunction) => {
