@@ -14,9 +14,10 @@ export class VidriftApiHostArchitecture implements VidriftHostArchitecture {
     const tokenResponse = await services.request({
       url: new URL('/api/playback-token', grantOrigin),
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'accept': 'application/json', 'content-type': 'application/json', 'origin': grantOrigin.origin, 'user-agent': 'Mozilla/5.0' },
       body: JSON.stringify({ tmdbId: media.tmdbId, type: media.type === 'movie' ? 'movie' : 'tv', ...(media.type === 'episode' && { season: media.season, episode: media.episode }) }),
       expectedContent: 'binary',
+      referrer: grantOrigin,
       stateScope: { kind: 'source', key: sourceId },
     }, signal);
     const token = (tokenResponse.json() as { token?: string }).token;
@@ -25,7 +26,7 @@ export class VidriftApiHostArchitecture implements VidriftHostArchitecture {
     const sourceUrl = new URL(path, 'https://embed.vidrift.in');
     sourceUrl.searchParams.set('token', token);
     sourceUrl.searchParams.set('provider', 'selfhost');
-    const sourceResponse = await services.request({ url: sourceUrl, expectedContent: 'binary', referrer: grantOrigin, stateScope: { kind: 'host', key: sourceUrl.hostname } }, signal);
+    const sourceResponse = await services.request({ url: sourceUrl, headers: { 'accept': 'application/json', 'origin': grantOrigin.origin, 'user-agent': 'Mozilla/5.0' }, expectedContent: 'binary', referrer: grantOrigin, stateScope: { kind: 'host', key: sourceUrl.hostname } }, signal);
     return ((sourceResponse.json() as VidriftSourceResponse).streams ?? []).flatMap((stream) => {
       const value = stream.url || stream.proxyUrl;
       if (!value) return [];
