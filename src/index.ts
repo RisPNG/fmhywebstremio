@@ -7,7 +7,8 @@ import winston from 'winston';
 import { RuntimeStremioAdapter } from './addon/stremio-adapter';
 import { ConfigureController, ManifestController, StreamController } from './controller';
 import { RuntimeStreamEngine, StremioMediaResolver } from './engine/core';
-import { DependencyGraph, JsonDependencyStore, type SourceFamily } from './engine/health';
+import { defaultFamilyHealthCorpora, DependencyGraph, FamilyHealthRunner, JsonDependencyStore, type SourceFamily } from './engine/health';
+import { StreamSelector } from './engine/protocols';
 import { deploymentSourceRegistry, JsonSourceRegistryStore, MatcherRegistry, RegistryExtractorLookup, SourceRegistry, type SourceRegistryState } from './engine/registry';
 import { ExtractionResolver } from './engine/resolver';
 import { TransportDirector } from './engine/transport';
@@ -103,6 +104,7 @@ const runtimeResolver = new ExtractionResolver(new RegistryExtractorLookup(new M
   const familyId = child.hints?.['sourceExtractor'];
   if (typeof sourceId === 'string' && typeof familyId === 'string') runtimeDependencies.record({ sourceId, familyId, provider: child.url.hostname, observedAt: new Date() });
 } });
+const runtimeHealth = new FamilyHealthRunner(runtimeResolver, new StreamSelector(runtimeTransport), runtimeTransport, runtimeSourceRegistry, 0.5, runtimeDependencies);
 const runtimeEngine = new RuntimeStreamEngine(new StremioMediaResolver(runtimeTransport, envGet('TMDB_ACCESS_TOKEN') ?? ''), runtimeSourceRegistry, runtimeFamilies, runtimeResolver, runtimeTransport, runtimeDependencies, runtimeDependencyStore);
 addon.use('/', (new StreamController(logger, new RuntimeStremioAdapter(runtimeEngine))).router);
 
@@ -141,6 +143,13 @@ const port = parseInt(envGet('PORT') || '51546');
   const runtimeSources = await runtimeSourceRegistryStore.load();
   restoreRuntimeSources(runtimeSources);
   runtimeDependencies.restore(await runtimeDependencyStore.load());
+  if (envIsProd()) {
+    for (const source of runtimeSourceRegistry.runtimeEligible()) {
+      const family = source.family && runtimeFamilies.get(source.family.id);
+      const corpus = source.family && defaultFamilyHealthCorpora.get(source.family.id);
+      if (family && corpus) await runtimeHealth.run(source, family, corpus, new AbortController().signal);
+    }
+  }
   const registryReloadIntervalMs = Number(envGet('EXTRACTABILITY_RELOAD_INTERVAL_MS') ?? 60000);
   if (registryReloadIntervalMs > 0) setInterval(() => {
     void runtimeSourceRegistryStore.load().then((state) => {
