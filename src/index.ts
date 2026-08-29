@@ -13,6 +13,7 @@ import { deploymentSourceRegistry, JsonSourceRegistryStore, MatcherRegistry, Reg
 import { ExtractionResolver } from './engine/resolver';
 import { TransportDirector } from './engine/transport';
 import { extractorRegistry as runtimeExtractorRegistry } from './extractors/registry.generated';
+import { CinegoFamily } from './extractors/sources/cinego-family';
 import { CinriftFamily } from './extractors/sources/cinrift-family';
 import { DooplayFamily } from './extractors/sources/dooplay-family';
 import { PStreamFamily } from './extractors/sources/pstream-family';
@@ -90,9 +91,10 @@ const runtimeSourceRegistry = new SourceRegistry();
 const runtimeSourceRegistryStore = new JsonSourceRegistryStore(`${envGet('EXTRACTABILITY_DATA_DIR') ?? '.data/extractability'}/sources.json`);
 const runtimeDependencies = new DependencyGraph();
 const runtimeDependencyStore = new JsonDependencyStore(`${envGet('EXTRACTABILITY_DATA_DIR') ?? '.data/extractability'}/dependencies.json`);
-const runtimeFamilies = new Map<string, SourceFamily>([['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()]]);
+const runtimeFamilies = new Map<string, SourceFamily>([['cinego', new CinegoFamily()], ['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()]]);
 const restoreRuntimeSources = (state: SourceRegistryState | undefined) => {
-  runtimeSourceRegistry.restore(state ?? deploymentSourceRegistry);
+  const deploymentIds = new Set(deploymentSourceRegistry.records.map(source => source.id));
+  runtimeSourceRegistry.restore(state && [...deploymentIds].every(id => state.records.some(source => source.id === id)) ? state : deploymentSourceRegistry);
   if (!runtimeSourceRegistry.runtimeEligible().length) runtimeSourceRegistry.restore(deploymentSourceRegistry);
 };
 
