@@ -6,7 +6,7 @@ import { StreamSelector } from '../../engine/protocols';
 import { SourceRegistry } from '../../engine/registry';
 import { ExtractionResolver, StaticExtractorLookup } from '../../engine/resolver';
 import type { VidsrcMeEnvelopeDecoder } from '../hosts/vidsrcme-host-architecture';
-import { VidsrcMeApiHostArchitecture } from '../hosts/vidsrcme-host-architecture';
+import { VidsrcMeApiHostArchitecture, WasmVidsrcMeEnvelopeDecoder } from '../hosts/vidsrcme-host-architecture';
 import { CinegoFamily } from './cinego-family';
 
 const fixture = (name: string) => readFileSync(resolve(__dirname, `../__fixtures__/cinego/${name}`), 'utf8');
@@ -20,8 +20,21 @@ describe('CineGo source family and VidsrcMe host architecture', () => {
     expect(new CinegoFamily().classify(source, snapshot)).toMatchObject({ familyId: 'cinego', confidence: 1, evidence: [{ fingerprint: 'cinego-client' }, { value: 'cinego-catalog-routes' }, { fingerprint: 'cinego-player-grant' }] });
   });
 
+  test('splits concatenated mirror URLs from the encrypted host envelope', async () => {
+    const memory = { buffer: new ArrayBuffer(4096) };
+    const plaintext = 'https://one.test/master.m3u8https://two.test/master.m3u8';
+    const webAssembly = (globalThis as typeof globalThis & { WebAssembly: unknown }).WebAssembly;
+    (globalThis as typeof globalThis & { WebAssembly: unknown }).WebAssembly = { instantiate: async () => ({ instance: { exports: { memory, alloc: () => 100, decrypt: () => {
+      new Uint8Array(memory.buffer, 112, Buffer.byteLength(plaintext)).set(Buffer.from(plaintext));
+      return Buffer.byteLength(plaintext);
+    } } } }) };
+    const services: RequestServices = { request: jest.fn(async request => response(request.url.href, 'fixture', 'application/wasm')) };
+    await expect(new WasmVidsrcMeEnvelopeDecoder().decrypt('Zml4dHVyZQ==', new URL('https://data.vidsrcme.test/fixture.wasm'), services, new AbortController().signal)).resolves.toEqual(['https://one.test/master.m3u8', 'https://two.test/master.m3u8']);
+    (globalThis as typeof globalThis & { WebAssembly: unknown }).WebAssembly = webAssembly;
+  });
+
   test('discovers movie and episode catalog entries and validates fresh tokenized streams', async () => {
-    const decoder: VidsrcMeEnvelopeDecoder = { decrypt: jest.fn(async envelope => [`https://media.vidsrcme.test/${envelope}/master.m3u8`]) };
+    const decoder: VidsrcMeEnvelopeDecoder = { decrypt: jest.fn(async envelope => [`https://media.vidsrcme.test/${envelope}/master.m3u8`, `https://media.vidsrcme.test/${envelope}/backup.m3u8`]) };
     const services: RequestServices = { request: jest.fn(async (request: ExtractionRequest) => {
       if (request.url.pathname === '/searching') {
         if (request.url.searchParams.get('q') === 'Inception') return response(request.url.href, fixture('search-inception.json'));
@@ -43,7 +56,8 @@ describe('CineGo source family and VidsrcMe host architecture', () => {
     expect(outcome).toMatchObject({ status: 'healthy', extractable: true, stages: { discovery: true, extraction: true, validation: true } });
     expect(registry.runtimeEligible()).toMatchObject([{ id: source.id, status: 'supported' }]);
     expect(decoder.decrypt).toHaveBeenCalledTimes(2);
-    expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://media.vidsrcme.test/fixture-encrypted-movie/master.m3u8?token=fixture-token') }), expect.any(AbortSignal));
+    expect((services.request as jest.Mock).mock.calls.filter(([request]: [ExtractionRequest]) => request.url.pathname === '/generate.php')).toHaveLength(2);
+    expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://media.vidsrcme.test/fixture-encrypted-movie/backup.m3u8?token=fixture-token') }), expect.any(AbortSignal));
     expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://data.vidsrcme.ru/api.php?type=tv&tmdb=1396&season=1&episode=1&stream_urls=') }), expect.any(AbortSignal));
   });
 });

@@ -5,7 +5,8 @@ import express, { NextFunction, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import winston from 'winston';
 import { RuntimeStremioAdapter } from './addon/stremio-adapter';
-import { ConfigureController, ManifestController, StreamController } from './controller';
+import { HlsRelay } from './addon/stremio-adapter/hls-relay';
+import { ConfigureController, HlsRelayController, ManifestController, StreamController } from './controller';
 import { RuntimeStreamEngine, StremioMediaResolver } from './engine/core';
 import { defaultFamilyHealthCorpora, DependencyGraph, FamilyHealthRunner, JsonDependencyStore, type SourceFamily } from './engine/health';
 import { StreamSelector } from './engine/protocols';
@@ -87,6 +88,7 @@ addon.use((_req: Request, res: Response, next: NextFunction) => {
 });
 
 const runtimeTransport = new TransportDirector();
+const runtimeRelay = new HlsRelay();
 const runtimeSourceRegistry = new SourceRegistry();
 const runtimeDependencies = new DependencyGraph();
 const runtimeDependencyStore = new JsonDependencyStore(`${envGet('EXTRACTABILITY_DATA_DIR') ?? '.data/extractability'}/dependencies.json`);
@@ -102,7 +104,8 @@ const runtimeResolver = new ExtractionResolver(new RegistryExtractorLookup(new M
 } });
 const runtimeHealth = new FamilyHealthRunner(runtimeResolver, new StreamSelector(runtimeTransport), runtimeTransport, runtimeSourceRegistry, 0.5, runtimeDependencies);
 const runtimeEngine = new RuntimeStreamEngine(new StremioMediaResolver(runtimeTransport, envGet('TMDB_ACCESS_TOKEN') ?? ''), runtimeSourceRegistry, runtimeFamilies, runtimeResolver, runtimeTransport, runtimeDependencies, runtimeDependencyStore);
-addon.use('/', (new StreamController(logger, new RuntimeStremioAdapter(runtimeEngine))).router);
+addon.use('/', (new HlsRelayController(runtimeRelay)).router);
+addon.use('/', (new StreamController(logger, new RuntimeStremioAdapter(runtimeEngine, runtimeRelay))).router);
 
 // error handler needs to stay at the end of the stack
 addon.use((err: Error, _req: Request, _res: Response, next: NextFunction) => {
