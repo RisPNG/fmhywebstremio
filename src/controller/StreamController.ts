@@ -50,11 +50,12 @@ export class StreamController {
         res.status(400).send((error as Error).message);
         return;
       }
-      const { streams, ttl } = result;
+      const { streams, ttl, diagnostics } = result;
 
       if (ttl && envIsProd()) {
         res.setHeader('Cache-Control', `public, max-age=${Math.floor(ttl / 1000)}`);
       }
+      if (diagnostics?.length) res.setHeader('X-FMHY-Diagnostics', diagnostics.join(','));
 
       res.setHeader('Content-Type', 'application/json');
       res.send(JSON.stringify({ streams }));
