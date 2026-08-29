@@ -19,6 +19,22 @@ export class HlsInspector implements StreamInspector {
     const mediaPlaylist = lines.some(line => line.startsWith('#EXTINF:'));
     if (!variants.length && !mediaPlaylist) throw new Error('NO_PLAYABLE_VARIANTS');
     const best = [...variants].sort((a, b) => b.height - a.height || b.bitrate - a.bitrate)[0];
+    let mediaUrl = response.finalUrl;
+    let mediaManifest = manifest;
+    if (best) {
+      mediaUrl = new URL(best.uri, response.finalUrl);
+      const mediaResponse = await services.request({ url: mediaUrl, ...(candidate.headers && { headers: candidate.headers }), ...(candidate.referrer && { referrer: candidate.referrer }), expectedContent: 'manifest', timeoutMs: 6000 }, signal);
+      mediaUrl = mediaResponse.finalUrl;
+      mediaManifest = mediaResponse.text().replace(/\r/g, '');
+      if (!mediaManifest.trimStart().startsWith('#EXTM3U') || !mediaManifest.split('\n').some(line => line.startsWith('#EXTINF:'))) throw new Error('NO_PLAYABLE_VARIANTS');
+    }
+    const mediaLines = mediaManifest.split('\n');
+    const resources = [
+      ...mediaLines.flatMap(line => line.startsWith('#EXT-X-KEY:') || line.startsWith('#EXT-X-MAP:') ? [...line.matchAll(/URI="([^"]+)"/g)].map(match => match[1] as string) : []),
+      ...mediaLines.filter(line => line.trim() && !line.startsWith('#')).slice(0, 1),
+    ];
+    if (!resources.length) throw new Error('NO_PLAYABLE_VARIANTS');
+    for (const resource of resources) await services.request({ url: new URL(resource, mediaUrl), ...(candidate.headers && { headers: candidate.headers }), ...(candidate.referrer && { referrer: candidate.referrer }), expectedContent: 'binary', timeoutMs: 6000, maxBytes: 64 * 1024 }, signal);
     const fingerprint = createHash('sha256').update(JSON.stringify(variants.map(({ width, height, bitrate, codecs }) => ({ width, height, bitrate, codecs })))).digest('hex');
     return {
       url: candidate.url, protocol: 'hls', validation: 'validated',

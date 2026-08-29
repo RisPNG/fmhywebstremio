@@ -8,6 +8,7 @@ import { ExtractionResolver } from '../engine/resolver';
 import { TransportDirector } from '../engine/transport';
 import { extractorRegistry } from '../extractors/registry.generated';
 import { CinegoFamily } from '../extractors/sources/cinego-family';
+import { CinetaroFamily } from '../extractors/sources/cinetaro-family';
 import { CinriftFamily } from '../extractors/sources/cinrift-family';
 import { DooplayFamily } from '../extractors/sources/dooplay-family';
 import { PStreamFamily } from '../extractors/sources/pstream-family';
@@ -16,7 +17,7 @@ const dataDirectory = resolve(process.env['EXTRACTABILITY_DATA_DIR'] ?? '.data/e
 const transport = new TransportDirector({ globalConcurrency: 24, perHostConcurrency: 3, maxRetries: 1 });
 const registry = new SourceRegistry();
 const registryStore = new JsonSourceRegistryStore(resolve(dataDirectory, 'sources.json'));
-const families = new Map<string, SourceFamily>([['cinego', new CinegoFamily()], ['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()]]);
+const families = new Map<string, SourceFamily>([['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()]]);
 const watch = process.argv.includes('--watch');
 const controller = new AbortController();
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => controller.abort(new Error(signal)));
