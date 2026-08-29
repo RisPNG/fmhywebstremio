@@ -65,7 +65,10 @@ export class RuntimeStreamEngine implements StreamEngine {
             };
             await consume(result);
           } catch (error) {
-            if (!discoveryController.signal.aborted) failures.push({ code: 'INTERNAL_ERROR', message: error instanceof Error ? error.message : String(error), stage: 'stage:engine', sourceId: source.id, familyId: family.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false } });
+            if (!discoveryController.signal.aborted) {
+              const typedFailure = error && typeof error === 'object' && 'failure' in error ? (error as { failure: Failure }).failure : undefined;
+              failures.push(typedFailure ? { ...typedFailure, sourceId: typedFailure.sourceId ?? source.id, familyId: typedFailure.familyId ?? family.id } : { code: 'INTERNAL_ERROR', message: error instanceof Error ? error.message : String(error), stage: 'stage:engine', sourceId: source.id, familyId: family.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false } });
+            }
           } finally {
             if (discoveryController.signal.aborted) cancelled++;
             else completed++;
