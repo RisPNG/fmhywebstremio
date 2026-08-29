@@ -4,6 +4,7 @@ import type { ExtractionResult, ExtractionTarget, Extractor, MatchResult, Reques
 interface CinextreamServer { name?: string; apiUrl?: string; responseType?: string }
 interface CinextreamEncryptedResponse { enc?: string }
 interface BingrResponse { servers?: readonly { sources?: readonly { url?: string; quality?: string; type?: string }[] }[] }
+interface VidnestResponse { data?: { url?: string; streams?: readonly { url?: string; type?: string; resolution?: string }[] } }
 
 export interface CinextreamEnvelopeDecoder {
   decrypt(envelope: string, tmdbId: number, salt: string, wasmUrl: URL, services: RequestServices, signal: AbortSignal): Promise<unknown>;
@@ -58,19 +59,35 @@ export default class CinextreamHostExtractor implements Extractor {
     } catch {
       return { type: 'failure', failure: { code: 'RESPONSE_SCHEMA_CHANGED', message: 'Cinextream player server configuration is invalid', extractorId: this.id, targetHost: player.finalUrl.hostname, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: player.status, finalUrl: player.finalUrl.href, bodyCaptured: false } } };
     }
-    const server = servers.find(value => value.responseType === 'bingr' && value.apiUrl);
-    if (!server?.apiUrl) return { type: 'empty', reason: 'no-streams' };
-    const endpoint = new URL(server.apiUrl, player.finalUrl);
-    const response = await services.request({ url: endpoint, expectedContent: 'json', referrer: player.finalUrl, stateScope: { kind: 'host', key: endpoint.hostname } }, signal);
-    const envelope = (response.json() as CinextreamEncryptedResponse).enc;
-    if (!envelope) return { type: 'failure', failure: { code: 'RESPONSE_SCHEMA_CHANGED', message: 'Cinextream playback response did not contain an encrypted envelope', extractorId: this.id, targetHost: endpoint.hostname, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: response.status, finalUrl: response.finalUrl.href, bodyCaptured: true, bodyBytes: response.body.byteLength, parserPath: 'enc' } } };
-    const payload = await this.decoder.decrypt(envelope, media.tmdbId, salt, new URL('/decrypt.wasm', player.finalUrl), services, signal) as BingrResponse;
-    const streams: StreamCandidate[] = (payload.servers ?? []).flatMap(value => value.sources ?? []).flatMap((source) => {
-      if (!source.url) return [];
-      const url = new URL(source.url, response.finalUrl);
-      const height = Number.parseInt(source.quality ?? '');
-      return [{ url, protocol: source.type?.includes('mpegurl') || /\.m3u8(?:$|\?)/i.test(url.href) ? 'hls' as const : 'http' as const, sourceId: String(target.hints?.['sourceId'] ?? target.url.hostname), sourceExtractor: String(target.hints?.['sourceExtractor'] ?? 'cinetaro'), hostExtractor: this.id, ...(height > 0 && { declaredResolution: { width: Math.round(height * 16 / 9), height } }), ...(server.name && { label: server.name }), discoveredAt: new Date() }];
-    });
-    return streams.length ? { type: 'streams', streams } : { type: 'empty', reason: 'no-streams' };
+    const proxyBase = player.text().match(/\bPROXY\s*=\s*['"]([^'"]+)['"]/)?.[1];
+    let lastError: unknown;
+    for (const server of servers.filter(value => (value.responseType === 'vidnest' || value.responseType === 'bingr') && value.apiUrl)) {
+      const endpoint = new URL(server.apiUrl as string, player.finalUrl);
+      try {
+        const response = await services.request({ url: endpoint, expectedContent: 'json', referrer: player.finalUrl, stateScope: { kind: 'host', key: endpoint.hostname } }, signal);
+        const envelope = (response.json() as CinextreamEncryptedResponse).enc;
+        if (!envelope) {
+          lastError = { type: 'failure', failure: { code: 'RESPONSE_SCHEMA_CHANGED', message: 'Cinextream playback response did not contain an encrypted envelope', extractorId: this.id, targetHost: endpoint.hostname, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: response.status, finalUrl: response.finalUrl.href, bodyCaptured: true, bodyBytes: response.body.byteLength, parserPath: 'enc' } } } satisfies ExtractionResult;
+          continue;
+        }
+        const payload = await this.decoder.decrypt(envelope, media.tmdbId, salt, new URL('/decrypt.wasm', player.finalUrl), services, signal);
+        const sources = server.responseType === 'vidnest'
+          ? (payload as VidnestResponse).data?.url ? [{ url: (payload as VidnestResponse).data?.url, type: 'hls' }] : (payload as VidnestResponse).data?.streams ?? []
+          : (payload as BingrResponse).servers?.flatMap(value => value.sources ?? []) ?? [];
+        const streams: StreamCandidate[] = sources.flatMap((source) => {
+          if (!source.url) return [];
+          const directUrl = new URL(source.url, response.finalUrl);
+          const url = server.responseType === 'vidnest' && proxyBase ? new URL(`${proxyBase}${directUrl.href}`) : directUrl;
+          const height = Number.parseInt('quality' in source ? source.quality ?? '' : 'resolution' in source ? source.resolution ?? '' : '');
+          return [{ url, protocol: source.type?.includes('mpegurl') || source.type === 'hls' || /\.m3u8(?:$|\?)/i.test(url.href) ? 'hls' as const : 'http' as const, sourceId: String(target.hints?.['sourceId'] ?? target.url.hostname), sourceExtractor: String(target.hints?.['sourceExtractor'] ?? 'cinetaro'), hostExtractor: this.id, ...(height > 0 && { declaredResolution: { width: Math.round(height * 16 / 9), height } }), ...(server.name && { label: server.name }), discoveredAt: new Date() }];
+        });
+        if (streams.length) return { type: 'streams', streams };
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    if (lastError && typeof lastError === 'object' && 'type' in lastError) return lastError as ExtractionResult;
+    if (lastError) throw lastError;
+    return { type: 'empty', reason: 'no-streams' };
   }
 }

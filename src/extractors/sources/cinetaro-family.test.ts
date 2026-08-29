@@ -39,7 +39,7 @@ describe('Cinetaro source family and Cinextream host architecture', () => {
   });
 
   test('matches exact movie and series catalog entries, preserves later-season coordinates, and validates playback', async () => {
-    const decoder: CinextreamEnvelopeDecoder = { decrypt: jest.fn(async () => JSON.parse(fixture('decrypted-kuro.json')) as unknown) };
+    const decoder: CinextreamEnvelopeDecoder = { decrypt: jest.fn(async () => JSON.parse(fixture('decrypted-nest.json')) as unknown) };
     const services: RequestServices = { request: jest.fn(async (request: ExtractionRequest) => {
       if (request.url.pathname === '/ajax/search/suggest') {
         if (request.url.searchParams.get('keyword') === 'Inception') return response(request.url.href, fixture('search-inception.json'));
@@ -68,6 +68,7 @@ describe('Cinetaro source family and Cinextream host architecture', () => {
     expect(outcome).toMatchObject({ status: 'healthy', extractable: true, stages: { discovery: true, extraction: true, validation: true }, anomalies: [] });
     expect(registry.runtimeEligible()).toMatchObject([{ id: source.id, status: 'supported' }]);
     expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://cinetaro.test/src/player/sub.php?id=1396-5-16&server=maple&embed=true&ep=16') }), expect.any(AbortSignal));
+    expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://box-proxy.test/https://media.cinextream.test/movies/inception/master.m3u8') }), expect.any(AbortSignal));
     expect(decoder.decrypt).toHaveBeenCalledTimes(3);
   });
 });
