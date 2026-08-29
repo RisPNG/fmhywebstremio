@@ -39,6 +39,7 @@ describe('CineGo source family and VidsrcMe host architecture', () => {
       if (request.url.pathname === '/searching') {
         if (request.url.searchParams.get('q') === 'Inception') return response(request.url.href, fixture('search-inception.json'));
         if (request.url.searchParams.get('q') === 'Breaking Bad') return response(request.url.href, fixture('search-breaking-bad.json'));
+        if (request.url.searchParams.get('q') === 'Loki') return response(request.url.href, fixture('search-loki.json'));
         return response(request.url.href, fixture('search-absent.json'));
       }
       if (request.url.hostname === 'data.vidsrcme.ru') return response(request.url.href, fixture(request.url.searchParams.get('type') === 'movie' ? 'vidsrcme-movie.json' : 'vidsrcme-episode.json'));
@@ -51,13 +52,15 @@ describe('CineGo source family and VidsrcMe host architecture', () => {
     const outcome = await new FamilyHealthRunner(new ExtractionResolver(new StaticExtractorLookup([]), services), new StreamSelector(services), services, registry).run(source, family, { familyId: 'cinego', cases: [
       { id: 'movie', media: { canonicalId: 'tmdb:27205', type: 'movie', tmdbId: 27205, title: 'Inception', year: 2010 }, expected: 'discoverable' },
       { id: 'episode', media: { canonicalId: 'tmdb:1396:1:1', type: 'episode', tmdbId: 1396, title: 'Breaking Bad', year: 2008, season: 1, episode: 1 }, expected: 'discoverable' },
+      { id: 'later-season', media: { canonicalId: 'tmdb:84958:2:1', type: 'episode', tmdbId: 84958, title: 'Loki', year: 2021, season: 2, episode: 1 }, expected: 'discoverable' },
       { id: 'absent', media: { canonicalId: 'probe:absent', type: 'movie', tmdbId: 1, title: 'FMHY Extractability Probe 7b18e49a', year: 1874 }, expected: 'absent' },
     ] }, new AbortController().signal);
     expect(outcome).toMatchObject({ status: 'healthy', extractable: true, stages: { discovery: true, extraction: true, validation: true } });
     expect(registry.runtimeEligible()).toMatchObject([{ id: source.id, status: 'supported' }]);
-    expect(decoder.decrypt).toHaveBeenCalledTimes(2);
-    expect((services.request as jest.Mock).mock.calls.filter(([request]: [ExtractionRequest]) => request.url.pathname === '/generate.php')).toHaveLength(2);
+    expect(decoder.decrypt).toHaveBeenCalledTimes(3);
+    expect((services.request as jest.Mock).mock.calls.filter(([request]: [ExtractionRequest]) => request.url.pathname === '/generate.php')).toHaveLength(3);
     expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://media.vidsrcme.test/fixture-encrypted-movie/backup.m3u8?token=fixture-token') }), expect.any(AbortSignal));
     expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://data.vidsrcme.ru/api.php?type=tv&tmdb=1396&season=1&episode=1&stream_urls=') }), expect.any(AbortSignal));
+    expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://data.vidsrcme.ru/api.php?type=tv&tmdb=84958&season=2&episode=1&stream_urls=') }), expect.any(AbortSignal));
   });
 });
