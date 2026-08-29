@@ -24,6 +24,6 @@ export class RuntimeStremioAdapter implements StremioStreamProvider {
   public constructor(private readonly engine: StreamEngine) {}
   public async findStreams(ctx: Context, type: string, rawId: string): Promise<StremioStreamResult> {
     const result = await this.engine.findStreams(parseStremioMediaRequest(type, rawId), { excludedSourceIds: Object.keys(ctx.config).flatMap(key => key.startsWith('disableFmhySource_') ? [key.slice('disableFmhySource_'.length)] : []) });
-    return { streams: result.streams.map(normalizedStreamToStremio), diagnostics: [...new Set(result.failures.map(failure => `${failure.code}@${failure.stage}`))] };
+    return { streams: result.streams.map(normalizedStreamToStremio), diagnostics: [...new Set(result.failures.map(failure => `${failure.code}@${failure.stage}:${failure.sourceId ?? 'metadata'}:${failure.familyId ?? 'resolver'}`))] };
   }
 }
