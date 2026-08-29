@@ -26,15 +26,7 @@ export class CinetaroFamily implements SourceFamily {
     if (!media.title || !media.tmdbId || (media.type === 'episode' && (!media.season || !media.episode))) return { type: 'empty', reason: 'not-found' };
     const search = new URL('/ajax/search/suggest', `https://${source.canonicalDomain}/`);
     search.searchParams.set('keyword', media.title);
-    const response = await services.request({ url: search, expectedContent: 'json', stateScope: { kind: 'source', key: source.id } }, signal);
-    const payload = response.json() as CinetaroSearchResponse;
-    if (!Array.isArray(payload.results)) return { type: 'failure', failure: { code: 'RESPONSE_SCHEMA_CHANGED', message: 'Cinetaro search response did not contain results', stage: 'stage:discovery', sourceId: source.id, familyId: this.id, targetHost: source.canonicalDomain, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: response.status, finalUrl: response.finalUrl.href, bodyCaptured: true, bodyBytes: response.body.byteLength, parserPath: 'results' } } };
-    const expectedTitle = media.title.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
-    const match = payload.results.find(result => (result.title ?? result.name)?.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim() === expectedTitle
-      && result.media_type === (media.type === 'movie' ? 'movie' : 'tv')
-      && (media.type !== 'movie' || media.year === undefined || Number.parseInt(result.release_date ?? '') === media.year));
-    if (!match?.id || match.id !== media.tmdbId) return { type: 'empty', reason: 'not-found' };
-    const watch = new URL(`/watch/${match.id}`, response.finalUrl);
+    const watch = new URL(`/watch/${media.tmdbId}`, search);
     if (media.type === 'movie') {
       watch.searchParams.set('m', '');
       watch.searchParams.set('ep', '1');
@@ -43,7 +35,17 @@ export class CinetaroFamily implements SourceFamily {
       watch.searchParams.set('s', String(media.season));
       watch.searchParams.set('ep', String(media.episode));
     }
-    const watchResponse = await services.request({ url: watch, expectedContent: 'html', stateScope: { kind: 'source', key: source.id } }, signal);
+    const [response, watchResponse] = await Promise.all([
+      services.request({ url: search, expectedContent: 'json', stateScope: { kind: 'source', key: source.id } }, signal),
+      services.request({ url: watch, expectedContent: 'html', stateScope: { kind: 'source', key: source.id } }, signal),
+    ]);
+    const payload = response.json() as CinetaroSearchResponse;
+    if (!Array.isArray(payload.results)) return { type: 'failure', failure: { code: 'RESPONSE_SCHEMA_CHANGED', message: 'Cinetaro search response did not contain results', stage: 'stage:discovery', sourceId: source.id, familyId: this.id, targetHost: source.canonicalDomain, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: response.status, finalUrl: response.finalUrl.href, bodyCaptured: true, bodyBytes: response.body.byteLength, parserPath: 'results' } } };
+    const expectedTitle = media.title.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+    const match = payload.results.find(result => (result.title ?? result.name)?.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim() === expectedTitle
+      && result.media_type === (media.type === 'movie' ? 'movie' : 'tv')
+      && (media.type !== 'movie' || media.year === undefined || Number.parseInt(result.release_date ?? '') === media.year));
+    if (!match?.id || match.id !== media.tmdbId) return { type: 'empty', reason: 'not-found' };
     const $ = cheerio.load(watchResponse.text());
     const episodeId = $('.ssl-item.ep-item').filter((_index, element) => Number($(element).attr('data-number')) === (media.type === 'movie' ? 1 : media.episode)).first().attr('data-id');
     if (!episodeId) return { type: 'empty', reason: 'not-found' };

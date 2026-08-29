@@ -24,7 +24,7 @@ describe('Cinetaro source family and Cinextream host architecture', () => {
     const plaintext = fixture('decrypted-kuro.json');
     let allocated = 64;
     const webAssembly = (globalThis as typeof globalThis & { WebAssembly: unknown }).WebAssembly;
-    (globalThis as typeof globalThis & { WebAssembly: unknown }).WebAssembly = { instantiate: async () => ({ instance: { exports: { memory, allocBuffer: (size: number) => {
+    (globalThis as typeof globalThis & { WebAssembly: unknown }).WebAssembly = { compile: async () => 'fixture-module', instantiate: async () => ({ exports: { memory, allocBuffer: (size: number) => {
       const pointer = allocated;
       allocated += size;
       return pointer;
@@ -32,9 +32,12 @@ describe('Cinetaro source family and Cinextream host architecture', () => {
       expect(Buffer.from(new Uint8Array(memory.buffer, keyPointer, 32)).toString('hex')).toBe('7b4ec1141dce84ad00abd2d567b80c4c1d734926897c726529893739795887cf');
       new Uint8Array(memory.buffer, outputPointer, Buffer.byteLength(plaintext)).set(Buffer.from(plaintext));
       return Buffer.byteLength(plaintext);
-    } } } }) };
+    } } }) };
     const services: RequestServices = { request: jest.fn(async request => response(request.url.href, 'fixture', 'application/wasm')) };
-    await expect(new WasmCinextreamEnvelopeDecoder().decrypt('Zml4dHVyZQ==', 27205, 'fixture-salt', new URL('https://cinextream.test/decrypt.wasm'), services, new AbortController().signal)).resolves.toEqual(JSON.parse(plaintext));
+    const decoder = new WasmCinextreamEnvelopeDecoder();
+    await expect(decoder.decrypt('Zml4dHVyZQ==', 27205, 'fixture-salt', new URL('https://cinextream.test/decrypt.wasm'), services, new AbortController().signal)).resolves.toEqual(JSON.parse(plaintext));
+    await expect(decoder.decrypt('Zml4dHVyZQ==', 27205, 'fixture-salt', new URL('https://cinextream.test/decrypt.wasm'), services, new AbortController().signal)).resolves.toEqual(JSON.parse(plaintext));
+    expect(services.request).toHaveBeenCalledTimes(1);
     (globalThis as typeof globalThis & { WebAssembly: unknown }).WebAssembly = webAssembly;
   });
 
