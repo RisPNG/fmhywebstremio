@@ -22,7 +22,7 @@ export class WasmVidsrcMeEnvelopeDecoder implements VidsrcMeEnvelopeDecoder {
     new Uint8Array(exports.memory.buffer, pointer, encrypted.byteLength).set(encrypted);
     const length = exports.decrypt(pointer, encrypted.byteLength);
     const plaintext = new TextDecoder().decode(new Uint8Array(exports.memory.buffer, pointer + 12, length));
-    if (/^https?:\/\//i.test(plaintext)) return [plaintext];
+    if (/^https?:\/\//i.test(plaintext)) return plaintext.split(/(?=https?:\/\/)/).filter(Boolean);
     const decoded: unknown = JSON.parse(plaintext);
     if (!Array.isArray(decoded) || decoded.some(value => typeof value !== 'string')) throw new Error('VidsrcMe stream envelope has an unsupported shape');
     return decoded;
@@ -52,14 +52,19 @@ export class VidsrcMeApiHostArchitecture implements VidsrcMeHostArchitecture {
     if (!envelope || (typeof envelope !== 'string' && !Array.isArray(envelope))) return { type: 'failure', failure: { code: 'RESPONSE_SCHEMA_CHANGED', message: 'VidsrcMe response did not contain stream URLs', stage: 'stage:extraction', sourceId, extractorId: 'vidsrcme-api', targetHost: endpoint.hostname, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: response.status, ...(response.headers['content-type'] && { contentType: response.headers['content-type'] }), finalUrl: response.finalUrl.toString(), bodyCaptured: true, bodyBytes: response.body.byteLength, parserPath: 'data.stream_urls' } } };
     const urls = Array.isArray(envelope) ? envelope : payload.vs?.wasm_url ? await this.decoder.decrypt(envelope, new URL(payload.vs.wasm_url, response.finalUrl), services, signal) : [];
     const streams: StreamCandidate[] = [];
+    const hostTokens = new Map<string, string>();
     for (const value of urls) {
       const mediaUrl = new URL(value);
-      const tokenResponse = await services.request({ url: new URL('/generate.php', mediaUrl), expectedContent: 'text', referrer: endpoint, stateScope: { kind: 'host', key: mediaUrl.hostname } }, signal);
-      const tokenText = tokenResponse.text().trim();
-      let token = tokenText;
-      if (tokenText.startsWith('{')) {
-        const tokenPayload = JSON.parse(tokenText) as { token?: string; data?: string; result?: string };
-        token = tokenPayload.token ?? tokenPayload.data ?? tokenPayload.result ?? '';
+      let token = hostTokens.get(mediaUrl.hostname);
+      if (!token) {
+        const tokenResponse = await services.request({ url: new URL('/generate.php', mediaUrl), expectedContent: 'text', referrer: endpoint, stateScope: { kind: 'host', key: mediaUrl.hostname } }, signal);
+        const tokenText = tokenResponse.text().trim();
+        token = tokenText;
+        if (tokenText.startsWith('{')) {
+          const tokenPayload = JSON.parse(tokenText) as { token?: string; data?: string; result?: string };
+          token = tokenPayload.token ?? tokenPayload.data ?? tokenPayload.result ?? '';
+        }
+        if (token) hostTokens.set(mediaUrl.hostname, token);
       }
       if (!token) continue;
       mediaUrl.searchParams.set('token', token);

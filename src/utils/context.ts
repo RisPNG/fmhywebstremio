@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { Context } from '../types';
 import { getDefaultConfig } from './config';
 
-function resolveHostUrl(req: Request): URL {
+export function resolveHostUrl(req: Request): URL {
   const forwardedProto = req.headers['x-forwarded-proto'];
   const protocol = typeof forwardedProto === 'string'
     ? (forwardedProto.split(',')[0]?.trim() || req.protocol)
