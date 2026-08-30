@@ -1,7 +1,6 @@
 import type { Stream } from 'stremio-addon-sdk';
 import type { MediaRequest, NormalizedStream, StreamEngine } from '../../engine/core';
 import type { Context } from '../../types';
-import { envGetAppName } from '../../utils';
 import type { HlsRelay } from './hls-relay';
 
 export interface StremioStreamResult { streams: Stream[]; ttl?: number; diagnostics?: readonly string[] }
@@ -18,7 +17,8 @@ export function parseStremioMediaRequest(type: string, rawId: string): MediaRequ
 }
 
 export function normalizedStreamToStremio(stream: NormalizedStream): Stream {
-  return { url: stream.url.href, name: `${envGetAppName()}${stream.resolution ? `\n${stream.resolution.height}p` : ''}`, title: [stream.language, stream.sourceId, stream.hostExtractor].filter(Boolean).join(' · '), behaviorHints: { ...(stream.protocol !== 'http' && { notWebReady: true }), ...(stream.headers && { notWebReady: true, proxyHeaders: { request: stream.headers } }) } };
+  const sourceDomain = stream.sourceId.includes(':') ? stream.sourceId.slice(stream.sourceId.indexOf(':') + 1) : stream.sourceId;
+  return { url: stream.url.href, name: [sourceDomain, stream.resolution && `${stream.resolution.height}p`].filter(Boolean).join(' '), title: [stream.language, stream.sourceId, stream.hostExtractor].filter(Boolean).join(' · '), behaviorHints: { ...(stream.protocol !== 'http' && { notWebReady: true }), ...(stream.headers && { notWebReady: true, proxyHeaders: { request: stream.headers } }) } };
 }
 
 export class RuntimeStremioAdapter implements StremioStreamProvider {
