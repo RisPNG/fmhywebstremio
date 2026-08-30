@@ -14,6 +14,6 @@ describe('RuntimeStremioAdapter', () => {
     const [, signature, payload] = url.pathname.match(/^\/hls-relay\/([^/]+)\/([^/]+)\/playlist\.m3u8$/) ?? [];
     expect(url.origin).toBe(context.hostUrl.origin);
     expect(relay.resolveTarget(signature as string, payload as string)).toEqual(target);
-    expect(result.streams[0]).toMatchObject({ name: 'cinego.test 800p', title: 'cinego:cinego.test · vidsrcme-api' });
+    expect(result.streams[0]).toMatchObject({ name: 'cinego.test\n800p', title: 'cinego:cinego.test · vidsrcme-api' });
   });
 });
