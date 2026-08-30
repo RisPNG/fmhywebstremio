@@ -8,7 +8,7 @@ describe('contextFromRequestAndResponse', () => {
       host: 'addon.example',
       headers: {},
       ip: '127.0.0.1',
-      params: { config: 'disabled=7movies:7movies.in' },
+      params: { config: 'disabled=cineby:cineby.at' },
     };
     const res = { getHeader: () => 'request-id' };
 
@@ -16,7 +16,7 @@ describe('contextFromRequestAndResponse', () => {
       hostUrl: new URL('https://addon.example'),
       id: 'request-id',
       ip: '127.0.0.1',
-      config: { 'disableFmhySource_7movies:7movies.in': 'on' },
+      config: { 'disableFmhySource_cineby:cineby.at': 'on' },
     });
   });
 

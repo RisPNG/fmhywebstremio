@@ -6,7 +6,7 @@ import { envGetAppId, envGetAppName } from './env';
 export const buildManifest = (config: Config, fmhySources: SourceRegistry): CustomManifest => {
   const manifest: CustomManifest = {
     id: envGetAppId(),
-    version: '1.1.0', // x-release-please-version
+    version: '1.2.0', // x-release-please-version
     name: envGetAppName(),
     description: 'Provides video HTTP URLs from streaming websites listed by FMHY.',
     resources: [

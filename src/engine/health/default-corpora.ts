@@ -27,14 +27,6 @@ export const defaultFamilyHealthCorpora = new Map<string, FamilyHealthCorpus>([
       { id: 'known-absent', media: { canonicalId: 'probe:absent', type: 'movie', title: 'FMHY Extractability Probe 7b18e49a', year: 1874 }, expected: 'absent', notes: 'Synthetic impossible title used to detect search paths that return plausible matches for every query.' },
     ],
   }],
-  ['cinrift', {
-    familyId: 'cinrift',
-    cases: [
-      { id: 'inception-2010', media: { canonicalId: 'tmdb:27205', type: 'movie', tmdbId: 27205, imdbId: 'tt1375666', title: 'Inception', year: 2010 }, expected: 'discoverable' },
-      { id: 'breaking-bad-s01e01', media: { canonicalId: 'tmdb:1396:1:1', type: 'episode', tmdbId: 1396, imdbId: 'tt0903747', title: 'Breaking Bad', year: 2008, season: 1, episode: 1 }, expected: 'discoverable' },
-      { id: 'known-absent', media: { canonicalId: 'probe:absent', type: 'movie', title: 'FMHY Extractability Probe 7b18e49a', year: 1874 }, expected: 'absent' },
-    ],
-  }],
   ['cinego', {
     familyId: 'cinego',
     cases: [

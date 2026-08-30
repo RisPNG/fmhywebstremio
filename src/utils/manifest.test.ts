@@ -17,9 +17,9 @@ describe('buildManifest', () => {
 
   test('lists only runtime-eligible FMHY sources with selection state', () => {
     const registry = new SourceRegistry();
-    registry.set({ id: 'healthy:healthy.test', canonicalDomain: 'healthy.test', aliases: [], fmhy: { section: 'Streaming', tags: ['Movies'], firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'cinrift', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'supported' });
-    registry.set({ id: 'degraded:degraded.test', canonicalDomain: 'degraded.test', aliases: [], fmhy: { section: 'Streaming', tags: ['Movies'], firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'cinrift', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'degraded' });
-    registry.set({ id: 'failed:failed.test', canonicalDomain: 'failed.test', aliases: [], fmhy: { section: 'Streaming', tags: ['Movies'], firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'cinrift', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'degraded' });
+    registry.set({ id: 'healthy:healthy.test', canonicalDomain: 'healthy.test', aliases: [], fmhy: { section: 'Streaming', tags: ['Movies'], firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'family', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'supported' });
+    registry.set({ id: 'degraded:degraded.test', canonicalDomain: 'degraded.test', aliases: [], fmhy: { section: 'Streaming', tags: ['Movies'], firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'family', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'degraded' });
+    registry.set({ id: 'failed:failed.test', canonicalDomain: 'failed.test', aliases: [], fmhy: { section: 'Streaming', tags: ['Movies'], firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'family', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'degraded' });
     registry.recordHealth({ sourceId: 'healthy:healthy.test', lastOutcome: 'healthy', recentSuccesses: 2, recentFailures: 0, observedAt: new Date(0) });
     registry.recordHealth({ sourceId: 'degraded:degraded.test', lastOutcome: 'degraded', recentSuccesses: 1, recentFailures: 1, observedAt: new Date(0) });
     registry.recordHealth({ sourceId: 'failed:failed.test', lastOutcome: 'failed', recentSuccesses: 0, recentFailures: 2, observedAt: new Date(0) });

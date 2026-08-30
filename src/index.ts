@@ -17,7 +17,6 @@ import { extractorRegistry as runtimeExtractorRegistry } from './extractors/regi
 import { CinebyFamily } from './extractors/sources/cineby-family';
 import { CinegoFamily } from './extractors/sources/cinego-family';
 import { CinetaroFamily } from './extractors/sources/cinetaro-family';
-import { CinriftFamily } from './extractors/sources/cinrift-family';
 import { DooplayFamily } from './extractors/sources/dooplay-family';
 import { PStreamFamily } from './extractors/sources/pstream-family';
 import { envGet, envIsProd } from './utils';
@@ -95,7 +94,7 @@ const runtimeRelay = new HlsRelay();
 const runtimeSourceRegistry = new SourceRegistry();
 const runtimeDependencies = new DependencyGraph();
 const runtimeDependencyStore = new JsonDependencyStore(`${envGet('EXTRACTABILITY_DATA_DIR') ?? '.data/extractability'}/dependencies.json`);
-const runtimeFamilies = new Map<string, SourceFamily>([['cineby', new CinebyFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()]]);
+const runtimeFamilies = new Map<string, SourceFamily>([['cineby', new CinebyFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()]]);
 
 addon.use('/', (new ConfigureController(runtimeSourceRegistry)).router);
 addon.use('/', (new ManifestController(runtimeSourceRegistry)).router);

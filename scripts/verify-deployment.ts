@@ -35,16 +35,16 @@ async function verifyDeploymentContract(): Promise<void> {
     }
     const manifestResponse = await fetch(`http://127.0.0.1:${port}/manifest.json`);
     const manifest = await manifestResponse.json() as { id?: string; version?: string; name?: string; description?: string; resources?: unknown[]; config?: { key: string }[] };
-    if (!manifestResponse.ok || manifest.id !== 'fmhy-webstream' || manifest.version !== '1.1.0' || manifest.name !== 'FMHY\'s Website Streamer' || !manifest.description?.startsWith('Provides video HTTP URLs from streaming websites listed by FMHY.') || !manifest.resources?.length || !manifest.config?.some(field => field.key === 'disableFmhySource_7movies:7movies.in') || !manifest.config.some(field => field.key === 'disableFmhySource_cineby:cineby.at') || manifest.config.some(field => /mediaFlow|disableExtractor/i.test(field.key))) throw new Error('Manifest contract is invalid');
-    const configuredManifestResponse = await fetch(`http://127.0.0.1:${port}/disabled=7movies:7movies.in/manifest.json`);
+    if (!manifestResponse.ok || manifest.id !== 'fmhy-webstream' || manifest.version !== '1.2.0' || manifest.name !== 'FMHY\'s Website Streamer' || !manifest.description?.startsWith('Provides video HTTP URLs from streaming websites listed by FMHY.') || !manifest.resources?.length || !manifest.config?.some(field => field.key === 'disableFmhySource_cineby:cineby.at') || manifest.config.some(field => field.key === 'disableFmhySource_7movies:7movies.in') || manifest.config.some(field => /mediaFlow|disableExtractor/i.test(field.key))) throw new Error('Manifest contract is invalid');
+    const configuredManifestResponse = await fetch(`http://127.0.0.1:${port}/disabled=cineby:cineby.at/manifest.json`);
     const configuredManifest = await configuredManifestResponse.json() as { config?: { key: string; default?: string }[] };
-    if (!configuredManifestResponse.ok || configuredManifest.config?.find(field => field.key === 'disableFmhySource_7movies:7movies.in')?.default !== 'checked') throw new Error('Clean configuration path contract is invalid');
+    if (!configuredManifestResponse.ok || configuredManifest.config?.find(field => field.key === 'disableFmhySource_cineby:cineby.at')?.default !== 'checked') throw new Error('Clean configuration path contract is invalid');
     const configure = await fetch(`http://127.0.0.1:${port}/configure`);
     const configureBody = await configure.text();
-    if (!configure.ok || !configure.headers.get('content-type')?.includes('text/html') || !configureBody.includes('FMHY\'s Website Streamer') || !configureBody.includes('Provides video HTTP URLs from streaming websites listed by FMHY.') || !configureBody.includes('>7movies.in</div>') || configureBody.includes('7movies.in — healthy') || /torbox|debrid|debris|MediaFlow|WebStreamrMBG/i.test(configureBody)) throw new Error('Configuration endpoint contract is invalid');
+    if (!configure.ok || !configure.headers.get('content-type')?.includes('text/html') || !configureBody.includes('FMHY\'s Website Streamer') || !configureBody.includes('Provides video HTTP URLs from streaming websites listed by FMHY.') || !configureBody.includes('>cineby.at</div>') || configureBody.includes('7movies.in') || /torbox|debrid|debris|MediaFlow|WebStreamrMBG/i.test(configureBody)) throw new Error('Configuration endpoint contract is invalid');
     const live = await fetch(`http://127.0.0.1:${port}/live`);
     const liveBody = await live.json() as { status?: string; details?: Record<string, string> };
-    if (!live.ok || liveBody.status !== 'ok' || liveBody.details?.['7movies.in'] !== 'healthy') throw new Error('Runtime source registry was not loaded');
+    if (!live.ok || liveBody.status !== 'ok' || liveBody.details?.['cineby.at'] !== 'healthy' || '7movies.in' in (liveBody.details ?? {})) throw new Error('Runtime source registry was not loaded');
     const stats = await fetch(`http://127.0.0.1:${port}/stats`);
     if (!stats.ok || (await stats.json() as { revision?: string }).revision !== 'deployment-contract') throw new Error('Deployment revision contract is invalid');
     const stream = await fetch(`http://127.0.0.1:${port}/stream/movie/tmdb%3A27205.json`);
