@@ -37,6 +37,43 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       },
     },
     {
+      id: 'cineby:cineby.at',
+      canonicalDomain: 'cineby.at',
+      aliases: [
+        'cineplay.to',
+        'fmovies.gd',
+      ],
+      fmhy: {
+        section: '▷ Stream Aggregators',
+        tags: [
+          'recommended',
+        ],
+        firstSeenAt: new Date(0),
+        lastSeenAt: new Date(0),
+      },
+      status: 'supported',
+      family: {
+        id: 'cineby',
+        confidence: 0.8500000000000001,
+        evidence: [
+          {
+            type: 'script-signature',
+            fingerprint: 'cineby-brand',
+          },
+          {
+            type: 'route-shape',
+            value: '/movie|tv/{tmdbId}',
+          },
+        ],
+        lastProbedAt: new Date(0),
+      },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://www.cineby.at/',
+      },
+    },
+    {
       id: 'cinego:cinego.co',
       canonicalDomain: 'cinego.co',
       aliases: [],
@@ -110,6 +147,13 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       sourceId: '7movies:7movies.in',
       lastOutcome: 'healthy',
       recentSuccesses: 2,
+      recentFailures: 0,
+      observedAt: new Date(0),
+    },
+    {
+      sourceId: 'cineby:cineby.at',
+      lastOutcome: 'healthy',
+      recentSuccesses: 3,
       recentFailures: 0,
       observedAt: new Date(0),
     },
