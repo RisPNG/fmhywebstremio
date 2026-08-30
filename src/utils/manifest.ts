@@ -1,4 +1,3 @@
-import type { SourceHealthHistory } from '../engine/core/models';
 import type { SourceRegistry } from '../engine/registry';
 import { Config, CustomManifest } from '../types';
 import { disableFmhySourceConfigKey } from './config';
@@ -34,11 +33,10 @@ export const buildManifest = (config: Config, fmhySources: SourceRegistry): Cust
 
   for (const source of fmhySources.runtimeEligible()) {
     const key = disableFmhySourceConfigKey(source.id);
-    const health = fmhySources.health().get(source.id) as SourceHealthHistory;
     manifest.config.push({
       key,
       type: 'checkbox',
-      title: `${source.canonicalDomain} — ${health.lastOutcome}`,
+      title: source.canonicalDomain,
       ...(key in config && { default: 'checked' }),
     });
   }

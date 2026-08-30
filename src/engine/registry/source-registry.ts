@@ -27,9 +27,9 @@ export class SourceRegistry {
 
   public list(statuses?: readonly SourceRecord['status'][]): SourceRecord[] { return [...this.records.values()].filter(record => !statuses || statuses.includes(record.status)).sort((a, b) => a.id.localeCompare(b.id)); }
   public runtimeEligible(): SourceRecord[] {
-    return this.list(['supported', 'degraded']).filter((source) => {
+    return this.list(['supported']).filter((source) => {
       const health = this.history.get(source.id);
-      return Boolean(health && health.lastOutcome !== 'failed' && health.recentSuccesses > 0);
+      return Boolean(health && health.lastOutcome === 'healthy' && health.recentSuccesses > 0);
     });
   }
 

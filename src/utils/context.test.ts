@@ -8,7 +8,7 @@ describe('contextFromRequestAndResponse', () => {
       host: 'addon.example',
       headers: {},
       ip: '127.0.0.1',
-      params: { config: '{"disableFmhySource_7movies:7movies.in":"on"}' },
+      params: { config: 'disabled=7movies:7movies.in' },
     };
     const res = { getHeader: () => 'request-id' };
 
@@ -27,6 +27,13 @@ describe('contextFromRequestAndResponse', () => {
     expect(contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response).config).toEqual({});
   });
 
+  test('reads a clean source-selection path', () => {
+    const req = { protocol: 'https', host: 'addon.example', headers: {}, params: { config: 'disabled=cinetaro:cinetaro.to' } };
+    const res = { getHeader: () => 'request-id' };
+
+    expect(contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response).config).toEqual({ 'disableFmhySource_cinetaro:cinetaro.to': 'on' });
+  });
+
   test('uses the forwarded protocol', () => {
     const req = { protocol: 'http', host: 'addon.example', headers: { 'x-forwarded-proto': 'https' }, params: {} };
     const res = { getHeader: () => 'request-id' };
@@ -41,10 +48,10 @@ describe('contextFromRequestAndResponse', () => {
     expect(contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response).hostUrl).toEqual(new URL('http://addon.example'));
   });
 
-  test('rejects malformed configuration JSON', () => {
+  test('rejects an unsupported configuration path', () => {
     const req = { protocol: 'https', host: 'addon.example', headers: {}, params: { config: '{invalid}' } };
     const res = { getHeader: () => 'request-id' };
 
-    expect(() => contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response)).toThrow('Invalid config: malformed JSON');
+    expect(() => contextFromRequestAndResponse(req as unknown as Request, res as unknown as Response)).toThrow('Invalid config path');
   });
 });
