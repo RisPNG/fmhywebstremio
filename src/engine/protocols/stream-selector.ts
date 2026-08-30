@@ -43,7 +43,7 @@ export class StreamSelector {
     return streams.filter((stream) => {
       const canonical = new URL(stream.url);
       canonical.hash = '';
-      const key = stream.providerContentId ? `${stream.hostExtractor ?? stream.sourceExtractor}:${stream.providerContentId}` : stream.structuralFingerprint ?? canonical.href;
+      const key = `${stream.sourceId}:${stream.providerContentId ? `${stream.hostExtractor ?? stream.sourceExtractor}:${stream.providerContentId}` : stream.structuralFingerprint ?? canonical.href}`;
       if (keys.has(key)) return false;
       keys.add(key);
       return true;

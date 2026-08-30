@@ -210,6 +210,12 @@ describe('protocol vertical slice', () => {
     expect(result.streams.map(stream => stream.sourceId)).toEqual(['a']);
   });
 
+  test('deduplicates equivalent streams within a source without discarding another source', () => {
+    const selector = new StreamSelector({ request: jest.fn() } as unknown as RequestServices);
+    const stream = { url: new URL('https://shared.cdn.test/master.m3u8'), protocol: 'hls' as const, validation: 'validated' as const, sourceId: 'cinego:cinego.test', sourceExtractor: 'cinego', structuralFingerprint: 'hls:fixture' };
+    expect(selector.deduplicate([stream, { ...stream, url: new URL('https://duplicate.cdn.test/master.m3u8') }, { ...stream, sourceId: 'cinetaro:cinetaro.test', sourceExtractor: 'cinetaro' }]).map(value => value.sourceId)).toEqual(['cinego:cinego.test', 'cinetaro:cinetaro.test']);
+  });
+
   test('orders preferred languages before unlisted languages', () => {
     const services = { request: jest.fn() } as unknown as RequestServices;
     const candidate = { url: new URL('https://cdn.test/master.m3u8'), protocol: 'hls' as const, sourceId: 'source', sourceExtractor: 'family', discoveredAt: new Date(0) };
@@ -310,6 +316,32 @@ describe('protocol vertical slice', () => {
     const result = await new RuntimeStreamEngine({ resolve: async () => ({ canonicalId: 'movie', type: 'movie', title: 'Movie' }) }, registry, new Map([['fixture', family]]), new ExtractionResolver(new StaticExtractorLookup([]), services), services).findStreams({ type: 'movie', title: 'Movie' });
     expect(result.deadline.sourcesAttempted).toBe(1);
     expect(result.streams).toMatchObject([{ sourceId: 'eligible' }]);
+  });
+
+  test('aggregates fast and slower healthy sources within the runtime discovery budget', async () => {
+    const services: RequestServices = { request: jest.fn().mockResolvedValue(response('https://cdn.test/media.m3u8', '#EXTM3U\n#EXTINF:4,\nsegment.ts', 'application/vnd.apple.mpegurl')) };
+    const registry = new SourceRegistry();
+    for (const id of ['fast', 'slower']) {
+      registry.set({ id, canonicalDomain: `${id}.test`, aliases: [], fmhy: { firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'fixture', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'supported' });
+      registry.recordHealth({ sourceId: id, lastOutcome: 'healthy', recentSuccesses: 1, recentFailures: 0, observedAt: new Date(0) });
+    }
+    const family = {
+      id: 'fixture',
+      classify: () => null,
+      discoverMedia: async (_media: unknown, source: SourceRecord, _services: RequestServices, signal: AbortSignal) => {
+        if (source.id === 'slower') await new Promise<void>((resolve, reject) => {
+          const timer = setTimeout(resolve, 375);
+          signal.addEventListener('abort', () => {
+            clearTimeout(timer);
+            reject(signal.reason);
+          }, { once: true });
+        });
+        return { type: 'streams' as const, streams: [{ url: new URL(`https://${source.id}.cdn.test/media.mp4`), protocol: 'http' as const, sourceId: source.id, sourceExtractor: 'fixture', discoveredAt: new Date(0) }] };
+      },
+    };
+    const result = await new RuntimeStreamEngine({ resolve: async () => ({ canonicalId: 'movie', type: 'movie', title: 'Movie' }) }, registry, new Map([['fixture', family]]), new ExtractionResolver(new StaticExtractorLookup([]), services), services).findStreams({ type: 'movie', title: 'Movie' }, { deadlineMs: 500 });
+    expect(result.streams.map(stream => stream.sourceId)).toEqual(['fast', 'slower']);
+    expect(result.deadline).toMatchObject({ sourcesAttempted: 2, sourcesCompleted: 2, sourcesCancelled: 0, exceeded: false });
   });
 
   test('widens healthy source batches only when earlier sources produce too few candidates', async () => {

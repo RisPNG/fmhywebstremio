@@ -11,13 +11,13 @@ export class RuntimeStreamEngine implements StreamEngine {
 
   public async findStreams(request: MediaRequest, options: QueryOptions = {}): Promise<StreamQueryResult> {
     const started = Date.now();
-    const budgetMs = options.deadlineMs ?? 12000;
+    const budgetMs = options.deadlineMs ?? 15000;
     const controller = new AbortController();
     const deadline = setTimeout(() => controller.abort(), budgetMs);
     const discoveryController = new AbortController();
     const abortDiscovery = () => discoveryController.abort(controller.signal.reason);
     controller.signal.addEventListener('abort', abortDiscovery, { once: true });
-    const discoveryDeadline = setTimeout(() => discoveryController.abort(), Math.floor(budgetMs * 0.7));
+    const discoveryDeadline = setTimeout(() => discoveryController.abort(), Math.floor(budgetMs * 0.8));
     const failures: Failure[] = [];
     const candidates: StreamCandidate[] = [];
     let completed = 0;
