@@ -39,7 +39,7 @@ export class FamilyHealthRunner {
         candidates.push(...resolved.flatMap(value => value.streams));
         failures.push(...resolved.flatMap(value => value.failures));
       }
-      const validation = await this.selector.validate(candidates, { topK: 1 }, signal);
+      const validation = await this.selector.validate(candidates, { topK: 2 }, signal);
       failures.push(...validation.failures);
       if (test.expected === 'discoverable' && !discovered && failures.length === 0) failures.push({ code: 'KNOWN_PROBE_MEDIA_NOT_FOUND', message: 'Known probe media was not found', stage: 'stage:discovery', sourceId: source.id, familyId: family.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false } });
       if (candidates.length > 0) discovered = true;
