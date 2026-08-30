@@ -42,6 +42,6 @@ export class CinegoFamily implements SourceFamily {
       && (media.type === 'movie' ? result.d === 'm' : result.d !== 'm')
       && (media.type !== 'movie' || media.year === undefined || result.y === undefined || result.y === media.year));
     if (!match) return { type: 'empty', reason: 'not-found' };
-    return this.host.discover(media, source.id, services, signal);
+    return this.host.discover(media, source.id, this.id, services, signal);
   }
 }

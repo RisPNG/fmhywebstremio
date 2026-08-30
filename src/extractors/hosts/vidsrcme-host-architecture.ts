@@ -30,13 +30,13 @@ export class WasmVidsrcMeEnvelopeDecoder implements VidsrcMeEnvelopeDecoder {
 }
 
 export interface VidsrcMeHostArchitecture {
-  discover(media: MediaIdentity, sourceId: string, services: RequestServices, signal: AbortSignal): Promise<ExtractionResult>;
+  discover(media: MediaIdentity, sourceId: string, sourceExtractor: string, services: RequestServices, signal: AbortSignal): Promise<ExtractionResult>;
 }
 
 export class VidsrcMeApiHostArchitecture implements VidsrcMeHostArchitecture {
   public constructor(private readonly decoder: VidsrcMeEnvelopeDecoder = new WasmVidsrcMeEnvelopeDecoder()) {}
 
-  public async discover(media: MediaIdentity, sourceId: string, services: RequestServices, signal: AbortSignal): Promise<ExtractionResult> {
+  public async discover(media: MediaIdentity, sourceId: string, sourceExtractor: string, services: RequestServices, signal: AbortSignal): Promise<ExtractionResult> {
     if (!media.tmdbId || (media.type === 'episode' && (!media.season || !media.episode))) return { type: 'empty', reason: 'not-found' };
     const endpoint = new URL('https://data.vidsrcme.ru/api.php');
     endpoint.searchParams.set('type', media.type === 'movie' ? 'movie' : 'tv');
@@ -53,23 +53,31 @@ export class VidsrcMeApiHostArchitecture implements VidsrcMeHostArchitecture {
     const urls = Array.isArray(envelope) ? envelope : payload.vs?.wasm_url ? await this.decoder.decrypt(envelope, new URL(payload.vs.wasm_url, response.finalUrl), services, signal) : [];
     const streams: StreamCandidate[] = [];
     const hostTokens = new Map<string, string>();
+    let lastTokenFailure: unknown;
     for (const value of urls) {
       const mediaUrl = new URL(value);
       let token = hostTokens.get(mediaUrl.hostname);
       if (!token) {
-        const tokenResponse = await services.request({ url: new URL('/generate.php', mediaUrl), expectedContent: 'text', referrer: endpoint, stateScope: { kind: 'host', key: mediaUrl.hostname } }, signal);
-        const tokenText = tokenResponse.text().trim();
-        token = tokenText;
-        if (tokenText.startsWith('{')) {
-          const tokenPayload = JSON.parse(tokenText) as { token?: string; data?: string; result?: string };
-          token = tokenPayload.token ?? tokenPayload.data ?? tokenPayload.result ?? '';
+        try {
+          const tokenResponse = await services.request({ url: new URL('/generate.php', mediaUrl), expectedContent: 'text', referrer: endpoint, stateScope: { kind: 'host', key: mediaUrl.hostname } }, signal);
+          const tokenText = tokenResponse.text().trim();
+          token = tokenText;
+          if (tokenText.startsWith('{')) {
+            const tokenPayload = JSON.parse(tokenText) as { token?: string; data?: string; result?: string };
+            token = tokenPayload.token ?? tokenPayload.data ?? tokenPayload.result ?? '';
+          }
+          if (token) hostTokens.set(mediaUrl.hostname, token);
+        } catch (error) {
+          lastTokenFailure = error;
+          continue;
         }
-        if (token) hostTokens.set(mediaUrl.hostname, token);
       }
       if (!token) continue;
       mediaUrl.searchParams.set('token', token);
-      streams.push({ url: mediaUrl, protocol: /\.m3u8(?:$|\?)/i.test(mediaUrl.href) ? 'hls' : 'http', sourceId, sourceExtractor: 'cinego', hostExtractor: 'vidsrcme-api', ...(payload.data?.title && { label: payload.data.title }), discoveredAt: new Date() });
+      streams.push({ url: mediaUrl, protocol: /\.m3u8(?:$|\?)/i.test(mediaUrl.href) ? 'hls' : 'http', sourceId, sourceExtractor, hostExtractor: 'vidsrcme-api', ...(payload.data?.title && { label: payload.data.title }), discoveredAt: new Date() });
+      break;
     }
+    if (!streams.length && lastTokenFailure) throw lastTokenFailure;
     return streams.length ? { type: 'streams', streams } : { type: 'empty', reason: 'no-streams' };
   }
 }

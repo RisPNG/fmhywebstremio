@@ -60,8 +60,18 @@ describe('CineGo source family and VidsrcMe host architecture', () => {
     expect(registry.runtimeEligible()).toMatchObject([{ id: source.id, status: 'supported' }]);
     expect(decoder.decrypt).toHaveBeenCalledTimes(3);
     expect((services.request as jest.Mock).mock.calls.filter(([request]: [ExtractionRequest]) => request.url.pathname === '/generate.php')).toHaveLength(3);
-    expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://media.vidsrcme.test/fixture-encrypted-movie/backup.m3u8?token=fixture-token') }), expect.any(AbortSignal));
+    expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://media.vidsrcme.test/fixture-encrypted-movie/master.m3u8?token=fixture-token') }), expect.any(AbortSignal));
     expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://data.vidsrcme.ru/api.php?type=tv&tmdb=1396&season=1&episode=1&stream_urls=') }), expect.any(AbortSignal));
     expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://data.vidsrcme.ru/api.php?type=tv&tmdb=84958&season=2&episode=1&stream_urls=') }), expect.any(AbortSignal));
+  });
+
+  test('continues to the next encrypted mirror when token issuance fails', async () => {
+    const decoder: VidsrcMeEnvelopeDecoder = { decrypt: jest.fn(async () => ['https://unavailable.test/master.m3u8', 'https://available.test/master.m3u8']) };
+    const services: RequestServices = { request: jest.fn(async (request: ExtractionRequest) => {
+      if (request.url.hostname === 'data.vidsrcme.ru') return response(request.url.href, fixture('vidsrcme-movie.json'));
+      if (request.url.hostname === 'unavailable.test') throw new Error('token issuer unavailable');
+      return response(request.url.href, 'fixture-token', 'text/plain');
+    }) };
+    await expect(new VidsrcMeApiHostArchitecture(decoder).discover({ canonicalId: 'tmdb:27205', type: 'movie', tmdbId: 27205, title: 'Inception', year: 2010 }, source.id, 'cinego', services, new AbortController().signal)).resolves.toMatchObject({ type: 'streams', streams: [{ url: new URL('https://available.test/master.m3u8?token=fixture-token') }] });
   });
 });

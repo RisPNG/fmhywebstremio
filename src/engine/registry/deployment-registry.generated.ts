@@ -3,11 +3,13 @@ import type { SourceRegistryState } from './source-registry';
 export const deploymentSourceRegistry: SourceRegistryState = {
   records: [
     {
-      id: 'cineby:cineby.at',
-      canonicalDomain: 'cineby.at',
+      id: '67movies:67movies.net',
+      canonicalDomain: '67movies.nl',
       aliases: [
-        'cineplay.to',
-        'fmovies.gd',
+        '67movies.net',
+        'shows.st',
+        'phantomflix.net',
+        'ravenflix.net',
       ],
       fmhy: {
         section: '▷ Stream Aggregators',
@@ -19,16 +21,20 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       },
       status: 'supported',
       family: {
-        id: 'cineby',
-        confidence: 0.8500000000000001,
+        id: 'sixty-seven-movies',
+        confidence: 1,
         evidence: [
           {
             type: 'script-signature',
-            fingerprint: 'cineby-brand',
+            fingerprint: 'sixty-seven-movies-brand',
           },
           {
             type: 'route-shape',
-            value: '/movie|tv/{tmdbId}',
+            value: 'sixty-seven-movies-catalog',
+          },
+          {
+            type: 'asset-path',
+            value: 'sixty-seven-movies-next-client',
           },
         ],
         lastProbedAt: new Date(0),
@@ -36,7 +42,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       probe: {
         outcome: 'matched',
         observedAt: new Date(0),
-        finalUrl: 'https://www.cineby.at/',
+        finalUrl: 'https://67movies.nl/',
       },
     },
     {
@@ -110,7 +116,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
   ],
   health: [
     {
-      sourceId: 'cineby:cineby.at',
+      sourceId: '67movies:67movies.net',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
       recentFailures: 0,
