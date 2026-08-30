@@ -115,7 +115,7 @@ body{position:relative;z-index:1;display:flex;justify-content:center;padding:2re
       ? `<div class="card">
       <div class="ct">🕸 FMHY Sources</div>
       <div class="egrid">${sourceChips}</div>
-      <div class="hint">Current health appears after each site. Click a site to disable it for this addon URL.</div>
+      <div class="hint">Click a site to disable it for this addon URL.</div>
     </div>`
       : ''}
 
@@ -131,7 +131,8 @@ const ilink=document.getElementById('installLink');
 const updateLink=()=>{
   const data=new FormData(form);
   const config=Object.fromEntries([...data.entries()].filter(([,v])=>v!==''));
-  ilink.href='stremio://'+window.location.host+'/'+encodeURIComponent(JSON.stringify(config))+'/manifest.json';
+  const disabled=Object.keys(config).map(key=>key.slice('disableFmhySource_'.length));
+  ilink.href='stremio://'+window.location.host+(disabled.length?'/disabled='+disabled.join(','):'')+'/manifest.json';
 };
 form.addEventListener('change',updateLink);
 

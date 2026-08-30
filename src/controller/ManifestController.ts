@@ -1,7 +1,6 @@
 import { Request, Response, Router } from 'express';
 import type { SourceRegistry } from '../engine/registry';
-import { Config } from '../types';
-import { buildManifest, getDefaultConfig } from '../utils';
+import { buildManifest, parseConfigPath } from '../utils';
 
 export class ManifestController {
   public readonly router: Router;
@@ -14,14 +13,12 @@ export class ManifestController {
   }
 
   private getManifest(req: Request, res: Response) {
-    let config: Config = getDefaultConfig();
-    if (req.params['config']) {
-      try {
-        config = JSON.parse(req.params['config'] as string);
-      } catch {
-        res.status(400).json({ error: 'Invalid config: malformed JSON' });
-        return;
-      }
+    let config;
+    try {
+      config = parseConfigPath(req.params['config'] as string | undefined);
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
+      return;
     }
 
     const manifest = buildManifest(config, this.fmhySources);
