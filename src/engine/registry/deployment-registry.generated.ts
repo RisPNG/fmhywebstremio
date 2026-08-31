@@ -46,6 +46,40 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       },
     },
     {
+      id: 'bcine:bcine.ru',
+      canonicalDomain: 'bcine.ru',
+      aliases: [],
+      fmhy: {
+        section: '▷ Stream Aggregators',
+        tags: [
+          'recommended',
+        ],
+        firstSeenAt: new Date(0),
+        lastSeenAt: new Date(0),
+      },
+      status: 'supported',
+      family: {
+        id: 'bcine',
+        confidence: 0.8500000000000001,
+        evidence: [
+          {
+            type: 'script-signature',
+            fingerprint: 'bcine-brand',
+          },
+          {
+            type: 'asset-path',
+            value: 'bcine-next-client',
+          },
+        ],
+        lastProbedAt: new Date(0),
+      },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://bcine.ru/',
+      },
+    },
+    {
       id: 'cinego:cinego.co',
       canonicalDomain: 'cinego.co',
       aliases: [],
@@ -117,6 +151,13 @@ export const deploymentSourceRegistry: SourceRegistryState = {
   health: [
     {
       sourceId: '67movies:67movies.net',
+      lastOutcome: 'healthy',
+      recentSuccesses: 3,
+      recentFailures: 0,
+      observedAt: new Date(0),
+    },
+    {
+      sourceId: 'bcine:bcine.ru',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
       recentFailures: 0,

@@ -7,6 +7,7 @@ import { JsonSourceRegistryStore, MatcherRegistry, RegistryExtractorLookup, Sour
 import { ExtractionResolver } from '../engine/resolver';
 import { TransportDirector } from '../engine/transport';
 import { extractorRegistry } from '../extractors/registry.generated';
+import { BcineFamily } from '../extractors/sources/bcine-family';
 import { CinebyFamily } from '../extractors/sources/cineby-family';
 import { CinegoFamily } from '../extractors/sources/cinego-family';
 import { CinetaroFamily } from '../extractors/sources/cinetaro-family';
@@ -18,7 +19,7 @@ const dataDirectory = resolve(process.env['EXTRACTABILITY_DATA_DIR'] ?? '.data/e
 const transport = new TransportDirector({ globalConcurrency: 24, perHostConcurrency: 3, maxRetries: 1 });
 const registry = new SourceRegistry();
 const registryStore = new JsonSourceRegistryStore(resolve(dataDirectory, 'sources.json'));
-const families = new Map<string, SourceFamily>([['cineby', new CinebyFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()]]);
+const families = new Map<string, SourceFamily>([['bcine', new BcineFamily()], ['cineby', new CinebyFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()]]);
 const watch = process.argv.includes('--watch');
 const controller = new AbortController();
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => controller.abort(new Error(signal)));
