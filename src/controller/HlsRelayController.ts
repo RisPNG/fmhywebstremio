@@ -24,7 +24,7 @@ export class HlsRelayController {
     req.once('aborted', () => controller.abort());
     let upstream: globalThis.Response;
     try {
-      upstream = await fetch(target, { headers: { ...(req.headers.range && { range: req.headers.range }) }, redirect: 'follow', signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]) });
+      upstream = await fetch(target.url, { headers: { ...target.headers, ...(req.headers.range && { range: req.headers.range }) }, redirect: 'follow', signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]) });
     } catch {
       res.status(502).send('Upstream media request failed');
       return;
@@ -40,8 +40,8 @@ export class HlsRelayController {
       const origin = resolveHostUrl(req);
       const rewritten = playlist.split(/\r?\n/).map((line) => {
         if (!line) return line;
-        if (!line.startsWith('#')) return this.relay.createUrl(origin, new URL(line, finalUrl)).href;
-        return line.replace(/URI="([^"]+)"/g, (_match, uri: string) => `URI="${this.relay.createUrl(origin, new URL(uri, finalUrl)).href}"`);
+        if (!line.startsWith('#')) return this.relay.createUrl(origin, new URL(line, finalUrl), target.headers).href;
+        return line.replace(/URI="([^"]+)"/g, (_match, uri: string) => `URI="${this.relay.createUrl(origin, new URL(uri, finalUrl), target.headers).href}"`);
       }).join('\n');
       res.removeHeader('content-length');
       res.setHeader('cache-control', 'private, no-store');

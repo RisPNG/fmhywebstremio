@@ -13,7 +13,7 @@ describe('RuntimeStremioAdapter', () => {
     const url = new URL(result.streams[0]?.url as string);
     const [, signature, payload] = url.pathname.match(/^\/hls-relay\/([^/]+)\/([^/]+)\/playlist\.m3u8$/) ?? [];
     expect(url.origin).toBe(context.hostUrl.origin);
-    expect(relay.resolveTarget(signature as string, payload as string)).toEqual(target);
+    expect(relay.resolveTarget(signature as string, payload as string)).toEqual({ url: target });
     expect(result.streams[0]).toMatchObject({ name: 'cinego.test 800p\n800p', title: 'cinego:cinego.test · vidsrcme-api' });
   });
 });
