@@ -19,7 +19,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         firstSeenAt: new Date(0),
         lastSeenAt: new Date(0),
       },
-      status: 'supported',
       family: {
         id: 'sixty-seven-movies',
         confidence: 1,
@@ -44,42 +43,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         observedAt: new Date(0),
         finalUrl: 'https://67movies.nl/',
       },
-    },
-    {
-      id: 'cinebytv:cinebytv.com',
-      canonicalDomain: 'cinebytv.com',
-      aliases: [],
-      fmhy: {
-        section: '▷ Multi-Server (Backups)',
-        tags: [],
-        firstSeenAt: new Date(0),
-        lastSeenAt: new Date(0),
-      },
       status: 'supported',
-      family: {
-        id: 'cineby',
-        confidence: 1,
-        evidence: [
-          {
-            type: 'script-signature',
-            fingerprint: 'cinebytv-brand',
-          },
-          {
-            type: 'route-shape',
-            value: '/movie|tv/{tmdbId}',
-          },
-          {
-            type: 'asset-path',
-            value: 'cinebytv-next-client',
-          },
-        ],
-        lastProbedAt: new Date(0),
-      },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://cinebytv.com/',
-      },
     },
     {
       id: 'cinego:cinego.co',
@@ -91,7 +55,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         firstSeenAt: new Date(0),
         lastSeenAt: new Date(0),
       },
-      status: 'supported',
       family: {
         id: 'cinego',
         confidence: 0.8500000000000001,
@@ -112,6 +75,50 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         observedAt: new Date(0),
         finalUrl: 'https://cinego.co/',
       },
+      status: 'supported',
+    },
+    {
+      id: 'cinemaos:cinemaos.live',
+      canonicalDomain: 'cinemaos.live',
+      aliases: [
+        'cinemaos.tech',
+        'cinemaos.me',
+        'noirx.me',
+        'noirx.live',
+      ],
+      fmhy: {
+        section: '▷ Multi-Server',
+        tags: [
+          'recommended',
+        ],
+        firstSeenAt: new Date(0),
+        lastSeenAt: new Date(0),
+      },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://cinemaos.live/',
+      },
+      status: 'supported',
+      family: {
+        id: 'cinemaos',
+        confidence: 1,
+        evidence: [
+          {
+            type: 'script-signature',
+            fingerprint: 'cinemaos-brand',
+          },
+          {
+            type: 'route-shape',
+            value: '/movie|tv/watch/{tmdbId}',
+          },
+          {
+            type: 'asset-path',
+            value: 'cinemaos-next-client',
+          },
+        ],
+        lastProbedAt: new Date(0),
+      },
     },
     {
       id: 'cinetaro:cinetaro.to',
@@ -123,7 +130,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         firstSeenAt: new Date(0),
         lastSeenAt: new Date(0),
       },
-      status: 'supported',
       family: {
         id: 'cinetaro',
         confidence: 1,
@@ -148,6 +154,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         observedAt: new Date(0),
         finalUrl: 'https://cinetaro.to/',
       },
+      status: 'supported',
     },
   ],
   health: [
@@ -159,17 +166,17 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       observedAt: new Date(0),
     },
     {
-      sourceId: 'cinebytv:cinebytv.com',
-      lastOutcome: 'healthy',
-      recentSuccesses: 3,
-      recentFailures: 0,
-      observedAt: new Date(0),
-    },
-    {
       sourceId: 'cinego:cinego.co',
       lastOutcome: 'healthy',
       recentSuccesses: 2,
       recentFailures: 0,
+      observedAt: new Date(0),
+    },
+    {
+      sourceId: 'cinemaos:cinemaos.live',
+      lastOutcome: 'healthy',
+      recentSuccesses: 2,
+      recentFailures: 1,
       observedAt: new Date(0),
     },
     {

@@ -1,7 +1,7 @@
 {
   "name": "fmhy-webstream",
   "description": "Provides video HTTP URLs from streaming websites listed by FMHY.",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "type": "commonjs",
   "scripts": {
     "analyse": "tsc --noEmit --project ./tsconfig.dev.json",

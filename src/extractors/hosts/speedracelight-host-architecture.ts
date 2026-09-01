@@ -77,11 +77,11 @@ export function decryptSpeedracelightEnvelope(envelope: string, seed: string, me
 }
 
 export interface SpeedracelightHostArchitecture {
-  discover(media: MediaIdentity, sourceId: string, services: RequestServices, signal: AbortSignal): Promise<ExtractionResult>;
+  discover(media: MediaIdentity, sourceId: string, sourceExtractor: string, services: RequestServices, signal: AbortSignal): Promise<ExtractionResult>;
 }
 
 export class SpeedracelightApiHostArchitecture implements SpeedracelightHostArchitecture {
-  public async discover(media: MediaIdentity, sourceId: string, services: RequestServices, signal: AbortSignal): Promise<ExtractionResult> {
+  public async discover(media: MediaIdentity, sourceId: string, sourceExtractor: string, services: RequestServices, signal: AbortSignal): Promise<ExtractionResult> {
     if (!media.tmdbId || (media.type === 'episode' && (!media.season || !media.episode))) return { type: 'empty', reason: 'not-found' };
     const endpoint = new URL('https://api.speedracelight.com/cdn/sources-with-title');
     const seedResponse = await services.request({ url: new URL(`/seed?mediaId=${media.tmdbId}`, endpoint), expectedContent: 'json', stateScope: { kind: 'host', key: endpoint.hostname } }, signal);
@@ -109,7 +109,7 @@ export class SpeedracelightApiHostArchitecture implements SpeedracelightHostArch
       if (!stream.url) return [];
       const url = new URL(stream.url);
       const height = /^4k$/i.test(stream.quality ?? '') ? 2160 : Number(stream.quality?.match(/\d+/)?.[0]);
-      return [{ url, protocol: stream.type === 'm3u8' || /\.m3u8(?:$|\?)/i.test(url.href) ? 'hls' as const : stream.type === 'dash' || /\.mpd(?:$|\?)/i.test(url.href) ? 'dash' as const : 'http' as const, sourceId, sourceExtractor: 'cineby', hostExtractor: 'speedracelight-api', ...(stream.quality && { label: stream.quality }), ...(height > 0 && { declaredResolution: { width: Math.round(height * 16 / 9), height } }), discoveredAt: new Date() }];
+      return [{ url, protocol: stream.type === 'm3u8' || /\.m3u8(?:$|\?)/i.test(url.href) ? 'hls' as const : stream.type === 'dash' || /\.mpd(?:$|\?)/i.test(url.href) ? 'dash' as const : 'http' as const, sourceId, sourceExtractor, hostExtractor: 'speedracelight-api', ...(stream.quality && { label: stream.quality }), ...(height > 0 && { declaredResolution: { width: Math.round(height * 16 / 9), height } }), discoveredAt: new Date() }];
     });
     return streams.length ? { type: 'streams', streams } : { type: 'empty', reason: 'no-streams' };
   }
