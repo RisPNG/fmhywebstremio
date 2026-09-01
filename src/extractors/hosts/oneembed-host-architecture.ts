@@ -32,13 +32,13 @@ export class OneEmbedApiHostArchitecture implements OneEmbedHostArchitecture {
     const response = await services.request({ url: endpoint, headers: { 'X-Stream-Token': token }, expectedContent: 'json', stateScope: { kind: 'host', key: origin.hostname } }, signal);
     const payload = response.json() as OneEmbedSourceResponse;
     const payloadId = Number(payload.title?.tmdb_id ?? payload.title?.id);
-    const streamValue = [...(payload.qualities ?? [])].sort((a, b) => Number(b.resolution) - Number(a.resolution)).find(quality => quality.rawUrl)?.rawUrl ?? payload.streams?.raw_m3u8 ?? payload.streams?.proxy_m3u8 ?? payload.streams?.m3u8;
-    if (!payload.success || payloadId !== media.tmdbId || !streamValue || /warning|unauthorized/i.test(`${payload.selectedSource ?? ''} ${payload.title?.name ?? ''}`)) return { type: 'empty', reason: 'no-streams' };
-    const url = new URL(streamValue);
+    const rawUrl = [...(payload.qualities ?? [])].sort((a, b) => Number(b.resolution) - Number(a.resolution)).find(quality => quality.rawUrl)?.rawUrl ?? payload.streams?.raw_m3u8;
+    const streamValues = [...new Set([rawUrl, payload.streams?.proxy_m3u8 ?? payload.streams?.m3u8].filter((value): value is string => Boolean(value)))];
+    if (!payload.success || payloadId !== media.tmdbId || !streamValues.length || /warning|unauthorized/i.test(`${payload.selectedSource ?? ''} ${payload.title?.name ?? ''}`)) return { type: 'empty', reason: 'no-streams' };
     const proxyUrl = payload.streams?.proxy_m3u8 ? new URL(payload.streams.proxy_m3u8) : null;
     const headers = proxyUrl ? { ...(proxyUrl.searchParams.get('referer') && { referer: proxyUrl.searchParams.get('referer') as string }), ...(proxyUrl.searchParams.get('origin') && { origin: proxyUrl.searchParams.get('origin') as string }) } : {};
     const height = Math.max(...(payload.qualities ?? []).map(quality => Number(quality.resolution)).filter(value => value > 0), 0);
-    const stream: StreamCandidate = { url, protocol: 'hls', ...(Object.keys(headers).length && { headers }), sourceId, sourceExtractor, hostExtractor: 'oneembed-api', ...(payload.selectedSource && { label: payload.selectedSource }), ...(height && { declaredResolution: { width: Math.round(height * 16 / 9), height } }), discoveredAt: new Date() };
-    return { type: 'streams', streams: [stream] };
+    const streams: StreamCandidate[] = streamValues.map(streamValue => ({ url: new URL(streamValue), protocol: 'hls', ...(Object.keys(headers).length && { headers }), sourceId, sourceExtractor, hostExtractor: 'oneembed-api', ...(payload.selectedSource && { label: payload.selectedSource }), ...(height && { declaredResolution: { width: Math.round(height * 16 / 9), height } }), discoveredAt: new Date() }));
+    return { type: 'streams', streams };
   }
 }

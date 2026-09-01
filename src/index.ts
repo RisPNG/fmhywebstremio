@@ -95,6 +95,7 @@ const runtimeTransport = new TransportDirector();
 const runtimeRelay = new HlsRelay();
 const runtimeSourceRegistry = new SourceRegistry();
 const runtimeDependencies = new DependencyGraph();
+const startupValidation = new Map<string, unknown>();
 const runtimeDependencyStore = new JsonDependencyStore(`${envGet('EXTRACTABILITY_DATA_DIR') ?? '.data/extractability'}/dependencies.json`);
 const runtimeFamilies = new Map<string, SourceFamily>([['bcine', new BcineFamily()], ['cineby', new CinebyFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()]]);
 
@@ -138,6 +139,7 @@ addon.get('/stats', async (_req: Request, res: Response) => {
     sources: runtimeSourceRegistry.list().length,
     runtimeEligible: runtimeSourceRegistry.runtimeEligible().length,
     dependencies: runtimeDependencies.list().length,
+    startupValidation: Object.fromEntries(startupValidation),
   });
 });
 
@@ -149,7 +151,10 @@ const port = parseInt(envGet('PORT') || '51546');
     for (const source of runtimeSourceRegistry.runtimeEligible()) {
       const family = source.family && runtimeFamilies.get(source.family.id);
       const corpus = source.family && defaultFamilyHealthCorpora.get(source.family.id);
-      if (family && corpus) await runtimeHealth.run(source, family, corpus, new AbortController().signal);
+      if (family && corpus) {
+        const outcome = await runtimeHealth.run(source, family, corpus, new AbortController().signal);
+        startupValidation.set(source.id, { status: outcome.status, extractable: outcome.extractable, cases: outcome.cases.map(test => ({ caseId: test.caseId, stages: test.stages, ...(test.failure && { failure: { code: test.failure.code, stage: test.failure.stage, targetHost: test.failure.targetHost } }) })) });
+      }
     }
   }
   const dependencyReloadIntervalMs = Number(envGet('EXTRACTABILITY_RELOAD_INTERVAL_MS') ?? 60000);
