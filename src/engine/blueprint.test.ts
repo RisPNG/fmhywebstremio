@@ -239,6 +239,17 @@ describe('protocol vertical slice', () => {
     expect(outcome.cases[0]?.failure).toMatchObject({ code: 'CONNECTION_FAILED', stage: 'stage:protocol' });
   });
 
+  test('does not report a rejected alternative when another candidate validates', async () => {
+    const services: RequestServices = { request: jest.fn(async request => request.url.pathname.includes('broken') ? response(request.url.href, '<html>not a manifest</html>', 'text/plain') : response(request.url.href, '#EXTM3U\n#EXTINF:4,\nsegment.ts', 'application/vnd.apple.mpegurl')) };
+    const source: SourceRecord = { id: 'clone', canonicalDomain: 'clone.test', aliases: [], fmhy: { firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'fixture', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'unknown' };
+    const registry = new SourceRegistry();
+    registry.set(source);
+    const family = { id: 'fixture', classify: () => null, discoverMedia: async () => ({ type: 'streams' as const, streams: [{ url: new URL('https://cdn.test/broken.m3u8'), protocol: 'hls' as const, declaredResolution: { width: 3840, height: 2160 }, sourceId: source.id, sourceExtractor: 'fixture', discoveredAt: new Date(0) }, { url: new URL('https://cdn.test/working.m3u8'), protocol: 'hls' as const, declaredResolution: { width: 1920, height: 1080 }, sourceId: source.id, sourceExtractor: 'fixture', discoveredAt: new Date(0) }] }) };
+    const outcome = await new FamilyHealthRunner(new ExtractionResolver(new StaticExtractorLookup([]), services), new StreamSelector(services), services, registry).run(source, family, { familyId: 'fixture', cases: [{ id: 'movie', media: { canonicalId: 'm', type: 'movie', title: 'Movie' }, expected: 'discoverable' }] }, new AbortController().signal);
+    expect(outcome.cases[0]).toMatchObject({ stages: { validation: true } });
+    expect(outcome.cases[0]?.failure).toBeUndefined();
+  });
+
   test('returns a known-protocol candidate as explicitly unverified when validation is cancelled', async () => {
     const services = { request: jest.fn() } as unknown as RequestServices;
     const controller = new AbortController();
