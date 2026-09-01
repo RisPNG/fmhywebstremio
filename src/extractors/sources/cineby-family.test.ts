@@ -10,7 +10,7 @@ describe('Cineby source family and Speedracelight host architecture', () => {
 
   test('recognizes the Cineby catalog and decrypts its source envelope', () => {
     const snapshot: SourceProbeSnapshot = { finalUrl: new URL('https://cineby.test/'), status: 200, headers: {}, htmlSample: readFileSync(resolve(__dirname, '../__fixtures__/cineby/home.html'), 'utf8'), assetPaths: [], scriptSignatures: [], routeHints: ['/movie/27205', '/tv/1396'] };
-    expect(new CinebyFamily().classify(source, snapshot)).toMatchObject({ familyId: 'cineby', confidence: 0.8500000000000001, evidence: [{ fingerprint: 'cineby-brand' }, { value: '/movie|tv/{tmdbId}' }] });
+    expect(new CinebyFamily().classify(source, snapshot)).toMatchObject({ familyId: 'cineby', confidence: 0.8500000000000001, evidence: [{ fingerprint: 'cinebytv-brand' }, { value: '/movie|tv/{tmdbId}' }] });
     const encrypted = JSON.parse(readFileSync(resolve(__dirname, '../__fixtures__/cineby/encrypted-source.json'), 'utf8')) as { seed: string; mediaId: number; envelope: string; plaintext: string };
     expect(decryptSpeedracelightEnvelope(encrypted.envelope, encrypted.seed, encrypted.mediaId)).toBe(encrypted.plaintext);
   });
@@ -32,7 +32,10 @@ describe('Cineby source family and Speedracelight host architecture', () => {
     const streams: ExtractionResult = { type: 'streams', streams: [{ url: new URL('https://media.cineby.test/master.m3u8'), protocol: 'hls', sourceId: source.id, sourceExtractor: 'cineby', hostExtractor: 'speedracelight-api', discoveredAt: new Date(0) }] };
     const host: SpeedracelightHostArchitecture = { discover: jest.fn(async () => streams) };
     const family = new CinebyFamily(host);
-    const services = {} as RequestServices;
+    const services: RequestServices = { request: jest.fn(async (request: ExtractionRequest) => {
+      const body = request.url.pathname.startsWith('/movie/') ? readFileSync(resolve(__dirname, '../__fixtures__/cineby/movie-inception.html'), 'utf8') : request.url.pathname.endsWith('/76479') ? readFileSync(resolve(__dirname, '../__fixtures__/cineby/series-the-boys.html'), 'utf8') : readFileSync(resolve(__dirname, '../__fixtures__/cineby/series-breaking-bad.html'), 'utf8');
+      return { status: 200, headers: { 'content-type': 'text/html' }, finalUrl: request.url, redirectChain: [], body: Buffer.from(body), text: () => body, json: () => JSON.parse(body) as unknown, truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } };
+    }) };
     const signal = new AbortController().signal;
     const movie = { canonicalId: 'tmdb:27205', type: 'movie' as const, tmdbId: 27205, imdbId: 'tt1375666', title: 'Inception', year: 2010 };
     const laterSeason = { canonicalId: 'tmdb:76479:2:1', type: 'episode' as const, tmdbId: 76479, imdbId: 'tt1190634', title: 'The Boys', year: 2019, season: 2, episode: 1 };

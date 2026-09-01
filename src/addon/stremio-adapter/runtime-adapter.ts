@@ -26,7 +26,7 @@ export class RuntimeStremioAdapter implements StremioStreamProvider {
   public async findStreams(ctx: Context, type: string, rawId: string): Promise<StremioStreamResult> {
     const result = await this.engine.findStreams(parseStremioMediaRequest(type, rawId), { excludedSourceIds: Object.keys(ctx.config).flatMap(key => key.startsWith('disableFmhySource_') ? [key.slice('disableFmhySource_'.length)] : []) });
     return { streams: result.streams.map((stream) => {
-      if ((stream.hostExtractor === 'vidsrcme-api' || stream.hostExtractor === 'oneembed-api') && this.relay) {
+      if (stream.hostExtractor === 'vidsrcme-api' && this.relay) {
         const { headers, ...relayedStream } = stream;
         return normalizedStreamToStremio({ ...relayedStream, url: this.relay.createUrl(ctx.hostUrl, stream.url, headers) });
       }

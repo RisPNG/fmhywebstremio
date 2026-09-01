@@ -46,29 +46,31 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       },
     },
     {
-      id: 'bcine:bcine.ru',
-      canonicalDomain: 'bcine.ru',
+      id: 'cinebytv:cinebytv.com',
+      canonicalDomain: 'cinebytv.com',
       aliases: [],
       fmhy: {
-        section: '▷ Stream Aggregators',
-        tags: [
-          'recommended',
-        ],
+        section: '▷ Multi-Server (Backups)',
+        tags: [],
         firstSeenAt: new Date(0),
         lastSeenAt: new Date(0),
       },
       status: 'supported',
       family: {
-        id: 'bcine',
-        confidence: 0.8500000000000001,
+        id: 'cineby',
+        confidence: 1,
         evidence: [
           {
             type: 'script-signature',
-            fingerprint: 'bcine-brand',
+            fingerprint: 'cinebytv-brand',
+          },
+          {
+            type: 'route-shape',
+            value: '/movie|tv/{tmdbId}',
           },
           {
             type: 'asset-path',
-            value: 'bcine-next-client',
+            value: 'cinebytv-next-client',
           },
         ],
         lastProbedAt: new Date(0),
@@ -76,7 +78,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       probe: {
         outcome: 'matched',
         observedAt: new Date(0),
-        finalUrl: 'https://bcine.ru/',
+        finalUrl: 'https://cinebytv.com/',
       },
     },
     {
@@ -157,7 +159,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       observedAt: new Date(0),
     },
     {
-      sourceId: 'bcine:bcine.ru',
+      sourceId: 'cinebytv:cinebytv.com',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
       recentFailures: 0,

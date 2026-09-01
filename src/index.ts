@@ -14,7 +14,6 @@ import { deploymentSourceRegistry, MatcherRegistry, RegistryExtractorLookup, Sou
 import { ExtractionResolver } from './engine/resolver';
 import { TransportDirector } from './engine/transport';
 import { extractorRegistry as runtimeExtractorRegistry } from './extractors/registry.generated';
-import { BcineFamily } from './extractors/sources/bcine-family';
 import { CinebyFamily } from './extractors/sources/cineby-family';
 import { CinegoFamily } from './extractors/sources/cinego-family';
 import { CinetaroFamily } from './extractors/sources/cinetaro-family';
@@ -97,7 +96,7 @@ const runtimeSourceRegistry = new SourceRegistry();
 const runtimeDependencies = new DependencyGraph();
 const startupValidation = new Map<string, unknown>();
 const runtimeDependencyStore = new JsonDependencyStore(`${envGet('EXTRACTABILITY_DATA_DIR') ?? '.data/extractability'}/dependencies.json`);
-const runtimeFamilies = new Map<string, SourceFamily>([['bcine', new BcineFamily()], ['cineby', new CinebyFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()]]);
+const runtimeFamilies = new Map<string, SourceFamily>([['cineby', new CinebyFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()]]);
 
 addon.use('/', (new ConfigureController(runtimeSourceRegistry)).router);
 addon.use('/', (new ManifestController(runtimeSourceRegistry)).router);
