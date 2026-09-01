@@ -28,7 +28,11 @@ describe('BCine source family with the shared 1Embed host architecture', () => {
       ? response(request.url.href, fixture('oneembed-token.json'))
       : response(request.url.href, fixture('oneembed-source.json'))) };
     const media = { canonicalId: 'tmdb:27205', type: 'movie' as const, tmdbId: 27205, imdbId: 'tt1375666', title: 'Inception', year: 2010 };
-    await expect(new OneEmbedApiHostArchitecture().discover(media, source.id, 'bcine', services, new AbortController().signal)).resolves.toMatchObject({ type: 'streams', streams: [{ url: new URL('https://media.bcine.test/master.m3u8'), headers: { referer: 'https://player.bcine.test/', origin: 'https://player.bcine.test' }, protocol: 'hls', label: 'BORE', declaredResolution: { width: 1920, height: 1080 }, sourceId: source.id, sourceExtractor: 'bcine', hostExtractor: 'oneembed-api' }] });
+    const result = await new OneEmbedApiHostArchitecture().discover(media, source.id, 'bcine', services, new AbortController().signal);
+    expect(result).toMatchObject({ type: 'streams', streams: [
+      { url: new URL('https://media.bcine.test/master.m3u8'), headers: { referer: 'https://player.bcine.test/', origin: 'https://player.bcine.test' }, protocol: 'hls', label: 'BORE', declaredResolution: { width: 1920, height: 1080 }, sourceId: source.id, sourceExtractor: 'bcine', hostExtractor: 'oneembed-api' },
+      { url: new URL('https://proxy.bcine.test/v?url=https%3A%2F%2Fmedia.bcine.test%2Fmaster.m3u8&referer=https%3A%2F%2Fplayer.bcine.test%2F&origin=https%3A%2F%2Fplayer.bcine.test') },
+    ] });
     expect(services.request).toHaveBeenNthCalledWith(2, expect.objectContaining({ url: new URL('https://1embed.cc/api/sources/4/id=27205?type=movie&title=Inception'), headers: { 'X-Stream-Token': expect.any(String) } }), expect.any(AbortSignal));
     const request = (services.request as jest.Mock).mock.calls[1]?.[0] as ExtractionRequest;
     const token = JSON.parse(Buffer.from(request.headers?.['X-Stream-Token'] ?? '', 'base64').toString()) as { t: number; n: number; s: string; p: string };
