@@ -1,8 +1,8 @@
 import type { FamilyHealthCorpus } from './corpus';
 
 export const defaultFamilyHealthCorpora = new Map<string, FamilyHealthCorpus>([
-  ['cineby', {
-    familyId: 'cineby',
+  ['cinemaos', {
+    familyId: 'cinemaos',
     cases: [
       { id: 'inception-2010', media: { canonicalId: 'tmdb:27205', type: 'movie', tmdbId: 27205, imdbId: 'tt1375666', title: 'Inception', year: 2010 }, expected: 'discoverable' },
       { id: 'breaking-bad-s01e01', media: { canonicalId: 'tmdb:1396:1:1', type: 'episode', tmdbId: 1396, imdbId: 'tt0903747', title: 'Breaking Bad', year: 2008, season: 1, episode: 1 }, expected: 'discoverable' },
