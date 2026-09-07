@@ -17,11 +17,14 @@ export class SourceRegistry {
       const domains = [...new Set(entry.urls.map(url => url.hostname))];
       this.records.set(id, {
         id, canonicalDomain: domains[0] ?? entry.urls[0]?.hostname ?? id, aliases: domains.slice(1),
-        fmhy: { section: entry.section, tags: entry.tags, firstSeenAt: existing?.fmhy.firstSeenAt ?? snapshot.fetchedAt, lastSeenAt: snapshot.fetchedAt },
+        fmhy: { name: entry.name, section: entry.section, tags: entry.tags, firstSeenAt: existing?.fmhy.firstSeenAt ?? snapshot.fetchedAt, lastSeenAt: snapshot.fetchedAt },
         ...(existing?.family && { family: existing.family }), ...(existing?.probe && { probe: existing.probe }), status: existing?.status ?? 'unknown',
       });
     }
-    for (const [id, record] of this.records) if (!seen.has(id) && record.status !== 'disabled') this.records.set(id, { ...record, status: 'unsupported' });
+    for (const id of this.records.keys()) if (!seen.has(id)) {
+      this.records.delete(id);
+      this.history.delete(id);
+    }
     return this.list();
   }
 

@@ -84,7 +84,11 @@ describe('FMHY registry and health', () => {
     const registry = new SourceRegistry();
     registry.apply(snapshot);
     expect(registry.list(['unknown'])).toHaveLength(2);
-    expect(registry.list(['unknown'])[0]).toMatchObject({ canonicalDomain: 'alpha.example', aliases: ['mirror.example'] });
+    expect(registry.list(['unknown'])[0]).toMatchObject({ canonicalDomain: 'alpha.example', aliases: ['mirror.example'], fmhy: { name: 'Alpha' } });
+    registry.recordHealth({ sourceId: 'beta-api:beta.example', lastOutcome: 'healthy', recentSuccesses: 2, recentFailures: 0 });
+    registry.apply({ ...snapshot, entries: snapshot.entries.filter(entry => entry.name === 'Alpha') });
+    expect(registry.list()).toHaveLength(1);
+    expect(registry.health().has('beta-api:beta.example')).toBe(false);
   });
 
   test('parses a durable fixture matching the maintained FMHY format', () => {
@@ -157,7 +161,7 @@ describe('FMHY registry and health', () => {
     const corpus = { familyId: 'fixture', cases: [{ id: 'movie', media: { canonicalId: 'm', type: 'movie' as const, title: 'Movie' }, expected: 'discoverable' as const }] };
     const report = await new ExtractabilityAuditRunner(registry, health, new Map([['fixture', family]]), new Map([['fixture', corpus]])).run(new AbortController().signal);
     expect(report).toMatchObject({ ok: true, totals: { sites: 3, passed: 1, runtimeEligible: 1, extractable: 1, failed: 1, unsupported: 1 } });
-    expect(report.sites.find(site => site.sourceId === 'good')).toMatchObject({ section: 'Movie Streaming', tags: ['recommended'], status: 'extractable', runtimeEligible: true, stages: { validation: true } });
+    expect(report.sites.find(site => site.sourceId === 'good')).toMatchObject({ name: 'good', aliases: [], section: 'Movie Streaming', tags: ['recommended'], status: 'extractable', runtimeEligible: true, stages: { validation: true } });
     expect(registry.health().get('bad')).toMatchObject({ lastOutcome: 'failed' });
   });
 
@@ -214,6 +218,20 @@ describe('protocol vertical slice', () => {
     const selector = new StreamSelector({ request: jest.fn() } as unknown as RequestServices);
     const stream = { url: new URL('https://shared.cdn.test/master.m3u8'), protocol: 'hls' as const, validation: 'validated' as const, sourceId: 'cinego:cinego.test', sourceExtractor: 'cinego', structuralFingerprint: 'hls:fixture' };
     expect(selector.deduplicate([stream, { ...stream, url: new URL('https://duplicate.cdn.test/master.m3u8') }, { ...stream, sourceId: 'cinetaro:cinetaro.test', sourceExtractor: 'cinetaro' }]).map(value => value.sourceId)).toEqual(['cinego:cinego.test', 'cinetaro:cinetaro.test']);
+  });
+
+  test.each([undefined, '/middle.ts', '/last.ts'])('validates separated HLS positions and rejects inaccessible media at %s', async (failedPath) => {
+    const playlist = '#EXTM3U\n#EXT-X-MAP:URI="init.mp4"\n#EXTINF:6,\nfirst.ts\n#EXTINF:6,\nsecond.ts\n#EXTINF:6,\nmiddle.ts\n#EXTINF:6,\nfourth.ts\n#EXTINF:6,\nlast.ts\n#EXT-X-ENDLIST';
+    const services: RequestServices = { request: jest.fn(async (request) => {
+      if (request.url.pathname === failedPath) throw new TransportFailure({ code: 'HTTP_FORBIDDEN', message: 'Unavailable seek position', observedAt: new Date(0), diagnostic: { sensitivity: 'privileged', status: 403, bodyCaptured: false } });
+      return response(request.url.href, request.expectedContent === 'manifest' ? playlist : 'media', request.expectedContent === 'manifest' ? 'application/vnd.apple.mpegurl' : 'video/mp2t');
+    }) };
+    const result = await new StreamSelector(services).validate([{ url: new URL('https://cdn.test/media.m3u8'), protocol: 'hls', sourceId: 'source', sourceExtractor: 'family', discoveredAt: new Date(0) }], { topK: 1 }, new AbortController().signal);
+    if (failedPath) expect(result).toMatchObject({ streams: [], failures: [{ code: 'HTTP_FORBIDDEN', stage: 'stage:protocol', sourceId: 'source' }] });
+    else {
+      expect(result.streams).toHaveLength(1);
+      expect((services.request as jest.Mock).mock.calls.map(([request]: [ExtractionRequest]) => request.url.pathname)).toEqual(['/media.m3u8', '/init.mp4', '/first.ts', '/middle.ts', '/last.ts']);
+    }
   });
 
   test('orders preferred languages before unlisted languages', () => {

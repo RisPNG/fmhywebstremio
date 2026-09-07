@@ -1,0 +1,7 @@
+<html><head><title>Movies To Watch - Watch Full Movies &amp; TV Series Free Online in HD</title></head><body><script>
+const TMDB_KEY = 'fixturekey';
+const TMDB_BASE = 'https://api.themoviedb.org/3';
+const SERVERS = [{ name: 'Videasy', movie: id => `https://player.videasy.net/movie/${id}?autoplay=true`, tv: (id,s,e) => `https://player.videasy.net/tv/${id}/${s}/${e}?autoplay=true` }];
+async function doSearch(query) { return tmdb('/search/multi', { query, page: 1 }); }
+async function loadTVSeasons(id) { return tmdb(`/tv/${id}`); }
+</script></body></html>

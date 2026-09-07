@@ -1,0 +1,35 @@
+{
+  "id": 1396,
+  "seasons": [
+    {
+      "season_number": 0,
+      "episode_count": 9,
+      "air_date": "2009-02-17"
+    },
+    {
+      "season_number": 1,
+      "episode_count": 7,
+      "air_date": "2008-01-20"
+    },
+    {
+      "season_number": 2,
+      "episode_count": 13,
+      "air_date": "2009-03-08"
+    },
+    {
+      "season_number": 3,
+      "episode_count": 13,
+      "air_date": "2010-03-21"
+    },
+    {
+      "season_number": 4,
+      "episode_count": 13,
+      "air_date": "2011-07-17"
+    },
+    {
+      "season_number": 5,
+      "episode_count": 16,
+      "air_date": "2012-07-15"
+    }
+  ]
+}

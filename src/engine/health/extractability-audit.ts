@@ -11,6 +11,8 @@ export type SiteExtractability = 'extractable' | 'degraded' | 'failed' | 'unsupp
 
 export interface SiteExtractabilityResult {
   sourceId: string;
+  name?: string;
+  aliases?: readonly string[];
   domain: string;
   section?: string;
   tags?: readonly string[];
@@ -42,7 +44,7 @@ export class ExtractabilityAuditRunner {
     const sites: SiteExtractabilityResult[] = [];
     for (const source of this.registry.list()) {
       if (signal.aborted) break;
-      const provenance = { ...(source.fmhy.section && { section: source.fmhy.section }), ...(source.fmhy.tags?.length && { tags: source.fmhy.tags }) };
+      const provenance = { name: source.fmhy.name ?? source.id, aliases: source.aliases, ...(source.fmhy.section && { section: source.fmhy.section }), tags: source.fmhy.tags ?? [] };
       if (source.status === 'disabled') {
         sites.push({ sourceId: source.id, domain: source.canonicalDomain, ...provenance, ...(source.family && { familyId: source.family.id }), status: 'disabled', runtimeEligible: false, stages: { recognition: Boolean(source.family), discovery: false, extraction: false, validation: false }, successes: 0, failures: 0 });
         continue;

@@ -13,19 +13,20 @@ import { CinetaroFamily } from '../extractors/sources/cinetaro-family';
 import { DooplayFamily } from '../extractors/sources/dooplay-family';
 import { PStreamFamily } from '../extractors/sources/pstream-family';
 import { SixtySevenMoviesFamily } from '../extractors/sources/sixty-seven-movies-family';
+import { TmdbEmbedCatalogFamily } from '../extractors/sources/tmdb-embed-catalog-family';
 
 const dataDirectory = resolve(process.env['EXTRACTABILITY_DATA_DIR'] ?? '.data/extractability');
 const transport = new TransportDirector({ globalConcurrency: 24, perHostConcurrency: 3, maxRetries: 1 });
 const registry = new SourceRegistry();
 const registryStore = new JsonSourceRegistryStore(resolve(dataDirectory, 'sources.json'));
-const families = new Map<string, SourceFamily>([['cinemaos', new CinemaOsFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()]]);
+const families = new Map<string, SourceFamily>([['cinemaos', new CinemaOsFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()], ['tmdb-embed-catalog', new TmdbEmbedCatalogFamily()]]);
 const watch = process.argv.includes('--watch');
 const controller = new AbortController();
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => controller.abort(new Error(signal)));
 
 const provider = new FmhyDirectoryProvider(transport, undefined, new JsonDirectorySnapshotStore(resolve(dataDirectory, 'fmhy-snapshot.json')));
 const probes = new SourceFamilyProbeRunner(transport, [...families.values()], { maxRequests: 1, maxBytes: 2 * 1024 * 1024, deadlineMs: Number(process.env['EXTRACTABILITY_RECOGNITION_TIMEOUT_MS'] ?? 10000) });
-const maintenance = new FmhyMaintenanceService(provider, registry, probes, registryStore, Number(process.env['EXTRACTABILITY_CONCURRENCY'] ?? 8), Number(process.env['EXTRACTABILITY_REPROBE_INTERVAL_MS'] ?? (watch ? 24 * 60 * 60 * 1000 : 0)));
+const maintenance = new FmhyMaintenanceService(provider, registry, probes, registryStore, Number(process.env['EXTRACTABILITY_CONCURRENCY'] ?? 8), watch ? Number(process.env['EXTRACTABILITY_REPROBE_INTERVAL_MS'] ?? 24 * 60 * 60 * 1000) : 0);
 const dependencies = new DependencyGraph();
 const dependencyStore = new JsonDependencyStore(resolve(dataDirectory, 'dependencies.json'));
 const resolver = new ExtractionResolver(new RegistryExtractorLookup(new MatcherRegistry(extractorRegistry)), transport, { onDelegation: (_parent, child) => {

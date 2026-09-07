@@ -24,6 +24,7 @@ export interface SourceRecord {
   canonicalDomain: string;
   aliases: string[];
   fmhy: {
+    name?: string;
     section?: string;
     tags?: string[];
     firstSeenAt: Date;
