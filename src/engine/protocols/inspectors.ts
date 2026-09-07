@@ -29,9 +29,10 @@ export class HlsInspector implements StreamInspector {
       if (!mediaManifest.trimStart().startsWith('#EXTM3U') || !mediaManifest.split('\n').some(line => line.startsWith('#EXTINF:'))) throw new Error('NO_PLAYABLE_VARIANTS');
     }
     const mediaLines = mediaManifest.split('\n');
+    const segments = mediaLines.filter(line => line.trim() && !line.startsWith('#'));
     const resources = [
       ...mediaLines.flatMap(line => line.startsWith('#EXT-X-KEY:') || line.startsWith('#EXT-X-MAP:') ? [...line.matchAll(/URI="([^"]+)"/g)].map(match => match[1] as string) : []),
-      ...mediaLines.filter(line => line.trim() && !line.startsWith('#')).slice(0, 1),
+      ...new Set([segments[0], segments[Math.floor(segments.length / 2)], segments.at(-1)].filter((segment): segment is string => segment !== undefined)),
     ];
     if (!resources.length) throw new Error('NO_PLAYABLE_VARIANTS');
     for (const resource of resources) await services.request({ url: new URL(resource, mediaUrl), ...(candidate.headers && { headers: candidate.headers }), ...(candidate.referrer && { referrer: candidate.referrer }), expectedContent: 'binary', timeoutMs: 6000, maxBytes: 64 * 1024 }, signal);

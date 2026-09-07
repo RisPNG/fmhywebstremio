@@ -20,6 +20,7 @@ import { CinetaroFamily } from './extractors/sources/cinetaro-family';
 import { DooplayFamily } from './extractors/sources/dooplay-family';
 import { PStreamFamily } from './extractors/sources/pstream-family';
 import { SixtySevenMoviesFamily } from './extractors/sources/sixty-seven-movies-family';
+import { TmdbEmbedCatalogFamily } from './extractors/sources/tmdb-embed-catalog-family';
 import { envGet, envIsProd } from './utils';
 
 if (envIsProd()) {
@@ -96,7 +97,7 @@ const runtimeSourceRegistry = new SourceRegistry();
 const runtimeDependencies = new DependencyGraph();
 const startupValidation = new Map<string, unknown>();
 const runtimeDependencyStore = new JsonDependencyStore(`${envGet('EXTRACTABILITY_DATA_DIR') ?? '.data/extractability'}/dependencies.json`);
-const runtimeFamilies = new Map<string, SourceFamily>([['cinemaos', new CinemaOsFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()]]);
+const runtimeFamilies = new Map<string, SourceFamily>([['cinemaos', new CinemaOsFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()], ['tmdb-embed-catalog', new TmdbEmbedCatalogFamily()]]);
 
 addon.use('/', (new ConfigureController(runtimeSourceRegistry)).router);
 addon.use('/', (new ManifestController(runtimeSourceRegistry)).router);
