@@ -17,6 +17,7 @@ export interface StreamCandidate {
   delivery?: StreamDelivery;
   referrer?: URL;
   language?: string;
+  subtitles?: readonly SubtitleTrack[];
   label?: string;
   sourceId: string;
   sourceExtractor: string;

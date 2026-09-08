@@ -1,0 +1,84 @@
+{
+  "results": [
+    {
+      "id": 1429,
+      "media_type": "tv",
+      "name": "Attack on Titan"
+    },
+    {
+      "id": 295830,
+      "media_type": "movie",
+      "title": "Attack on Titan",
+      "release_date": "2015-08-01"
+    },
+    {
+      "id": 63510,
+      "media_type": "tv",
+      "name": "Attack on Titan: Junior High"
+    },
+    {
+      "id": 1333100,
+      "media_type": "movie",
+      "title": "Attack on Titan: THE LAST ATTACK",
+      "release_date": "2024-03-20"
+    },
+    {
+      "id": 1033219,
+      "media_type": "movie",
+      "title": "Attack on Titan",
+      "release_date": "2022-09-30"
+    },
+    {
+      "id": 714194,
+      "media_type": "movie",
+      "title": "Attack on Titan: Chronicle",
+      "release_date": "2020-07-17"
+    },
+    {
+      "id": 330081,
+      "media_type": "movie",
+      "title": "Attack on Titan: Wings of Freedom",
+      "release_date": "2015-06-27"
+    },
+    {
+      "id": 224499,
+      "media_type": "tv",
+      "name": "Attack on Titan: Chibi Theater"
+    },
+    {
+      "id": 340382,
+      "media_type": "movie",
+      "title": "Attack on Titan II: End of the World",
+      "release_date": "2015-09-01"
+    },
+    {
+      "id": 379088,
+      "media_type": "movie",
+      "title": "Attack on Titan: Crimson Bow and Arrow",
+      "release_date": "2014-11-22"
+    },
+    {
+      "id": 65242,
+      "media_type": "tv",
+      "name": "Attack on Titan: Counter Rockets"
+    },
+    {
+      "id": 492999,
+      "media_type": "movie",
+      "title": "Attack on Titan: The Roar of Awakening",
+      "release_date": "2018-01-13"
+    },
+    {
+      "id": 1221893,
+      "media_type": "movie",
+      "title": "Attack on Titan: The Musical",
+      "release_date": "2023-11-05"
+    },
+    {
+      "id": 1486516,
+      "media_type": "movie",
+      "title": "Attack on Titan: Requiem",
+      "release_date": "2025-01-15"
+    }
+  ]
+}

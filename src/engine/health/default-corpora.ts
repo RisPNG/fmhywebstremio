@@ -1,6 +1,17 @@
 import type { FamilyHealthCorpus } from './corpus';
 
 export const defaultFamilyHealthCorpora = new Map<string, FamilyHealthCorpus>([
+  ['anicine', {
+    familyId: 'anicine',
+    cases: [
+      { id: 'inception-2010', media: { canonicalId: 'tmdb:27205', type: 'movie', tmdbId: 27205, imdbId: 'tt1375666', title: 'Inception', year: 2010 }, expected: 'discoverable' },
+      { id: 'breaking-bad-s01e01', media: { canonicalId: 'tmdb:1396:1:1', type: 'episode', tmdbId: 1396, imdbId: 'tt0903747', title: 'Breaking Bad', year: 2008, season: 1, episode: 1 }, expected: 'discoverable' },
+      { id: 'the-boys-s02e01', media: { canonicalId: 'tmdb:76479:2:1', type: 'episode', tmdbId: 76479, imdbId: 'tt1190634', title: 'The Boys', year: 2019, season: 2, episode: 1 }, expected: 'discoverable' },
+      { id: 'attack-on-titan-s01e01', media: { canonicalId: 'tmdb:1429:1:1', type: 'episode', tmdbId: 1429, imdbId: 'tt2560140', title: 'Attack on Titan', year: 2013, season: 1, episode: 1 }, expected: 'discoverable' },
+      { id: 'attack-on-titan-s02e01', media: { canonicalId: 'tmdb:1429:2:1', type: 'episode', tmdbId: 1429, imdbId: 'tt2560140', title: 'Attack on Titan', year: 2013, season: 2, episode: 1 }, expected: 'discoverable' },
+      { id: 'known-absent', media: { canonicalId: 'probe:absent', type: 'movie', tmdbId: 1, title: 'FMHY Extractability Probe 7b18e49a', year: 1874 }, expected: 'absent' },
+    ],
+  }],
   ['bingebang', {
     familyId: 'bingebang',
     cases: [

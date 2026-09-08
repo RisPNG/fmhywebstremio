@@ -3,6 +3,45 @@ import type { SourceRegistryState } from './source-registry';
 export const deploymentSourceRegistry: SourceRegistryState = {
   records: [
     {
+      id: 'anicine:anicine.xyz',
+      canonicalDomain: 'anicine.xyz',
+      aliases: [],
+      fmhy: {
+        name: 'AniCine',
+        section: '▷ Multi-Server',
+        tags: [
+          'recommended',
+        ],
+        firstSeenAt: new Date(0),
+        lastSeenAt: new Date(0),
+      },
+      status: 'supported',
+      family: {
+        id: 'anicine',
+        confidence: 1,
+        evidence: [
+          {
+            type: 'script-signature',
+            fingerprint: 'anicine-catalog-brand',
+          },
+          {
+            type: 'route-shape',
+            value: 'anicine-catalog-navigation',
+          },
+          {
+            type: 'dom-shape',
+            fingerprint: 'anicine-watch-catalog',
+          },
+        ],
+        lastProbedAt: new Date(0),
+      },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://anicine.xyz/',
+      },
+    },
+    {
       id: 'bingebang:bingebang.tv',
       canonicalDomain: 'bingebang.tv',
       aliases: [],
@@ -190,6 +229,13 @@ export const deploymentSourceRegistry: SourceRegistryState = {
     },
   ],
   health: [
+    {
+      sourceId: 'anicine:anicine.xyz',
+      lastOutcome: 'healthy',
+      recentSuccesses: 5,
+      recentFailures: 0,
+      observedAt: new Date(0),
+    },
     {
       sourceId: 'bingebang:bingebang.tv',
       lastOutcome: 'healthy',

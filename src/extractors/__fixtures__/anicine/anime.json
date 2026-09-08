@@ -1,0 +1,30 @@
+{
+  "id": 1429,
+  "seasons": [
+    {
+      "season_number": 0,
+      "episode_count": 37,
+      "air_date": "2013-07-07"
+    },
+    {
+      "season_number": 1,
+      "episode_count": 25,
+      "air_date": "2013-04-07"
+    },
+    {
+      "season_number": 2,
+      "episode_count": 12,
+      "air_date": "2017-04-01"
+    },
+    {
+      "season_number": 3,
+      "episode_count": 22,
+      "air_date": "2018-07-23"
+    },
+    {
+      "season_number": 4,
+      "episode_count": 28,
+      "air_date": "2020-12-07"
+    }
+  ]
+}

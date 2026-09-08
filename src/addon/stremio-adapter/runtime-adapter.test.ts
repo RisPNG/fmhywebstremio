@@ -1,7 +1,8 @@
 import type { StreamEngine } from '../../engine/core';
+import { DirectMediaInspector } from '../../engine/protocols';
 import type { Context } from '../../types';
 import { HlsRelay } from './hls-relay';
-import { RuntimeStremioAdapter } from './runtime-adapter';
+import { normalizedStreamToStremio, RuntimeStremioAdapter } from './runtime-adapter';
 
 describe('RuntimeStremioAdapter', () => {
   test('relays only streams from IP-bound host architectures', async () => {
@@ -16,4 +17,9 @@ describe('RuntimeStremioAdapter', () => {
     expect(relay.resolveTarget(signature as string, payload as string)).toEqual({ url: target });
     expect(result.streams[0]).toMatchObject({ name: 'cinego.test 800p\n800p', title: 'cinego:cinego.test · vidsrcme-api' });
   });
+});
+
+test('preserves external subtitles through protocol validation and Stremio serialization', async () => {
+  const stream = await new DirectMediaInspector().inspect({ url: new URL('https://media.test/video.mp4'), protocol: 'http', sourceId: 'anicine:catalog.test', sourceExtractor: 'anicine', discoveredAt: new Date(0), subtitles: [{ url: new URL('https://subtitles.test/english.vtt'), label: 'English', format: 'vtt' }] }, { request: jest.fn(async () => ({ status: 200, headers: { 'content-type': 'video/mp4' }, finalUrl: new URL('https://media.test/video.mp4'), redirectChain: [], body: new Uint8Array([1]), text: () => '', json: () => ({}), truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } })) }, new AbortController().signal);
+  expect(normalizedStreamToStremio(stream).subtitles).toEqual([{ id: 'https://subtitles.test/english.vtt', url: 'https://subtitles.test/english.vtt', lang: 'English' }]);
 });

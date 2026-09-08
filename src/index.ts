@@ -14,6 +14,7 @@ import { deploymentSourceRegistry, MatcherRegistry, RegistryExtractorLookup, Sou
 import { ExtractionResolver } from './engine/resolver';
 import { TransportDirector } from './engine/transport';
 import { extractorRegistry as runtimeExtractorRegistry } from './extractors/registry.generated';
+import { AnicineFamily } from './extractors/sources/anicine-family';
 import { BingeBangFamily } from './extractors/sources/bingebang-family';
 import { CinegoFamily } from './extractors/sources/cinego-family';
 import { CinemaOsFamily } from './extractors/sources/cinemaos-family';
@@ -99,7 +100,7 @@ const runtimeSourceRegistry = new SourceRegistry();
 const runtimeDependencies = new DependencyGraph();
 const startupValidation = new Map<string, unknown>();
 const runtimeDependencyStore = new JsonDependencyStore(`${envGet('EXTRACTABILITY_DATA_DIR') ?? '.data/extractability'}/dependencies.json`);
-const runtimeFamilies = new Map<string, SourceFamily>([['bingebang', new BingeBangFamily()], ['cinemaos', new CinemaOsFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()], ['soaper', new SoaperFamily()], ['tmdb-embed-catalog', new TmdbEmbedCatalogFamily()]]);
+const runtimeFamilies = new Map<string, SourceFamily>([['anicine', new AnicineFamily()], ['bingebang', new BingeBangFamily()], ['cinemaos', new CinemaOsFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()], ['soaper', new SoaperFamily()], ['tmdb-embed-catalog', new TmdbEmbedCatalogFamily()]]);
 
 addon.use('/', (new ConfigureController(runtimeSourceRegistry)).router);
 addon.use('/', (new ManifestController(runtimeSourceRegistry)).router);
