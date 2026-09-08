@@ -1,7 +1,7 @@
 {
   "name": "fmhy-webstream",
   "description": "Provides video HTTP URLs from streaming websites listed by FMHY.",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "type": "commonjs",
   "scripts": {
     "analyse": "tsc --noEmit --project ./tsconfig.dev.json",
@@ -13,6 +13,7 @@
     "start": "node dist/index.js",
     "test": "jest",
     "test:extractability": "ts-node src/cli/audit-extractability.ts",
+    "probe:reachability": "ts-node src/cli/probe-reachability.ts",
     "maintain:extractability": "ts-node src/cli/audit-extractability.ts --watch",
     "verify:contracts": "npm run analyse && npm test -- --runInBand --coverage=false src/engine/blueprint.test.ts",
     "verify:diagnostics": "npm test -- --runInBand --coverage=false src/engine/blueprint.test.ts -t diagnostics",
