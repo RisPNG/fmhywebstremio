@@ -51,6 +51,8 @@ The implemented reusable families include CinemaOS, CineGo, Cinetaro, 67Movies, 
 
 Movies To Watch uses the reusable TMDB embed catalog family. Discovery reads the frontend's current public catalog configuration, follows its exact title/type/ID search and movie-year matching, and checks series season and episode availability against the same catalog used by its player UI. Its explicitly configured Videasy provider reuses the Speedracelight host architecture. The health corpus covers Inception (2010), Breaking Bad S01E01, Breaking Bad S05E16, and a deterministic nonexistent title. Later-season matching does not confuse the series premiere year with the requested season's release year.
 
+Vidbox uses the reusable Vidbox streaming-guide family, which recognizes the same brand-independent client that Vidbox also serves from its CineHD deployment. Discovery matches the site's own suggestion catalog on exact ID, title, media type, and movie year, then checks the requested season and episode against the season list its own series page ships. Its configured Videasy provider reuses the Speedracelight host architecture. The health corpus covers Inception (2010), Breaking Bad S01E01, Breaking Bad S05E16, and a deterministic nonexistent title, so a later season whose release year differs from the series premiere year stays matchable.
+
 Run continuous maintenance with:
 
 ```sh
