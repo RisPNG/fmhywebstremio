@@ -151,6 +151,43 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         finalUrl: 'https://www.moviestowatch.top/',
       },
     },
+    {
+      id: 'soapgo:soapgo.to',
+      canonicalDomain: 'soapgo.to',
+      aliases: [],
+      fmhy: {
+        name: 'SoapGo',
+        section: '▷ Dedicated-Server',
+        tags: [],
+        firstSeenAt: new Date(0),
+        lastSeenAt: new Date(0),
+      },
+      status: 'supported',
+      family: {
+        id: 'soaper',
+        confidence: 1,
+        evidence: [
+          {
+            type: 'dom-shape',
+            fingerprint: 'soaper-landing-brand',
+          },
+          {
+            type: 'api-shape',
+            fingerprint: 'soaper-catalog-search',
+          },
+          {
+            type: 'route-shape',
+            value: 'soaper-catalog-navigation',
+          },
+        ],
+        lastProbedAt: new Date(0),
+      },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://soapgo.to/',
+      },
+    },
   ],
   health: [
     {
@@ -179,6 +216,13 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       lastOutcome: 'healthy',
       recentSuccesses: 2,
       recentFailures: 1,
+      observedAt: new Date(0),
+    },
+    {
+      sourceId: 'soapgo:soapgo.to',
+      lastOutcome: 'healthy',
+      recentSuccesses: 3,
+      recentFailures: 0,
       observedAt: new Date(0),
     },
   ],

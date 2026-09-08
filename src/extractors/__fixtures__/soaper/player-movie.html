@@ -1,0 +1,15 @@
+<script>var resolverConfig = {"enabled":true,"endpoint":"/embed/resolve/fixture","turnstile_site_key":"fixture","type":"movie","tmdb":27205,"season":0,"episode":0} || {};
+function vidsrcmeFallbackUrl() {
+            if (!resolverConfig || !resolverConfig.tmdb) {
+                return '';
+            }
+            var type = String(resolverConfig.type || 'movie');
+            var url = new URL(type === 'tv' ? 'https://vidsrcme.ru/embed/tv' : 'https://vidsrcme.ru/embed/movie');
+            url.searchParams.set('tmdb', resolverConfig.tmdb);
+            if (type === 'tv') {
+                url.searchParams.set('season', resolverConfig.season || 0);
+                url.searchParams.set('episode', resolverConfig.episode || 0);
+            }
+            return url.toString();
+        }
+</script>

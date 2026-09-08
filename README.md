@@ -53,6 +53,8 @@ Movies To Watch uses the reusable TMDB embed catalog family. Discovery reads the
 
 BingeBang uses the reusable BingeBang player family. Discovery matches its own multi-search catalog on exact title, media type, movie year, and available season count, then asks the player architecture for the exact requested season and episode; the site answers an out-of-range episode with a missing player page. The player architecture reads the ticket the play page issues, decrypts the counter-keystream envelope its source list and resolver return, and publishes every resolved server. Those hosts answer only to the site's own referrer, so their streams declare relayed delivery and reach viewers through the existing signed HLS relay. The health corpus covers Inception (2010), Breaking Bad S01E01, The Boys S02E01, and a deterministic nonexistent title, so a later season released after the series premiere year stays matchable.
 
+SoapGo uses the reusable Soaper catalog family. Discovery searches its movie and television result sections, matches exact titles and movie years, and follows the requested episode from the series catalog. It reads the actual embedded player's configuration and checks the TMDB ID, media type, season, and episode before using the player's explicit VidsrcMe fallback through the existing host architecture and signed HLS relay. The Turnstile-protected resolver is not required for that fallback. The health corpus covers Inception (2010), Breaking Bad S01E01, The Boys S02E01, and a deterministic nonexistent title.
+
 Run continuous maintenance with:
 
 ```sh
