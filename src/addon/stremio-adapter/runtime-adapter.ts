@@ -18,7 +18,7 @@ export function parseStremioMediaRequest(type: string, rawId: string): MediaRequ
 
 export function normalizedStreamToStremio(stream: NormalizedStream): Stream {
   const sourceDomain = stream.sourceId.includes(':') ? stream.sourceId.slice(stream.sourceId.indexOf(':') + 1) : stream.sourceId;
-  return { url: stream.url.href, name: `${sourceDomain}${stream.resolution ? ` ${stream.resolution.height}p\n${stream.resolution.height}p` : ''}`, title: [stream.language, stream.sourceId, stream.hostExtractor].filter(Boolean).join(' · '), behaviorHints: { ...(stream.protocol !== 'http' && { notWebReady: true }), ...(stream.headers && { notWebReady: true, proxyHeaders: { request: stream.headers } }) } };
+  return { url: stream.url.href, ...(stream.subtitles && { subtitles: stream.subtitles.map(track => ({ id: track.url.href, url: track.url.href, lang: track.language ?? track.label ?? 'und' })) }), name: `${sourceDomain}${stream.resolution ? ` ${stream.resolution.height}p\n${stream.resolution.height}p` : ''}`, title: [stream.language, stream.sourceId, stream.hostExtractor].filter(Boolean).join(' · '), behaviorHints: { ...(stream.protocol !== 'http' && { notWebReady: true }), ...(stream.headers && { notWebReady: true, proxyHeaders: { request: stream.headers } }) } };
 }
 
 export class RuntimeStremioAdapter implements StremioStreamProvider {

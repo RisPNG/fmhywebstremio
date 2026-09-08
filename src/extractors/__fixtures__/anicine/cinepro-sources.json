@@ -1,0 +1,38 @@
+{
+  "sources": [
+    {
+      "url": "https://player.test/v1/proxy?resource=fixture-0",
+      "type": "hls",
+      "quality": "Auto",
+      "provider": {
+        "id": "vaplayer",
+        "name": "VaPlayer"
+      }
+    },
+    {
+      "url": "https://player.test/v1/proxy?resource=fixture-1",
+      "type": "hls",
+      "quality": "Source 2",
+      "provider": {
+        "id": "vaplayer",
+        "name": "VaPlayer"
+      }
+    },
+    {
+      "url": "https://player.test/v1/proxy?resource=fixture-2",
+      "type": "hls",
+      "quality": "Source 3",
+      "provider": {
+        "id": "vaplayer",
+        "name": "VaPlayer"
+      }
+    }
+  ],
+  "subtitles": [
+    {
+      "url": "https://subtitles.test/english.vtt",
+      "label": "English",
+      "format": "vtt"
+    }
+  ]
+}
