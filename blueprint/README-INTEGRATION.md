@@ -90,9 +90,9 @@ Once that works, add matcher indexing, transport isolation, FMHY ingestion, heal
 
 ## Current architectural emphasis
 
-FMHY is a maintenance/discovery input, not the runtime data path. Each candidate is fetched/inspected once under a `ProbeBudget`, producing a shared `SourceProbeSnapshot`; all known source-family classifiers evaluate that same snapshot without additional family-specific fetches. Family health uses maintained positive and negative media cases with quorum semantics. Runtime stream selection uses deterministic cheap pre-ordering followed by bounded top-K fresh validation, with explicit validation state on returned candidates.
+FMHY is a maintenance/discovery input, not the runtime data path. Each candidate is fetched/inspected once under a `ProbeBudget`, producing a shared `SourceProbeSnapshot`; all known source-family classifiers evaluate that same snapshot without additional family-specific fetches. Family health uses maintained positive and negative media cases with quorum semantics. Runtime stream selection uses deterministic cheap pre-ordering followed by fresh validation with bounded concurrency, with explicit validation state on returned candidates.
 
-Exact thresholds for probe confidence, runner-up margin, corpus quorum, top-K, and budgets are empirical configuration. Do not delay the end-to-end implementation spine to tune them: start conservatively, instrument outcomes, and adjust from observed behavior.
+Exact thresholds for probe confidence, runner-up margin, corpus quorum, concurrency, and budgets are empirical configuration. Do not delay the end-to-end implementation spine to tune them: start conservatively, instrument outcomes, and adjust from observed behavior.
 
 ## Core carrier contracts
 

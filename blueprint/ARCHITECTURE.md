@@ -26,7 +26,7 @@ source family -> host extractor -> stream candidate
 cheap deterministic candidate ordering
         |
         v
-bounded top-K fresh validation
+fresh validation with bounded concurrency
         |
         v
 deduplicate + final deterministic ordering
@@ -901,25 +901,25 @@ StreamCandidate(.m3u8)
 
 Equivalent `DashInspector` and direct-media inspection can exist behind the same boundary.
 
-### Fresh validation and bounded top-K policy
+### Fresh validation with bounded concurrency
 
 A previous successful validation is not proof that a signed/expiring stream still works. Avoid caching "stream is valid" as a long-lived truth.
 
-Fresh validation itself costs network round trips, so do not attempt to validate every candidate under a hard deadline. Use a two-step policy:
+Fresh validation costs network round trips. Queue all candidates with bounded concurrency under the request deadline:
 
 ```text
 all extracted candidates
     -> cheap deterministic pre-order
-    -> select bounded top K
-    -> validate those candidates in parallel
+    -> interleave sources round-robin
+    -> validate all candidates with bounded concurrency
     -> return validation state with each surviving stream
 ```
 
 The cheap pre-order may use source health/history, protocol preference, declared/parsed quality metadata already available, language preference, and deterministic source/extractor tie-breaks. It must not depend on promise completion order.
 
-`K` is configurable and should be chosen from measurements. `NormalizedStream.validation` carries the explicit state.
+Validation concurrency is configurable; it does not cap the number of candidates or returned streams. `NormalizedStream.validation` carries the explicit state.
 
-If the deadline arrives before every selected candidate validates, return usable partial results with their current validation state according to policy; do not silently pretend unverified means validated.
+If the deadline arrives before every candidate validates, return usable partial results with their current validation state according to policy; do not silently pretend unverified means validated.
 
 If manifest parse caching is later introduced, distinguish parsed structure from current reachability. The latter must be fresh enough for the current query.
 
@@ -941,7 +941,7 @@ Do not begin with invented 100-point weights.
 
 Use two deterministic orderings:
 
-**Pre-validation ordering** chooses the bounded top-K using only cheap information that is already known without extra validation requests:
+**Pre-validation ordering** orders candidates using only cheap information that is already known without extra validation requests:
 
 1. healthy/reliable source before degraded/repeatedly failing source;
 2. preferred language before other languages;
@@ -949,9 +949,9 @@ Use two deterministic orderings:
 4. lower recent extraction latency as a tie-breaker;
 5. deterministic source/extractor/URL tie-break.
 
-**Post-validation ordering** may then prefer `validated` over `unverified` among the bounded candidates while retaining the same deterministic tie-breaks. `failed` candidates are excluded.
+**Post-validation ordering** may then prefer `validated` over `unverified` among surviving candidates while retaining the same deterministic tie-breaks. `failed` candidates are excluded.
 
-If enough runtime history exists later, these rules may be converted to a configurable scoring function. Promise completion order must never determine which candidates were selected for validation or the final ordering.
+If enough runtime history exists later, these rules may be converted to a configurable scoring function. Promise completion order must never determine the validation queue or the final ordering.
 
 ---
 
@@ -982,18 +982,16 @@ interface StreamEngine {
 
 ### Query strategy
 
-Do not hit every supported source immediately.
-
-Use a bounded set of currently healthy sources, then widen only if too few usable streams are found.
+Queue all enabled, runtime-eligible sources with bounded concurrency. Start the next source as soon as a worker becomes available, regardless of the number of candidates already found.
 
 ```text
-start best-known sources
-    -> enough valid results? return
-    -> otherwise widen candidate set
-    -> deadline reached? return partial valid results
+queue all eligible sources in health order
+    -> discover with bounded concurrency until completion or discovery deadline
+    -> validate candidates with bounded concurrency
+    -> deadline reached? return partial results with explicit validation state
 ```
 
-The exact widening policy should remain simple until measurements justify sophistication.
+Concurrency limits active network work; there is no fixed source, candidate, or returned-stream quota.
 
 ### Query deadline
 
@@ -1076,7 +1074,7 @@ The architecture is succeeding when:
 - slow/failing sources do not erase valid partial results;
 - family health checks use maintained positive/negative probe media so catalog absence is not confused with breakage;
 - cookie/request state has an explicit query/source/host scope rather than hidden global ownership;
-- bounded top-K selection is deterministic before fresh validation begins;
+- candidate queue ordering is deterministic before fresh validation begins;
 - a changed FMHY format preserves the last-known-good local registry;
 - adding a new extractor does not require editing a giant central base class;
 - production request ordering is deterministic and independent of promise completion order.
@@ -1088,7 +1086,7 @@ The target is not a giant generic scraper framework. It is **a small extraction 
 
 ## Implementation Tuning Rule
 
-Do not delay the end-to-end implementation spine to tune confidence thresholds, probe budgets, top-K values, or corpus quorum numbers. Start with conservative configuration, instrument the outcomes, and adjust from observed behavior.
+Do not delay the end-to-end implementation spine to tune confidence thresholds, probe budgets, validation concurrency, or corpus quorum numbers. Start with conservative configuration, instrument the outcomes, and adjust from observed behavior.
 
 
 ## Appendix A. Open-Source Reference Synthesis

@@ -205,13 +205,13 @@ describe('protocol vertical slice', () => {
     expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://clone.test/wp-admin/admin-ajax.php'), method: 'POST', body: 'action=lazy_player&movieID=48162' }), expect.any(AbortSignal));
   });
 
-  test('inspects HLS and deterministically selects top K', async () => {
+  test('inspects every HLS candidate with bounded concurrency', async () => {
     const manifest = '#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1000000,RESOLUTION=1280x720,CODECS="avc1,mp4a"\n720.m3u8\n#EXT-X-STREAM-INF:BANDWIDTH=3000000,RESOLUTION=1920x1080,CODECS="avc1,mp4a"\n1080.m3u8';
     const services: RequestServices = { request: jest.fn(async request => response(request.url.href, request.expectedContent === 'binary' ? 'fixture-segment' : request.url.pathname.endsWith('/master.m3u8') || request.url.pathname.endsWith('/other.m3u8') ? manifest : '#EXTM3U\n#EXTINF:4,\nsegment.ts', request.expectedContent === 'binary' ? 'video/mp2t' : 'application/vnd.apple.mpegurl')) };
     const candidate = { url: new URL('https://cdn.test/master.m3u8'), protocol: 'hls' as const, sourceId: 'a', sourceExtractor: 'dooplay', discoveredAt: new Date(0) };
     expect(await new HlsInspector().inspect(candidate, services, new AbortController().signal)).toMatchObject({ validation: 'validated', resolution: { width: 1920, height: 1080 }, bitrate: 3000000 });
-    const result = await new StreamSelector(services).validate([candidate, { ...candidate, url: new URL('https://cdn.test/other.m3u8'), sourceId: 'b' }], { topK: 1 }, new AbortController().signal);
-    expect(result.streams.map(stream => stream.sourceId)).toEqual(['a']);
+    const result = await new StreamSelector(services).validate([candidate, { ...candidate, url: new URL('https://cdn.test/other.m3u8'), sourceId: 'b' }], { concurrency: 1 }, new AbortController().signal);
+    expect(result.streams.map(stream => stream.sourceId)).toEqual(['a', 'b']);
   });
 
   test('deduplicates equivalent streams within a source without discarding another source', () => {
@@ -226,7 +226,7 @@ describe('protocol vertical slice', () => {
       if (request.url.pathname === failedPath) throw new TransportFailure({ code: 'HTTP_FORBIDDEN', message: 'Unavailable seek position', observedAt: new Date(0), diagnostic: { sensitivity: 'privileged', status: 403, bodyCaptured: false } });
       return response(request.url.href, request.expectedContent === 'manifest' ? playlist : 'media', request.expectedContent === 'manifest' ? 'application/vnd.apple.mpegurl' : 'video/mp2t');
     }) };
-    const result = await new StreamSelector(services).validate([{ url: new URL('https://cdn.test/media.m3u8'), protocol: 'hls', sourceId: 'source', sourceExtractor: 'family', discoveredAt: new Date(0) }], { topK: 1 }, new AbortController().signal);
+    const result = await new StreamSelector(services).validate([{ url: new URL('https://cdn.test/media.m3u8'), protocol: 'hls', sourceId: 'source', sourceExtractor: 'family', discoveredAt: new Date(0) }], { concurrency: 1 }, new AbortController().signal);
     if (failedPath) expect(result).toMatchObject({ streams: [], failures: [{ code: 'HTTP_FORBIDDEN', stage: 'stage:protocol', sourceId: 'source' }] });
     else {
       expect(result.streams).toHaveLength(1);
@@ -237,13 +237,13 @@ describe('protocol vertical slice', () => {
   test('orders preferred languages before unlisted languages', () => {
     const services = { request: jest.fn() } as unknown as RequestServices;
     const candidate = { url: new URL('https://cdn.test/master.m3u8'), protocol: 'hls' as const, sourceId: 'source', sourceExtractor: 'family', discoveredAt: new Date(0) };
-    const ordered = new StreamSelector(services).preOrder([{ ...candidate, language: 'fr' }, { ...candidate, url: new URL('https://cdn.test/english.m3u8'), language: 'en' }], { topK: 2, preferredLanguages: ['en'] });
+    const ordered = new StreamSelector(services).preOrder([{ ...candidate, language: 'fr' }, { ...candidate, url: new URL('https://cdn.test/english.m3u8'), language: 'en' }], { concurrency: 2, preferredLanguages: ['en'] });
     expect(ordered.map(stream => stream.language)).toEqual(['en', 'fr']);
   });
 
   test('preserves typed protocol validation failures', async () => {
     const services: RequestServices = { request: jest.fn().mockResolvedValue(response('https://cdn.test/broken.m3u8', '<html>not a manifest</html>', 'text/plain')) };
-    const result = await new StreamSelector(services).validate([{ url: new URL('https://cdn.test/broken.m3u8'), protocol: 'hls', sourceId: 'source', sourceExtractor: 'family', hostExtractor: 'host', discoveredAt: new Date(0) }], { topK: 1 }, new AbortController().signal);
+    const result = await new StreamSelector(services).validate([{ url: new URL('https://cdn.test/broken.m3u8'), protocol: 'hls', sourceId: 'source', sourceExtractor: 'family', hostExtractor: 'host', discoveredAt: new Date(0) }], { concurrency: 1 }, new AbortController().signal);
     expect(result).toMatchObject({ streams: [], failures: [{ code: 'MANIFEST_INVALID', stage: 'stage:protocol', sourceId: 'source', extractorId: 'host', targetHost: 'cdn.test' }] });
   });
 
@@ -272,7 +272,7 @@ describe('protocol vertical slice', () => {
     const services = { request: jest.fn() } as unknown as RequestServices;
     const controller = new AbortController();
     controller.abort();
-    const result = await new StreamSelector(services).validate([{ url: new URL('https://cdn.test/pending.m3u8'), protocol: 'hls', sourceId: 'source', sourceExtractor: 'family', discoveredAt: new Date(0) }], { topK: 1 }, controller.signal);
+    const result = await new StreamSelector(services).validate([{ url: new URL('https://cdn.test/pending.m3u8'), protocol: 'hls', sourceId: 'source', sourceExtractor: 'family', discoveredAt: new Date(0) }], { concurrency: 1 }, controller.signal);
     expect(result).toMatchObject({ streams: [{ validation: 'unverified', sourceId: 'source', protocol: 'hls' }], unverified: [{ sourceId: 'source' }], failures: [] });
   });
 
@@ -326,7 +326,7 @@ describe('protocol vertical slice', () => {
       new ExtractionResolver(new StaticExtractorLookup([]), services),
       services,
     );
-    const result = await engine.findStreams({ type: 'movie', title: 'Movie' }, { deadlineMs: 100, validationTopK: 1 });
+    const result = await engine.findStreams({ type: 'movie', title: 'Movie' }, { deadlineMs: 100, validationConcurrency: 1 });
     expect(result.streams).toMatchObject([{ validation: 'validated', sourceId: 'fast' }]);
     expect(result.deadline).toMatchObject({ sourcesAttempted: 2, sourcesCompleted: 1, sourcesCancelled: 1 });
   });
@@ -373,7 +373,7 @@ describe('protocol vertical slice', () => {
     expect(result.deadline).toMatchObject({ sourcesAttempted: 2, sourcesCompleted: 2, sourcesCancelled: 0, exceeded: false });
   });
 
-  test('widens healthy source batches only when earlier sources produce too few candidates', async () => {
+  test('queries later healthy sources with bounded discovery concurrency', async () => {
     const services: RequestServices = { request: jest.fn().mockResolvedValue(response('https://cdn.test/master.m3u8', '#EXTM3U\n#EXTINF:4,\nsegment.ts', 'application/vnd.apple.mpegurl')) };
     const registry = new SourceRegistry();
     for (let index = 0; index < 6; index++) {
@@ -386,8 +386,32 @@ describe('protocol vertical slice', () => {
       classify: () => null,
       discoverMedia: async (_media: unknown, source: SourceRecord) => source.id === 'source-4' ? { type: 'streams' as const, streams: [{ url: new URL('https://cdn.test/master.m3u8'), protocol: 'hls' as const, sourceId: source.id, sourceExtractor: 'fixture', discoveredAt: new Date(0) }] } : { type: 'empty' as const, reason: 'not-found' as const },
     };
-    const result = await new RuntimeStreamEngine({ resolve: async () => ({ canonicalId: 'movie', type: 'movie', title: 'Movie' }) }, registry, new Map([['fixture', family]]), new ExtractionResolver(new StaticExtractorLookup([]), services), services).findStreams({ type: 'movie', title: 'Movie' }, { initialSourceBatch: 2, minimumCandidates: 1 });
+    const result = await new RuntimeStreamEngine({ resolve: async () => ({ canonicalId: 'movie', type: 'movie', title: 'Movie' }) }, registry, new Map([['fixture', family]]), new ExtractionResolver(new StaticExtractorLookup([]), services), services).findStreams({ type: 'movie', title: 'Movie' }, { sourceConcurrency: 2 });
     expect(result.deadline.sourcesAttempted).toBe(6);
     expect(result.streams).toMatchObject([{ sourceId: 'source-4' }]);
   });
+});
+
+test('discovers later sources even when an earlier source floods candidates and another stalls', async () => {
+  const services: RequestServices = { request: jest.fn(async request => response(request.url.href, '', 'video/mp4')) };
+  const registry = new SourceRegistry();
+  for (const id of ['a-stalled', 'b-many', 'c-later']) {
+    registry.set({ id, canonicalDomain: `${id}.test`, aliases: [], fmhy: { firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'fixture', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'supported' });
+    registry.recordHealth({ sourceId: id, lastOutcome: 'healthy', recentSuccesses: 1, recentFailures: 0, observedAt: new Date(0) });
+  }
+  const family = {
+    id: 'fixture',
+    classify: () => null,
+    discoverMedia: async (_media: unknown, source: SourceRecord, _services: RequestServices, signal: AbortSignal) => {
+      if (source.id === 'a-stalled') {
+        await new Promise<void>(resolve => signal.addEventListener('abort', () => resolve(), { once: true }));
+        return { type: 'empty' as const, reason: 'no-streams' as const };
+      }
+      return { type: 'streams' as const, streams: Array.from({ length: source.id === 'b-many' ? 10 : 1 }, (_value, index) => ({ url: new URL(`https://${source.id}.test/${index}.mp4`), protocol: 'http' as const, sourceId: source.id, sourceExtractor: 'fixture', discoveredAt: new Date(0) })) };
+    },
+  };
+  const result = await new RuntimeStreamEngine({ resolve: async () => ({ canonicalId: 'movie', type: 'movie', title: 'Movie' }) }, registry, new Map([['fixture', family]]), new ExtractionResolver(new StaticExtractorLookup([]), services), services).findStreams({ type: 'movie', title: 'Movie' }, { deadlineMs: 500, sourceConcurrency: 2, validationConcurrency: 2 });
+  expect(result.deadline).toMatchObject({ sourcesAttempted: 3, sourcesCompleted: 2, sourcesCancelled: 1, exceeded: false });
+  expect(result.streams).toHaveLength(11);
+  expect(result.streams.some(stream => stream.sourceId === 'c-later' && stream.validation === 'validated')).toBe(true);
 });

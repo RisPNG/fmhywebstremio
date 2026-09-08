@@ -349,9 +349,9 @@ HOST_EXTRACTION_FAILED provider-x
 
 A text/JSON report is sufficient. A dashboard can come later if it actually saves maintenance time.
 
-### 16. Add deterministic pre-order, bounded top-K validation, and final ordering
+### 16. Add deterministic pre-order, validation with bounded concurrency, and final ordering
 
-Do not let validation completion order decide quality. First rank candidates using only cheap information already available, then validate a bounded top-K in parallel.
+Do not let validation completion order decide quality. First rank candidates using only cheap information already available, then queue every candidate for validation with bounded concurrency and round-robin source ordering.
 
 Pre-validation ordering:
 
@@ -361,9 +361,9 @@ Pre-validation ordering:
 4. lower recent extraction latency as a tie-breaker;
 5. deterministic source/extractor/URL tie-break.
 
-Select configurable `K`, fresh-validate only those candidates, and attach explicit state: `validated`, `unverified`, or `failed`. Exclude failed candidates. In the final ordering, validated may precede unverified without changing which candidates were selected in the first place.
+Use configurable concurrency to fresh-validate candidates until the deadline, and attach explicit state: `validated`, `unverified`, or `failed`. Exclude failed candidates. In the final ordering, validated may precede unverified without changing which candidates were selected in the first place.
 
-At the request deadline, return usable partial results with their actual validation state. Promise timing must not affect top-K selection. Collect runtime history before deciding whether a weighted model is useful.
+At the request deadline, return usable partial results with their actual validation state. Promise timing must not affect queue ordering. Collect runtime history before deciding whether a weighted model is useful.
 
 ### 17. Add layered deduplication
 
@@ -647,7 +647,7 @@ That is the practical definition of a maintainable WebStreamrMBG successor.
 
 ## Implementation Tuning Rule
 
-Do not delay the end-to-end implementation spine to tune confidence thresholds, probe budgets, top-K values, or corpus quorum numbers. Start with conservative configuration, instrument the outcomes, and adjust from observed behavior.
+Do not delay the end-to-end implementation spine to tune confidence thresholds, probe budgets, validation concurrency, or corpus quorum numbers. Start with conservative configuration, instrument the outcomes, and adjust from observed behavior.
 
 ---
 

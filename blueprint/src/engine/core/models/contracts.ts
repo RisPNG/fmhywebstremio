@@ -27,9 +27,9 @@ export interface ExtractionResponse {
 export interface QueryOptions {
   deadlineMs?: number;
   preferredLanguages?: readonly string[];
-  /** Bounded candidate set sent for fresh validation. Config, not architecture. */
-  validationTopK?: number;
-  maxSources?: number;
+  /** Bounded parallel validation and source requests. Config, not architecture. */
+  validationConcurrency?: number;
+  sourceConcurrency?: number;
 }
 
 /**
