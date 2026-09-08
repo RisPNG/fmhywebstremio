@@ -4,6 +4,8 @@ Stremio Addon that serves video HTTP URLs from streaming websites listed by [FMH
 
 The addon keeps FMHY directory synchronization outside user requests. Maintenance jobs ingest the official video directory into a last-known-good local registry, classify candidates against bounded source-family fingerprints, run positive and negative health corpora, and record source-to-provider dependency edges. The runtime uses only sources with a successful validated extractability outcome and returns validated partial results within a hard deadline.
 
+Requests consider every enabled, healthy source within the discovery deadline, with bounded concurrent lookups. Stream validation rotates across sources before trying their additional variants and continues through all discovered candidates within the overall deadline. Parallelism controls active requests, not the number of candidates checked or streams returned; failed variants do not consume a fixed result quota. Equivalent streams within a source are still deduplicated.
+
 The extraction engine is organized around small tagged contracts:
 
 ```text

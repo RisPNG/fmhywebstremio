@@ -1,7 +1,8 @@
+import { Semaphore } from 'async-mutex';
 import type { Failure, FailureCode, NormalizedStream, RequestServices, SourceHealthHistory, StreamCandidate } from '../core/models';
 import { DashInspector, DirectMediaInspector, HlsInspector } from './inspectors';
 
-export interface StreamSelectionOptions { topK: number; preferredLanguages?: readonly string[]; health?: ReadonlyMap<string, SourceHealthHistory> }
+export interface StreamSelectionOptions { concurrency: number; preferredLanguages?: readonly string[]; health?: ReadonlyMap<string, SourceHealthHistory> }
 
 export class StreamSelector {
   public constructor(private readonly services: RequestServices) {}
@@ -16,8 +17,14 @@ export class StreamSelector {
   }
 
   public async validate(candidates: readonly StreamCandidate[], options: StreamSelectionOptions, signal: AbortSignal): Promise<{ streams: NormalizedStream[]; unverified: StreamCandidate[]; failures: Failure[] }> {
-    const selected = this.preOrder(candidates, options).slice(0, options.topK);
-    const settled = await Promise.all(selected.map(async (candidate) => {
+    const rounds = new Map<string, number>();
+    const ordered = this.preOrder(candidates, options).map((candidate) => {
+      const round = rounds.get(candidate.sourceId) ?? 0;
+      rounds.set(candidate.sourceId, round + 1);
+      return { candidate, round };
+    }).sort((a, b) => a.round - b.round).map(item => item.candidate);
+    const concurrency = new Semaphore(Math.max(1, options.concurrency));
+    const settled = await Promise.all(ordered.map(candidate => concurrency.runExclusive(async () => {
       if (signal.aborted) return { candidate };
       const inspector = candidate.protocol === 'hls' ? new HlsInspector() : candidate.protocol === 'dash' ? new DashInspector() : candidate.protocol === 'http' ? new DirectMediaInspector() : undefined;
       if (!inspector) return { candidate };
@@ -25,13 +32,15 @@ export class StreamSelector {
         return { stream: await inspector.inspect(candidate, this.services, signal) };
       } catch (error) {
         const nested = error && typeof error === 'object' && 'failure' in error ? (error as { failure?: Failure }).failure : undefined;
-        if (nested) return { failure: { ...nested, stage: 'stage:protocol', sourceId: nested.sourceId ?? candidate.sourceId, extractorId: nested.extractorId ?? candidate.hostExtractor ?? candidate.sourceExtractor, targetHost: nested.targetHost ?? candidate.url.hostname } satisfies Failure };
+        if (nested) {
+          return { failure: { ...nested, stage: 'stage:protocol', sourceId: nested.sourceId ?? candidate.sourceId, extractorId: nested.extractorId ?? candidate.hostExtractor ?? candidate.sourceExtractor, targetHost: nested.targetHost ?? candidate.url.hostname } satisfies Failure };
+        }
         const message = error instanceof Error ? error.message : String(error);
         const known = ['MANIFEST_INVALID', 'NO_PLAYABLE_VARIANTS', 'STREAM_EXPIRED'] satisfies readonly FailureCode[];
         const code: FailureCode = known.includes(message as typeof known[number]) ? message as typeof known[number] : candidate.protocol === 'http' ? 'STREAM_EXPIRED' : 'MANIFEST_FETCH_FAILED';
         return { failure: { code, message, stage: 'stage:protocol', sourceId: candidate.sourceId, extractorId: candidate.hostExtractor ?? candidate.sourceExtractor, targetHost: candidate.url.hostname, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', finalUrl: candidate.url.href, bodyCaptured: false } } satisfies Failure };
       }
-    }));
+    })));
     const unverified = settled.flatMap(item => item.candidate ? [item.candidate] : []);
     const failures = settled.flatMap(item => item.failure ? [item.failure] : []);
     const streams = [...settled.flatMap(item => item.stream ? [item.stream] : []), ...unverified.flatMap((candidate): NormalizedStream[] => candidate.protocol === 'unknown' ? [] : [{ url: candidate.url, protocol: candidate.protocol, validation: 'unverified', ...(candidate.declaredResolution && { resolution: candidate.declaredResolution }), ...(candidate.language && { language: candidate.language }), ...(candidate.headers && { headers: candidate.headers }), ...(candidate.delivery && { delivery: candidate.delivery }), ...(candidate.subtitles && { subtitles: candidate.subtitles }), sourceId: candidate.sourceId, sourceExtractor: candidate.sourceExtractor, ...(candidate.hostExtractor && { hostExtractor: candidate.hostExtractor }), ...(candidate.providerContentId && { providerContentId: candidate.providerContentId }) }])];

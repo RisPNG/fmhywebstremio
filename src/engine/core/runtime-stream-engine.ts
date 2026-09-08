@@ -1,3 +1,4 @@
+import { Semaphore } from 'async-mutex';
 import type { DependencyGraph, JsonDependencyStore, SourceFamily } from '../health';
 import { StreamSelector } from '../protocols';
 import type { SourceRegistry } from '../registry';
@@ -24,62 +25,58 @@ export class RuntimeStreamEngine implements StreamEngine {
     let cancelled = 0;
     let attempted = 0;
     const excludedSourceIds = new Set(options.excludedSourceIds ?? []);
-    const selectedSources = this.sources.runtimeEligible().filter(source => !excludedSourceIds.has(source.id)).sort((a, b) => ({ healthy: 0, degraded: 1, failed: 2 }[this.sources.health().get(a.id)?.lastOutcome ?? 'healthy']) - ({ healthy: 0, degraded: 1, failed: 2 }[this.sources.health().get(b.id)?.lastOutcome ?? 'healthy']) || (this.sources.health().get(b.id)?.recentSuccesses ?? 0) - (this.sources.health().get(a.id)?.recentSuccesses ?? 0) || (this.sources.health().get(a.id)?.recentFailures ?? 0) - (this.sources.health().get(b.id)?.recentFailures ?? 0) || a.id.localeCompare(b.id)).slice(0, options.maxSources ?? Number.MAX_SAFE_INTEGER);
+    const selectedSources = this.sources.runtimeEligible().filter(source => !excludedSourceIds.has(source.id)).sort((a, b) => ({ healthy: 0, degraded: 1, failed: 2 }[this.sources.health().get(a.id)?.lastOutcome ?? 'healthy']) - ({ healthy: 0, degraded: 1, failed: 2 }[this.sources.health().get(b.id)?.lastOutcome ?? 'healthy']) || (this.sources.health().get(b.id)?.recentSuccesses ?? 0) - (this.sources.health().get(a.id)?.recentSuccesses ?? 0) || (this.sources.health().get(a.id)?.recentFailures ?? 0) - (this.sources.health().get(b.id)?.recentFailures ?? 0) || a.id.localeCompare(b.id));
     if (!selectedSources.length) return { streams: [], failures, unverified: candidates, deadline: { budgetMs, elapsedMs: Date.now() - started, exceeded: false, sourcesAttempted: 0, sourcesCompleted: 0, sourcesCancelled: 0 } };
     try {
       const media = await this.mediaResolver.resolve(request, controller.signal);
-      const batchSize = Math.max(1, options.initialSourceBatch ?? 4);
-      for (let offset = 0; offset < selectedSources.length && !discoveryController.signal.aborted; offset += batchSize) {
-        const batch = selectedSources.slice(offset, offset + batchSize);
-        attempted += batch.length;
-        const tasks = batch.map(async (source) => {
-          const family = source.family && this.families.get(source.family.id);
-          if (!family) return;
-          try {
-            const result = await family.discoverMedia(media, source, this.services, discoveryController.signal);
-            if (result.type === 'streams') for (const stream of result.streams) this.dependencies?.record({ sourceId: source.id, familyId: family.id, provider: stream.hostExtractor ?? stream.url.hostname, observedAt: new Date() });
-            if (result.type === 'redirect') this.dependencies?.record({ sourceId: source.id, familyId: family.id, provider: result.target.url.hostname, observedAt: new Date() });
-            if (result.type === 'embeds') for (const target of result.targets) this.dependencies?.record({ sourceId: source.id, familyId: family.id, provider: target.url.hostname, observedAt: new Date() });
-            const consume = async (value: ExtractionResult) => {
-              switch (value.type) {
-                case 'streams':
-                  candidates.push(...value.streams);
-                  break;
-                case 'failure':
-                  failures.push({ ...value.failure, sourceId: value.failure.sourceId ?? source.id, familyId: value.failure.familyId ?? family.id, stage: value.failure.stage ?? 'stage:discovery' });
-                  break;
-                case 'redirect': {
-                  const resolved = await this.resolver.resolve(value.target, discoveryController.signal);
-                  candidates.push(...resolved.streams);
-                  failures.push(...resolved.failures.map(failure => ({ ...failure, sourceId: failure.sourceId ?? source.id, familyId: failure.familyId ?? family.id })));
-                  break;
-                }
-                case 'embeds': {
-                  const resolved = await Promise.all(value.targets.map(target => this.resolver.resolve(target, discoveryController.signal)));
-                  candidates.push(...resolved.flatMap(item => item.streams));
-                  failures.push(...resolved.flatMap(item => item.failures.map(failure => ({ ...failure, sourceId: failure.sourceId ?? source.id, familyId: failure.familyId ?? family.id }))));
-                  break;
-                }
-                case 'empty': break;
+      const concurrency = new Semaphore(Math.max(1, options.sourceConcurrency ?? 4));
+      await Promise.all(selectedSources.map(source => concurrency.runExclusive(async () => {
+        if (discoveryController.signal.aborted) return;
+        attempted++;
+        const family = source.family && this.families.get(source.family.id);
+        if (!family) return;
+        try {
+          const result = await family.discoverMedia(media, source, this.services, discoveryController.signal);
+          if (result.type === 'streams') for (const stream of result.streams) this.dependencies?.record({ sourceId: source.id, familyId: family.id, provider: stream.hostExtractor ?? stream.url.hostname, observedAt: new Date() });
+          if (result.type === 'redirect') this.dependencies?.record({ sourceId: source.id, familyId: family.id, provider: result.target.url.hostname, observedAt: new Date() });
+          if (result.type === 'embeds') for (const target of result.targets) this.dependencies?.record({ sourceId: source.id, familyId: family.id, provider: target.url.hostname, observedAt: new Date() });
+          const consume = async (value: ExtractionResult) => {
+            switch (value.type) {
+              case 'streams':
+                candidates.push(...value.streams);
+                break;
+              case 'failure':
+                failures.push({ ...value.failure, sourceId: value.failure.sourceId ?? source.id, familyId: value.failure.familyId ?? family.id, stage: value.failure.stage ?? 'stage:discovery' });
+                break;
+              case 'redirect': {
+                const resolved = await this.resolver.resolve(value.target, discoveryController.signal);
+                candidates.push(...resolved.streams);
+                failures.push(...resolved.failures.map(failure => ({ ...failure, sourceId: failure.sourceId ?? source.id, familyId: failure.familyId ?? family.id })));
+                break;
               }
-            };
-            await consume(result);
-          } catch (error) {
-            if (!discoveryController.signal.aborted) {
-              const typedFailure = error && typeof error === 'object' && 'failure' in error ? (error as { failure: Failure }).failure : undefined;
-              failures.push(typedFailure ? { ...typedFailure, sourceId: typedFailure.sourceId ?? source.id, familyId: typedFailure.familyId ?? family.id } : { code: 'INTERNAL_ERROR', message: error instanceof Error ? error.message : String(error), stage: 'stage:engine', sourceId: source.id, familyId: family.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false } });
+              case 'embeds': {
+                const resolved = await Promise.all(value.targets.map(target => this.resolver.resolve(target, discoveryController.signal)));
+                candidates.push(...resolved.flatMap(item => item.streams));
+                failures.push(...resolved.flatMap(item => item.failures.map(failure => ({ ...failure, sourceId: failure.sourceId ?? source.id, familyId: failure.familyId ?? family.id }))));
+                break;
+              }
+              case 'empty': break;
             }
-          } finally {
-            if (discoveryController.signal.aborted) cancelled++;
-            else completed++;
+          };
+          await consume(result);
+        } catch (error) {
+          if (!discoveryController.signal.aborted) {
+            const typedFailure = error && typeof error === 'object' && 'failure' in error ? (error as { failure: Failure }).failure : undefined;
+            failures.push(typedFailure ? { ...typedFailure, sourceId: typedFailure.sourceId ?? source.id, familyId: typedFailure.familyId ?? family.id } : { code: 'INTERNAL_ERROR', message: error instanceof Error ? error.message : String(error), stage: 'stage:engine', sourceId: source.id, familyId: family.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false } });
           }
-        });
-        await Promise.allSettled(tasks);
-        if (candidates.length >= (options.minimumCandidates ?? 8)) break;
-      }
+        } finally {
+          if (discoveryController.signal.aborted) cancelled++;
+          else completed++;
+        }
+      })));
       const selector = new StreamSelector(this.services);
       const preferredLanguages = options.preferredLanguages ?? request.preferredLanguages;
-      const validation = await selector.validate(candidates, { topK: options.validationTopK ?? 8, ...(preferredLanguages && { preferredLanguages }), health: this.sources.health() }, controller.signal);
+      const validation = await selector.validate(candidates, { concurrency: options.validationConcurrency ?? 8, ...(preferredLanguages && { preferredLanguages }), health: this.sources.health() }, controller.signal);
       failures.push(...validation.failures);
       return { streams: validation.streams, failures, unverified: validation.unverified, deadline: { budgetMs, elapsedMs: Date.now() - started, exceeded: controller.signal.aborted, sourcesAttempted: attempted, sourcesCompleted: completed, sourcesCancelled: Math.max(cancelled, attempted - completed) } };
     } catch (error) {
