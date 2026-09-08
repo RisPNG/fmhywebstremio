@@ -177,8 +177,8 @@ export const deploymentSourceRegistry: SourceRegistryState = {
     {
       sourceId: 'movies-to-watch:moviestowatch.top',
       lastOutcome: 'healthy',
-      recentSuccesses: 3,
-      recentFailures: 0,
+      recentSuccesses: 2,
+      recentFailures: 1,
       observedAt: new Date(0),
     },
   ],
