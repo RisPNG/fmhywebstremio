@@ -7,6 +7,7 @@ import { JsonSourceRegistryStore, MatcherRegistry, RegistryExtractorLookup, Sour
 import { ExtractionResolver } from '../engine/resolver';
 import { TransportDirector } from '../engine/transport';
 import { extractorRegistry } from '../extractors/registry.generated';
+import { BingeBangFamily } from '../extractors/sources/bingebang-family';
 import { CinegoFamily } from '../extractors/sources/cinego-family';
 import { CinemaOsFamily } from '../extractors/sources/cinemaos-family';
 import { CinetaroFamily } from '../extractors/sources/cinetaro-family';
@@ -14,13 +15,12 @@ import { DooplayFamily } from '../extractors/sources/dooplay-family';
 import { PStreamFamily } from '../extractors/sources/pstream-family';
 import { SixtySevenMoviesFamily } from '../extractors/sources/sixty-seven-movies-family';
 import { TmdbEmbedCatalogFamily } from '../extractors/sources/tmdb-embed-catalog-family';
-import { VidboxFamily } from '../extractors/sources/vidbox-family';
 
 const dataDirectory = resolve(process.env['EXTRACTABILITY_DATA_DIR'] ?? '.data/extractability');
 const transport = new TransportDirector({ globalConcurrency: 24, perHostConcurrency: 3, maxRetries: 1 });
 const registry = new SourceRegistry();
 const registryStore = new JsonSourceRegistryStore(resolve(dataDirectory, 'sources.json'));
-const families = new Map<string, SourceFamily>([['cinemaos', new CinemaOsFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()], ['tmdb-embed-catalog', new TmdbEmbedCatalogFamily()], ['vidbox', new VidboxFamily()]]);
+const families = new Map<string, SourceFamily>([['bingebang', new BingeBangFamily()], ['cinemaos', new CinemaOsFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['dooplay', new DooplayFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()], ['tmdb-embed-catalog', new TmdbEmbedCatalogFamily()]]);
 const watch = process.argv.includes('--watch');
 const controller = new AbortController();
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => controller.abort(new Error(signal)));

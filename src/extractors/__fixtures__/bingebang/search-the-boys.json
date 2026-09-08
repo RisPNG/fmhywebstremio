@@ -1,0 +1,22 @@
+{
+  "results": [
+    {
+      "id": 7,
+      "media_type": "tv",
+      "name": "The Boys",
+      "year": 2019,
+      "number_of_seasons": 5,
+      "url": "/tv/watch/the-boys-azkuo5",
+      "play_url": "/tv/play/the-boys-azkuo5"
+    },
+    {
+      "id": 20119,
+      "media_type": "tv",
+      "name": "The Boys Presents: Diabolical",
+      "year": 2022,
+      "number_of_seasons": 1,
+      "url": "/tv/watch/the-boys-presents-diabolical-x9pwpt",
+      "play_url": "/tv/play/the-boys-presents-diabolical-x9pwpt"
+    }
+  ]
+}
