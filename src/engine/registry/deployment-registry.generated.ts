@@ -3,6 +3,43 @@ import type { SourceRegistryState } from './source-registry';
 export const deploymentSourceRegistry: SourceRegistryState = {
   records: [
     {
+      id: 'bingebang:bingebang.tv',
+      canonicalDomain: 'bingebang.tv',
+      aliases: [],
+      fmhy: {
+        name: 'BingeBang',
+        section: '▷ Stream Aggregators',
+        tags: [],
+        firstSeenAt: new Date(0),
+        lastSeenAt: new Date(0),
+      },
+      status: 'supported',
+      family: {
+        id: 'bingebang',
+        confidence: 1,
+        evidence: [
+          {
+            type: 'script-signature',
+            fingerprint: 'bingebang-client',
+          },
+          {
+            type: 'api-shape',
+            fingerprint: 'bingebang-explore-search',
+          },
+          {
+            type: 'route-shape',
+            value: '/movie|tv/watch/{slug}',
+          },
+        ],
+        lastProbedAt: new Date(0),
+      },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://bingebang.tv/',
+      },
+    },
+    {
       id: 'cinego:cinego.co',
       canonicalDomain: 'cinego.co',
       aliases: [],
@@ -114,48 +151,15 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         finalUrl: 'https://www.moviestowatch.top/',
       },
     },
-    {
-      id: 'vidbox:cinehd.app',
-      canonicalDomain: 'vidbox.vc',
-      aliases: [
-        'cinehd.app',
-        'hotflix.to',
-      ],
-      fmhy: {
-        name: 'Vidbox',
-        section: '▷ Multi-Server',
-        tags: [],
-        firstSeenAt: new Date(0),
-        lastSeenAt: new Date(0),
-      },
-      status: 'supported',
-      family: {
-        id: 'vidbox',
-        confidence: 1,
-        evidence: [
-          {
-            type: 'script-signature',
-            fingerprint: 'vidbox-streaming-guide',
-          },
-          {
-            type: 'route-shape',
-            value: '/search?type=movie|tv',
-          },
-          {
-            type: 'asset-path',
-            value: 'vidbox-next-client',
-          },
-        ],
-        lastProbedAt: new Date(0),
-      },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://vidbox.vc/',
-      },
-    },
   ],
   health: [
+    {
+      sourceId: 'bingebang:bingebang.tv',
+      lastOutcome: 'healthy',
+      recentSuccesses: 3,
+      recentFailures: 0,
+      observedAt: new Date(0),
+    },
     {
       sourceId: 'cinego:cinego.co',
       lastOutcome: 'healthy',
@@ -172,13 +176,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
     },
     {
       sourceId: 'movies-to-watch:moviestowatch.top',
-      lastOutcome: 'healthy',
-      recentSuccesses: 2,
-      recentFailures: 1,
-      observedAt: new Date(0),
-    },
-    {
-      sourceId: 'vidbox:cinehd.app',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
       recentFailures: 0,

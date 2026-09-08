@@ -8,10 +8,13 @@ export interface SubtitleTrack {
   format?: string;
 }
 
+export type StreamDelivery = 'relayed';
+
 export interface StreamCandidate {
   url: URL;
   protocol: StreamProtocol;
   headers?: Readonly<Record<string, string>>;
+  delivery?: StreamDelivery;
   referrer?: URL;
   language?: string;
   label?: string;
@@ -36,6 +39,7 @@ export interface NormalizedStream {
   subtitles?: readonly SubtitleTrack[];
   isLive?: boolean;
   headers?: Readonly<Record<string, string>>;
+  delivery?: StreamDelivery;
   sourceId: string;
   sourceExtractor: string;
   hostExtractor?: string;

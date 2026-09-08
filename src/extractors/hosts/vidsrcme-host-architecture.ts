@@ -74,7 +74,7 @@ export class VidsrcMeApiHostArchitecture implements VidsrcMeHostArchitecture {
       }
       if (!token) continue;
       mediaUrl.searchParams.set('token', token);
-      streams.push({ url: mediaUrl, protocol: /\.m3u8(?:$|\?)/i.test(mediaUrl.href) ? 'hls' : 'http', sourceId, sourceExtractor, hostExtractor: 'vidsrcme-api', ...(payload.data?.title && { label: payload.data.title }), discoveredAt: new Date() });
+      streams.push({ url: mediaUrl, protocol: /\.m3u8(?:$|\?)/i.test(mediaUrl.href) ? 'hls' : 'http', delivery: 'relayed', sourceId, sourceExtractor, hostExtractor: 'vidsrcme-api', ...(payload.data?.title && { label: payload.data.title }), discoveredAt: new Date() });
       break;
     }
     if (!streams.length && lastTokenFailure) throw lastTokenFailure;

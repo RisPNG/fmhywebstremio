@@ -1,0 +1,20 @@
+{
+  "results": [
+    {
+      "id": 12,
+      "media_type": "movie",
+      "title": "Inception",
+      "year": 2010,
+      "url": "/movie/watch/inception-2010-uyknsn",
+      "play_url": "/movie/play/inception-2010-uyknsn"
+    },
+    {
+      "id": 44219,
+      "media_type": "movie",
+      "title": "Inception: The Cobol Job",
+      "year": 2010,
+      "url": "/movie/watch/inception-the-cobol-job-2010-27hkf6",
+      "play_url": "/movie/play/inception-the-cobol-job-2010-27hkf6"
+    }
+  ]
+}
