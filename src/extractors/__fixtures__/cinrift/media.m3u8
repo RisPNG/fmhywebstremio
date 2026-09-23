@@ -1,0 +1,13 @@
+#EXTM3U
+#EXT-X-TARGETDURATION:6
+#EXT-X-ALLOW-CACHE:YES
+#EXT-X-PLAYLIST-TYPE:VOD
+#EXT-X-VERSION:3
+#EXT-X-MEDIA-SEQUENCE:1
+#EXTINF:5.005,
+https://relay.vidrift.net/proxy?url=https%3A%2F%2Fedge.vidrift.test%2Ffixture%2Fcontent%2F1080%2Fpage-0.html&exp=1790215200&sig=fixture
+#EXTINF:5.005,
+https://relay.vidrift.net/proxy?url=https%3A%2F%2Fedge.vidrift.test%2Ffixture%2Fcontent%2F1080%2Fpage-1.html&exp=1790215200&sig=fixture
+#EXTINF:5.005,
+https://relay.vidrift.net/proxy?url=https%3A%2F%2Fedge.vidrift.test%2Ffixture%2Fcontent%2F1080%2Fpage-2.html&exp=1790215200&sig=fixture
+#EXT-X-ENDLIST

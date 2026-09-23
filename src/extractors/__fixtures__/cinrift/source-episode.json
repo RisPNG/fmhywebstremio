@@ -1,0 +1,30 @@
+{
+  "success": true,
+  "tmdbId": "76479",
+  "type": "tv",
+  "provider": "vaplayer",
+  "fellBack": false,
+  "source": "earth",
+  "fromCache": true,
+  "maxRes": 800,
+  "quality": "HD",
+  "streams": [
+    {
+      "index": 0,
+      "url": "",
+      "proxyUrl": "https://relay.vidrift.net/proxy?url=https%3A%2F%2Fedge.vidrift.test%2Ffixture%2Fpl%2Fepisode-0%2Fmaster.m3u8&exp=1790215200&sig=fixture",
+      "type": "hls",
+      "provider": "Earth",
+      "direct": false
+    },
+    {
+      "index": 1,
+      "url": "",
+      "proxyUrl": "https://relay.vidrift.net/proxy?url=https%3A%2F%2Fedge.vidrift.test%2Ffixture%2Fpl%2Fepisode-1%2Fmaster.m3u8&exp=1790215200&sig=fixture",
+      "type": "hls",
+      "provider": "Earth",
+      "direct": false
+    }
+  ],
+  "subtitles": []
+}

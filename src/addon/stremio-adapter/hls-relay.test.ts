@@ -21,6 +21,7 @@ describe('HlsRelay', () => {
     expect(relay.createUrl(origin, new URL('https://proxy.example/v?url=https%3A%2F%2Fcdn.reallyfast.ch%2Fv%2Ftoken')).pathname).toMatch(/\/playlist\.m3u8$/);
     expect(relay.createUrl(origin, new URL('https://proxy.example/v?url=https%3A%2F%2Fa.thempark.workers.dev%2Fseg%2Ftoken')).pathname).toMatch(/\/segment\.m4s$/);
     expect(relay.createUrl(origin, new URL('https://proxy.example/v?url=https%3A%2F%2Fmedia.example%2Fsegment.ts')).pathname).toMatch(/\/segment\.ts$/);
+    expect(relay.createUrl(origin, new URL('https://proxy.example/proxy?url=https%3A%2F%2Fmedia.example%2Fcontent%2Fa%2Fb%2Fpage-12.html&exp=1&sig=fixture')).pathname).toMatch(/\/segment\.ts$/);
     expect(relay.createUrl(origin, new URL('https://proxy.example/v?url=https%3A%2F%2Fmedia.example%2Fsegment')).pathname).toMatch(/\/media\.bin$/);
     expect(relay.createUrl(origin, new URL('https://cdn.reallyfast.ch/v/token')).pathname).toMatch(/\/playlist\.m3u8$/);
     expect(relay.createUrl(origin, new URL('https://a.thempark.workers.dev/seg/token')).pathname).toMatch(/\/segment\.m4s$/);
