@@ -1,0 +1,52 @@
+{
+  "episodes": [
+    {
+      "id": 2324358,
+      "episode_number": 1,
+      "name": "The Big Ride",
+      "runtime": 63
+    },
+    {
+      "id": 2324558,
+      "episode_number": 2,
+      "name": "Proper Preparation and Planning",
+      "runtime": 59
+    },
+    {
+      "id": 2324560,
+      "episode_number": 3,
+      "name": "Over the Hill with the Swords of a Thousand Men",
+      "runtime": 61
+    },
+    {
+      "id": 2324556,
+      "episode_number": 4,
+      "name": "Nothing Like It in the World",
+      "runtime": 70
+    },
+    {
+      "id": 2324561,
+      "episode_number": 5,
+      "name": "We Gotta Go Now",
+      "runtime": 63
+    },
+    {
+      "id": 2324565,
+      "episode_number": 6,
+      "name": "The Bloody Doors Off",
+      "runtime": 66
+    },
+    {
+      "id": 2324563,
+      "episode_number": 7,
+      "name": "Butcher, Baker, Candlestick Maker",
+      "runtime": 56
+    },
+    {
+      "id": 2324567,
+      "episode_number": 8,
+      "name": "What I Know",
+      "runtime": 70
+    }
+  ]
+}

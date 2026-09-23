@@ -1,0 +1,40 @@
+{
+  "results": [
+    {
+      "id": 76479,
+      "title": "The Boys",
+      "year": "2019",
+      "releaseDate": "2019-07-25",
+      "rating": 8.4,
+      "mediaType": "tv",
+      "genre": "TV series"
+    },
+    {
+      "id": 199001,
+      "title": "My Life with the Walter Boys",
+      "year": "2023",
+      "releaseDate": "2023-12-07",
+      "rating": 7.8,
+      "mediaType": "tv",
+      "genre": "TV series"
+    },
+    {
+      "id": 152483,
+      "title": "The Boys Presents: Diabolical",
+      "year": "2022",
+      "releaseDate": "2022-03-03",
+      "rating": 7.1,
+      "mediaType": "tv",
+      "genre": "TV series"
+    },
+    {
+      "id": 112945,
+      "title": "The Hardy Boys",
+      "year": "2021",
+      "releaseDate": "2021-03-05",
+      "rating": 7.2,
+      "mediaType": "tv",
+      "genre": "TV series"
+    }
+  ]
+}

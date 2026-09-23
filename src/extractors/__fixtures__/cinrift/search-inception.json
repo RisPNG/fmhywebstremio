@@ -1,0 +1,40 @@
+{
+  "results": [
+    {
+      "id": 27205,
+      "title": "Inception",
+      "year": "2010",
+      "releaseDate": "2010-07-15",
+      "rating": 8.4,
+      "mediaType": "movie",
+      "genre": "Movie"
+    },
+    {
+      "id": 542438,
+      "title": "Bikini Inception",
+      "year": "2015",
+      "releaseDate": "2015-05-19",
+      "rating": 5,
+      "mediaType": "movie",
+      "genre": "Movie"
+    },
+    {
+      "id": 64956,
+      "title": "Inception: The Cobol Job",
+      "year": "2010",
+      "releaseDate": "2010-12-07",
+      "rating": 7.2,
+      "mediaType": "movie",
+      "genre": "Movie"
+    },
+    {
+      "id": 1359046,
+      "title": "Inception",
+      "year": "1980",
+      "releaseDate": "1980-01-23",
+      "rating": 0,
+      "mediaType": "movie",
+      "genre": "Movie"
+    }
+  ]
+}

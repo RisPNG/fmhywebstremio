@@ -59,6 +59,8 @@ AniCine uses its reusable catalog family and the CinePro host architecture. Disc
 
 SoapGo uses the reusable Soaper catalog family. Discovery searches its movie and television result sections, matches exact titles and movie years, and follows the requested episode from the series catalog. It reads the actual embedded player's configuration and checks the TMDB ID, media type, season, and episode before using the player's explicit VidsrcMe fallback through the existing host architecture and signed HLS relay. The Turnstile-protected resolver is not required for that fallback. The health corpus covers Inception (2010), Breaking Bad S01E01, The Boys S02E01, and a deterministic nonexistent title.
 
+7Movies uses the reusable Cinrift catalog family and the Vidrift host architecture. Discovery matches its own catalog search on TMDB ID, exact title, media type, and movie year, then checks the requested episode in the site's season catalog without comparing the series premiere year. It requests the playback grant the site issues for its player and sends the exact requested season and episode to the Vidrift source API with the site's default Earth provider. Vidrift's signed playlists carry segment paths that strict HLS clients reject, so their streams declare relayed delivery and reach viewers through the existing signed HLS relay with playlist and TS suffixes. The health corpus covers Inception (2010), Breaking Bad S01E01, The Boys S02E01, and a deterministic nonexistent title.
+
 Run continuous maintenance with:
 
 ```sh

@@ -1,0 +1,8 @@
+#EXTM3U
+#EXT-X-INDEPENDENT-SEGMENTS
+#EXT-X-STREAM-INF:BANDWIDTH=732007,CODECS="mp4a.40.2,avc1.42c015",RESOLUTION=640x266,FRAME-RATE=24,VIDEO-RANGE=SDR,CLOSED-CAPTIONS=NONE
+https://relay.vidrift.net/proxy?url=https%3A%2F%2Fedge.vidrift.test%2Ffixture%2Fpl%2Fmovie-0%2F360%2Findex.m3u8&exp=1790215200&sig=fixture
+#EXT-X-STREAM-INF:BANDWIDTH=2384282,CODECS="mp4a.40.2,avc1.64001f",RESOLUTION=1280x534,FRAME-RATE=24,VIDEO-RANGE=SDR,CLOSED-CAPTIONS=NONE
+https://relay.vidrift.net/proxy?url=https%3A%2F%2Fedge.vidrift.test%2Ffixture%2Fpl%2Fmovie-0%2F720%2Findex.m3u8&exp=1790215200&sig=fixture
+#EXT-X-STREAM-INF:BANDWIDTH=4406071,CODECS="mp4a.40.2,avc1.640028",RESOLUTION=1920x800,FRAME-RATE=24,VIDEO-RANGE=SDR,CLOSED-CAPTIONS=NONE
+https://relay.vidrift.net/proxy?url=https%3A%2F%2Fedge.vidrift.test%2Ffixture%2Fpl%2Fmovie-0%2F1080%2Findex.m3u8&exp=1790215200&sig=fixture
