@@ -1,0 +1,68 @@
+{
+  "success": true,
+  "tmdbId": 27205,
+  "type": "movie",
+  "title": "Inception",
+  "year": 2010,
+  "resolvedInMs": 1446.6,
+  "cached": false,
+  "sources": [
+    {
+      "id": "vidzee-dcloud",
+      "name": "CineVault \u2022 Direct Stream (720p HD)",
+      "url": "https://api.movienerds.online/api/stream/proxy.m3u8?b64=aHR0cHM6Ly9jZG4yLnZpZGpveS5vcmcvbW92aWUvbE9kVDZuVThWdzZZMVBKc2Rfd1N3N2VYMHpKdzdDU3IyYTdVVVFDcU1pSS51M3Z4YTg1LS9iaWd0aXRzLm0zdTg&referer=https%3A%2F%2Fplayer.vidzee.wtf%2F&audio=auto",
+      "type": "hls",
+      "quality": "720p HD",
+      "isDirect": true,
+      "requiresProxy": true,
+      "providerId": "vidzee",
+      "providerName": "CineVault",
+      "language": "auto",
+      "headers": {
+        "Referer": "https://player.vidzee.wtf/",
+        "Origin": "https://player.vidzee.wtf"
+      },
+      "latencyMs": 379.2,
+      "isDefaultLang": true,
+      "displayName": "CineVault \u2022 Direct Stream (720p HD)"
+    },
+    {
+      "id": "kkphim-ke-danh-cap-giac-mo-0-0",
+      "name": "Technicolor Edge (1080p Ultra)",
+      "url": "https://s5.phim1280.tv/20240911/qTL6xlyr/index.m3u8",
+      "type": "hls",
+      "quality": "1080p FHD",
+      "isDirect": true,
+      "requiresProxy": false,
+      "providerId": "kkphim",
+      "providerName": "Technicolor",
+      "language": "en",
+      "latencyMs": 526,
+      "isDefaultLang": true,
+      "displayName": "Technicolor Edge (1080p Ultra)"
+    }
+  ],
+  "subtitles": [
+    {
+      "id": "1952382875",
+      "label": "English",
+      "language": "eng",
+      "url": "/api/subtitles/vtt?url=https%3A%2F%2Fdl.opensubtitles.org%2Fen%2Fdownload%2Fsrc-api%2Fvrf-19c10c5b%2Ffile%2F1952382875.gz"
+    },
+    {
+      "id": "1952706759",
+      "label": "Spanish",
+      "language": "spa",
+      "url": "/api/subtitles/vtt?url=https%3A%2F%2Fdl.opensubtitles.org%2Fen%2Fdownload%2Fsrc-api%2Fvrf-19be0c5c%2Ffile%2F1952706759.gz"
+    }
+  ],
+  "defaultLanguage": "en",
+  "timestamp": "2026-10-16T01:18:37.113Z",
+  "isFull": true,
+  "metadata": {
+    "title": "Inception",
+    "year": 2010,
+    "imdbId": "tt1375666",
+    "originalLanguage": "en"
+  }
+}

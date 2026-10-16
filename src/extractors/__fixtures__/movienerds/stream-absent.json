@@ -1,0 +1,90 @@
+{
+  "success": true,
+  "tmdbId": 1,
+  "type": "tv",
+  "title": "Pride",
+  "year": 2004,
+  "resolvedInMs": 7732.1,
+  "cached": false,
+  "sources": [
+    {
+      "id": "cinesrc-embed-player",
+      "name": "Biograph HD (Direct Stream)",
+      "url": "https://cinesrc.st/embed/movie/1",
+      "type": "embed",
+      "quality": "1080p FHD",
+      "isDirect": false,
+      "providerId": "cinesrc",
+      "providerName": "Biograph",
+      "language": "ja",
+      "latencyMs": 986.8,
+      "isDefaultLang": true,
+      "displayName": "Biograph HD (Direct Stream)"
+    },
+    {
+      "id": "vidcore-embed-player",
+      "name": "ScreenCraft Core (1080p Direct)",
+      "url": "https://vidcore.io/movie/1",
+      "type": "embed",
+      "quality": "1080p FHD",
+      "isDirect": false,
+      "providerId": "vidcore",
+      "providerName": "ScreenCraft",
+      "language": "ja",
+      "latencyMs": 986.8,
+      "isDefaultLang": true,
+      "displayName": "ScreenCraft Core (1080p Direct)"
+    },
+    {
+      "id": "vidspark-embed-player",
+      "name": "CinemaOptic (Ultra Fast Direct)",
+      "url": "https://vidspark.org/embed/movie/1",
+      "type": "embed",
+      "quality": "1080p FHD",
+      "isDirect": false,
+      "providerId": "vidspark",
+      "providerName": "CinemaOptic",
+      "language": "ja",
+      "latencyMs": 603.4,
+      "isDefaultLang": true,
+      "displayName": "CinemaOptic (Ultra Fast Direct)"
+    },
+    {
+      "id": "vidup-embed-player",
+      "name": "Proscenium Direct (1080p HLS)",
+      "url": "https://vidup.to/movie/1",
+      "type": "embed",
+      "quality": "1080p FHD",
+      "isDirect": false,
+      "providerId": "vidup",
+      "providerName": "Proscenium",
+      "language": "ja",
+      "latencyMs": 1383.9,
+      "isDefaultLang": true,
+      "displayName": "Proscenium Direct (1080p HLS)"
+    }
+  ],
+  "subtitles": [
+    {
+      "id": "1960111814",
+      "label": "English",
+      "language": "eng",
+      "url": "/api/subtitles/vtt?url=https%3A%2F%2Fdl.opensubtitles.org%2Fen%2Fdownload%2Fsrc-api%2Fvrf-197b0c49%2Ffile%2F1960111814.gz"
+    },
+    {
+      "id": "1960957452",
+      "label": "Korean",
+      "language": "kor",
+      "url": "/api/subtitles/vtt?url=https%3A%2F%2Fdl.opensubtitles.org%2Fen%2Fdownload%2Fsrc-api%2Fvrf-19d10c59%2Ffile%2F1960957452.gz"
+    }
+  ],
+  "defaultLanguage": "ja",
+  "timestamp": "2026-10-16T01:21:51.256Z",
+  "isFull": true,
+  "metadata": {
+    "title": "Pride",
+    "year": 2004,
+    "imdbId": "tt0416409",
+    "originalLanguage": "ja"
+  }
+}

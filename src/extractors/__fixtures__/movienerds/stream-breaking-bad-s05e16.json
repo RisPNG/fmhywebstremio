@@ -1,0 +1,55 @@
+{
+  "success": true,
+  "tmdbId": 1396,
+  "type": "tv",
+  "title": "Breaking Bad",
+  "year": 2008,
+  "season": 5,
+  "episode": 16,
+  "resolvedInMs": 0.1,
+  "cached": true,
+  "sources": [
+    {
+      "id": "vidzee-dcloud",
+      "name": "CineVault \u2022 Direct Stream (720p HD)",
+      "url": "https://api.movienerds.online/api/stream/proxy.m3u8?b64=aHR0cHM6Ly9jZG4yLnZpZGpveS5vcmcvdHYvU1NRUlNWc1gxWUluR253X28tVXlfRkVWb0xQZk9ubzY4VW9jSHdKU1Nocy5LMEdKNkM0Ry9iaWd0aXRzLm0zdTg&referer=https%3A%2F%2Fplayer.vidzee.wtf%2F&audio=auto",
+      "type": "hls",
+      "quality": "720p HD",
+      "isDirect": true,
+      "requiresProxy": true,
+      "providerId": "vidzee",
+      "providerName": "CineVault",
+      "language": "auto",
+      "headers": {
+        "Referer": "https://player.vidzee.wtf/",
+        "Origin": "https://player.vidzee.wtf"
+      },
+      "latencyMs": 1005.8,
+      "isDefaultLang": true,
+      "displayName": "CineVault \u2022 Direct Stream (720p HD)"
+    }
+  ],
+  "subtitles": [
+    {
+      "id": "1953742469",
+      "label": "English",
+      "language": "eng",
+      "url": "/api/subtitles/vtt?url=https%3A%2F%2Fdl.opensubtitles.org%2Fen%2Fdownload%2Fsrc-api%2Fvrf-19c20c5b%2Ffile%2F1953742469.gz"
+    },
+    {
+      "id": "1953743063",
+      "label": "Spanish",
+      "language": "spa",
+      "url": "/api/subtitles/vtt?url=https%3A%2F%2Fdl.opensubtitles.org%2Fen%2Fdownload%2Fsrc-api%2Fvrf-19b40c52%2Ffile%2F1953743063.gz"
+    }
+  ],
+  "defaultLanguage": "en",
+  "timestamp": "2026-10-16T01:19:01.223Z",
+  "isFull": true,
+  "metadata": {
+    "title": "Breaking Bad",
+    "year": 2008,
+    "imdbId": "tt0903747",
+    "originalLanguage": "en"
+  }
+}
