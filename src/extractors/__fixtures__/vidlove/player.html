@@ -1,0 +1,7 @@
+<!doctype html><html><head><title>vidlove</title></head><body><script>
+var API = 'https://api.vidlove.test';
+var baseFor = function (src) { return isTv ? API + '/tv?id=' + id + '&season=' + season + '&episode=' + episode + '&mode=json&sources=' + src : API + '/movie?id=' + id + '&mode=json&sources=' + src; };
+window.__preResolve = preFor('dcloud');
+window.__preResolve2 = preFor('moviebox2');
+window.__preResolve1 = preFor('moviebox');
+</script></body></html>

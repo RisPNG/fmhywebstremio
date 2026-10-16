@@ -22,17 +22,25 @@ export class HlsRelayController {
     }
     const controller = new AbortController();
     req.once('aborted', () => controller.abort());
+    res.once('close', () => controller.abort());
+    const timeout = setTimeout(() => controller.abort(), 30000);
     let upstream: globalThis.Response;
     try {
-      upstream = await fetch(target.url, { headers: { ...target.headers, ...(req.headers.range && { range: req.headers.range }) }, redirect: 'follow', signal: AbortSignal.any([controller.signal, AbortSignal.timeout(30000)]) });
+      upstream = await fetch(target.url, { method: req.method, headers: { ...target.headers, ...(req.headers.range && { range: req.headers.range }) }, redirect: 'follow', signal: controller.signal });
     } catch {
-      res.status(502).send('Upstream media request failed');
+      if (!res.destroyed) res.status(502).send('Upstream media request failed');
       return;
+    } finally {
+      clearTimeout(timeout);
     }
     res.status(upstream.status);
     for (const name of ['content-type', 'content-length', 'content-range', 'accept-ranges'] as const) {
       const value = upstream.headers.get(name);
       if (value) res.setHeader(name, value);
+    }
+    if (req.method === 'HEAD') {
+      res.end();
+      return;
     }
     const finalUrl = new URL(upstream.url);
     if (/mpegurl/i.test(upstream.headers.get('content-type') ?? '') || /\.m3u8$/i.test(finalUrl.pathname)) {

@@ -7,13 +7,13 @@ import { StreamSelector } from '../../engine/protocols';
 import { SourceRegistry } from '../../engine/registry';
 import { ExtractionResolver, StaticExtractorLookup } from '../../engine/resolver';
 import { TransportFailure } from '../../engine/transport/transport-director';
-import type { VidsrcMeHostArchitecture } from '../hosts/vidsrcme-host-architecture';
+import type { VidloveHostArchitecture } from '../hosts/vidlove-host-architecture';
 import { SixtySevenMoviesFamily } from './sixty-seven-movies-family';
 
 const fixture = (name: string) => readFileSync(resolve(__dirname, `../__fixtures__/sixty-seven-movies/${name}`), 'utf8');
 const response = (url: string, body: string, contentType = 'application/json'): ExtractionResponse => ({ status: 200, headers: { 'content-type': contentType }, finalUrl: new URL(url), redirectChain: [], body: Buffer.from(body), text: () => body, json: () => JSON.parse(body) as unknown, truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } });
 
-describe('67Movies source family with the shared VidsrcMe host architecture', () => {
+describe('67Movies source family with the configured Vidlove host architecture', () => {
   const source: SourceRecord = { id: '67movies:67movies.net', canonicalDomain: '67movies.st', aliases: ['67movies.net', 'phantomflix.net', 'ravenflix.net', 'shows.st'], fmhy: { section: 'Stream Aggregators', tags: ['recommended'], firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'sixty-seven-movies', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'unknown' };
 
   test('recognizes the shared catalog client fingerprint', () => {
@@ -24,7 +24,7 @@ describe('67Movies source family with the shared VidsrcMe host architecture', ()
   });
 
   test('matches exact movie and series catalog entries and forwards later-season playback identity', async () => {
-    const host: VidsrcMeHostArchitecture = { discover: jest.fn(async (media, _player, sourceId, sourceExtractor): Promise<ExtractionResult> => ({ type: 'streams', streams: [{ url: new URL(`https://media.test/${media.type === 'movie' ? 'movie' : `s${media.season}e${media.episode}`}/master.m3u8`), protocol: 'hls', sourceId, sourceExtractor, hostExtractor: 'vidsrcme-api', discoveredAt: new Date(0) }] })) };
+    const host: VidloveHostArchitecture = { discover: jest.fn(async (media, _player, sourceId, sourceExtractor): Promise<ExtractionResult> => ({ type: 'streams', streams: [{ url: new URL(`https://media.test/${media.type === 'movie' ? 'movie' : `s${media.season}e${media.episode}`}/master.m3u8`), protocol: 'hls', sourceId, sourceExtractor, hostExtractor: 'vidlove-api', discoveredAt: new Date(0) }] })) };
     const services: RequestServices = { request: jest.fn(async (request: ExtractionRequest) => {
       if (request.url.pathname === '/api/semantic-search') {
         if (request.url.searchParams.get('q') === 'Inception') return response(request.url.href, fixture('search-inception.json'));
@@ -48,12 +48,12 @@ describe('67Movies source family with the shared VidsrcMe host architecture', ()
     ] }, new AbortController().signal);
     expect(outcome).toMatchObject({ status: 'healthy', extractable: true, stages: { discovery: true, extraction: true, validation: true } });
     expect(registry.runtimeEligible()).toMatchObject([{ id: source.id, status: 'supported' }]);
-    expect(host.discover).toHaveBeenCalledWith(expect.objectContaining({ tmdbId: 1396, year: 2008, season: 5, episode: 16 }), new URL('https://vsembed.test/embed/tv/1396/5/16'), source.id, 'sixty-seven-movies', services, expect.any(AbortSignal));
+    expect(host.discover).toHaveBeenCalledWith(expect.objectContaining({ tmdbId: 1396, year: 2008, season: 5, episode: 16 }), new URL('https://vidlove.test/embed/tv/1396/5/16'), source.id, 'sixty-seven-movies', services, expect.any(AbortSignal));
     expect(host.discover).toHaveBeenCalledTimes(3);
   });
 
   test('rejects unavailable seasons and episodes without delegating a different episode', async () => {
-    const host: VidsrcMeHostArchitecture = { discover: jest.fn() };
+    const host: VidloveHostArchitecture = { discover: jest.fn() };
     const services: RequestServices = { request: jest.fn(async (request) => {
       if (request.url.pathname === '/api/semantic-search') return response(request.url.href, fixture('search-breaking-bad.json'));
       if (request.url.pathname.startsWith('/watch/')) return response(request.url.href, fixture('watch.html'), 'text/html');
@@ -68,9 +68,9 @@ describe('67Movies source family with the shared VidsrcMe host architecture', ()
     expect(host.discover).not.toHaveBeenCalled();
   });
 
-  test('does not use a dormant VsEmbed switch when the provider is absent from the active list', async () => {
-    const host: VidsrcMeHostArchitecture = { discover: jest.fn() };
-    const services: RequestServices = { request: jest.fn(async request => response(request.url.href, request.url.pathname === '/api/semantic-search' ? fixture('search-inception.json') : request.url.pathname.startsWith('/watch/') ? fixture('watch.html') : fixture('watch-client.txt').replace('{key:"vsembed",label:"VsEmbed"}', '{key:"other",label:"Other"}'))) };
+  test('does not use a dormant Vidlove switch when the provider is absent from the active list', async () => {
+    const host: VidloveHostArchitecture = { discover: jest.fn() };
+    const services: RequestServices = { request: jest.fn(async request => response(request.url.href, request.url.pathname === '/api/semantic-search' ? fixture('search-inception.json') : request.url.pathname.startsWith('/watch/') ? fixture('watch.html') : fixture('watch-client.txt').replace('{key:"vidlove",label:"Vidlove"}', '{key:"other",label:"Other"}'))) };
     await expect(new SixtySevenMoviesFamily(host).discoverMedia({ canonicalId: 'tmdb:27205', type: 'movie', tmdbId: 27205, title: 'Inception', year: 2010 }, source, services, new AbortController().signal)).resolves.toMatchObject({ type: 'failure', failure: { code: 'EMBED_NOT_FOUND' } });
     expect(host.discover).not.toHaveBeenCalled();
   });
