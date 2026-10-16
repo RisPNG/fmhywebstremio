@@ -20,7 +20,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         evidence: [
           {
             type: 'dom-shape',
-            fingerprint: 'vidrift-player-preconnect',
+            fingerprint: 'cinrift-next-application',
           },
           {
             type: 'script-signature',
@@ -190,8 +190,8 @@ export const deploymentSourceRegistry: SourceRegistryState = {
     {
       sourceId: '7movies:7movies.ac',
       lastOutcome: 'healthy',
-      recentSuccesses: 3,
-      recentFailures: 0,
+      recentSuccesses: 2,
+      recentFailures: 1,
       observedAt: new Date(0),
     },
     {

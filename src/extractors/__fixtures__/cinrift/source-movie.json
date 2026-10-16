@@ -2,9 +2,9 @@
   "success": true,
   "tmdbId": "27205",
   "type": "movie",
-  "provider": "vaplayer",
+  "provider": "vela",
   "fellBack": false,
-  "source": "earth",
+  "source": "vela",
   "fromCache": true,
   "maxRes": 800,
   "quality": "HD",
@@ -14,7 +14,7 @@
       "url": "",
       "proxyUrl": "https://relay.vidrift.net/proxy?url=https%3A%2F%2Fedge.vidrift.test%2Ffixture%2Fpl%2Fmovie-0%2Fmaster.m3u8&exp=1790215200&sig=fixture",
       "type": "hls",
-      "provider": "Earth",
+      "provider": "Vela",
       "direct": false
     },
     {
@@ -22,7 +22,7 @@
       "url": "",
       "proxyUrl": "https://relay.vidrift.net/proxy?url=https%3A%2F%2Fedge.vidrift.test%2Ffixture%2Fpl%2Fmovie-1%2Fmaster.m3u8&exp=1790215200&sig=fixture",
       "type": "hls",
-      "provider": "Earth",
+      "provider": "Vela",
       "direct": false
     },
     {
@@ -30,7 +30,7 @@
       "url": "",
       "proxyUrl": "https://relay.vidrift.net/proxy?url=https%3A%2F%2Fedge.vidrift.test%2Ffixture%2Fpl%2Fmovie-2%2Fmaster.m3u8&exp=1790215200&sig=fixture",
       "type": "hls",
-      "provider": "Earth",
+      "provider": "Vela",
       "direct": false
     }
   ],

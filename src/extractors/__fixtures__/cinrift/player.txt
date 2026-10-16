@@ -1,0 +1,1 @@
+let ep="https://embed.vidrift.net",ev=usePlayer({iframeRef:K,playerOrigin:ep}),eg="vidrift-direct"===R?"selfhost":"",e_="".concat(ep,"/embed2/play#").concat(eN,"&source=0&provider=").concat(eg,"&token=").concat(encodeURIComponent(ef));
