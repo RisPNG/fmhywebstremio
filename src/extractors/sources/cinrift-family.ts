@@ -19,8 +19,8 @@ export class CinriftFamily implements SourceFamily {
   public classify(_source: SourceRecord, snapshot: SourceProbeSnapshot): FamilyMatch | null {
     const $ = cheerio.load(snapshot.htmlSample ?? '');
     const evidence: FamilyEvidence[] = [];
-    if ($('link[rel="preconnect"][href]').toArray().some(element => /^https:\/\/embed\.vidrift\.[a-z]+$/.test($(element).attr('href') ?? ''))) evidence.push({ type: 'dom-shape', fingerprint: 'vidrift-player-preconnect' });
-    if ($('script:not([src])').toArray().some(element => /localStorage\.getItem\("cinrift_[a-z_]+"\)/.test($(element).text()))) evidence.push({ type: 'script-signature', fingerprint: 'cinrift-client' });
+    if ($('script[src^="/_next/static/chunks/"]').length) evidence.push({ type: 'dom-shape', fingerprint: 'cinrift-next-application' });
+    if ($('script:not([src])').toArray().some(element => /(?:local|session)Storage\.getItem\("cinrift_[a-z_]+"\)/.test($(element).text()))) evidence.push({ type: 'script-signature', fingerprint: 'cinrift-client' });
     const cards = $('[data-media-card="true"][data-navigation-href]').toArray().map(element => $(element).attr('data-navigation-href') ?? '');
     if (cards.some(path => /^\/movie\/\d+$/.test(path)) && cards.some(path => /^\/tv\/\d+$/.test(path))) evidence.push({ type: 'route-shape', value: '/movie|tv/{tmdbId}' });
     return evidence.length === 3 ? { familyId: this.id, confidence: 1, evidence } : null;
@@ -51,13 +51,28 @@ export class CinriftFamily implements SourceFamily {
       watchUrl.searchParams.set('season', String(media.season));
       watchUrl.searchParams.set('episode', String(media.episode));
     }
-    const watch = await services.request({ url: watchUrl, expectedContent: 'html', stateScope: { kind: 'source', key: source.id } }, signal);
+    const [home, watch] = await Promise.all([
+      services.request({ url: new URL('/', search), expectedContent: 'html', stateScope: { kind: 'source', key: source.id } }, signal),
+      services.request({ url: watchUrl, expectedContent: 'html', stateScope: { kind: 'source', key: source.id } }, signal),
+    ]);
+    const landing = cheerio.load(home.text());
+    const commonAssets = new Set(landing('script[src]').map((_index, element) => landing(element).attr('src')).get());
     const page = cheerio.load(watch.text());
-    const player = page('link[rel="preconnect"][href]').toArray().map(element => page(element).attr('href') ?? '').find(href => /^https:\/\/embed\.vidrift\.[a-z]+$/.test(href));
-    if (!player) return { type: 'failure', failure: { code: 'EMBED_NOT_FOUND', message: 'Cinrift watch page no longer declares its Vidrift player', stage: 'stage:extraction', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: watch.status, bodyCaptured: false, parserPath: 'player-preconnect' } } };
+    const assets = page('script[src]').map((_index, element) => page(element).attr('src')).get().filter(path => path.startsWith('/_next/static/chunks/') && !commonAssets.has(path)).reverse();
+    let player: URL | undefined;
+    for (const asset of assets) {
+      const script = await services.request({ url: new URL(asset, watch.finalUrl), expectedContent: 'text', referrer: watch.finalUrl, maxBytes: 1024 * 1024, stateScope: { kind: 'source', key: source.id } }, signal);
+      const text = script.text();
+      const configured = text.includes('playerOrigin:') && text.includes('/embed2/play#') ? text.match(/"(https:\/\/embed\.vidrift\.[a-z]+)"/)?.[1] : undefined;
+      if (configured) {
+        player = new URL(configured);
+        break;
+      }
+    }
+    if (!player) return { type: 'failure', failure: { code: 'EMBED_NOT_FOUND', message: 'Cinrift watch page no longer configures its Vidrift player', stage: 'stage:extraction', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: watch.status, bodyCaptured: false, parserPath: 'watch-player-assets' } } };
     const grant = await services.request({ url: new URL('/api/playback-token', search), method: 'POST', headers: { 'content-type': 'application/json', 'origin': search.origin }, body: JSON.stringify({ tmdbId: media.tmdbId, type: media.type === 'movie' ? 'movie' : 'tv', season: media.season ?? 1, episode: media.episode ?? 1 }), expectedContent: 'json', stateScope: { kind: 'source', key: source.id } }, signal);
     const token = (grant.json() as { token?: string }).token;
     if (typeof token !== 'string' || !token) return { type: 'failure', failure: { code: 'RESPONSE_SCHEMA_CHANGED', message: 'Cinrift playback grant did not contain a token', stage: 'stage:extraction', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: grant.status, bodyCaptured: false, parserPath: 'token' } } };
-    return this.host.discover(media, new URL(player), token, source.id, this.id, services, signal);
+    return this.host.discover(media, player, token, watch.finalUrl, source.id, this.id, services, signal);
   }
 }
