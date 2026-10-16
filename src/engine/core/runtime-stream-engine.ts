@@ -12,7 +12,7 @@ export class RuntimeStreamEngine implements StreamEngine {
 
   public async findStreams(request: MediaRequest, options: QueryOptions = {}): Promise<StreamQueryResult> {
     const started = Date.now();
-    const budgetMs = options.deadlineMs ?? 15000;
+    const budgetMs = options.deadlineMs ?? 30000;
     const controller = new AbortController();
     const deadline = setTimeout(() => controller.abort(), budgetMs);
     const discoveryController = new AbortController();

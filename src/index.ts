@@ -96,7 +96,7 @@ addon.use((_req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-const runtimeTransport = new TransportDirector();
+const runtimeTransport = new TransportDirector({ perHostConcurrency: 2 });
 const runtimeRelay = new HlsRelay();
 const runtimeSourceRegistry = new SourceRegistry();
 const runtimeDependencies = new DependencyGraph();
