@@ -122,6 +122,45 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         lastProbedAt: new Date(0),
       },
     },
+    {
+      id: 'pressplay:pressplayx.to',
+      canonicalDomain: 'pressplayx.to',
+      aliases: [],
+      fmhy: {
+        name: 'PressPlay',
+        section: '▷ Dedicated-Server',
+        tags: [
+          'recommended',
+        ],
+        firstSeenAt: new Date(0),
+        lastSeenAt: new Date(0),
+      },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://pressplayx.to/',
+      },
+      status: 'supported',
+      family: {
+        id: 'pressplayx',
+        confidence: 1,
+        evidence: [
+          {
+            type: 'script-signature',
+            fingerprint: 'pressplayx-brand',
+          },
+          {
+            type: 'generator-meta',
+            value: 'pressplayx-astro',
+          },
+          {
+            type: 'route-shape',
+            value: 'pressplayx-watch-slug',
+          },
+        ],
+        lastProbedAt: new Date(0),
+      },
+    },
   ],
   health: [
     {
@@ -140,6 +179,13 @@ export const deploymentSourceRegistry: SourceRegistryState = {
     },
     {
       sourceId: 'movienerds:movienerds.site',
+      lastOutcome: 'healthy',
+      recentSuccesses: 3,
+      recentFailures: 0,
+      observedAt: new Date(0),
+    },
+    {
+      sourceId: 'pressplay:pressplayx.to',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
       recentFailures: 0,

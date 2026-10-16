@@ -1,0 +1,44 @@
+{
+  "result": true,
+  "type": "tv",
+  "title": "Breaking Bad",
+  "tmdb_id": "1396",
+  "imdb_id": "tt0903747",
+  "season": 5,
+  "episode": 16,
+  "sources": [
+    {
+      "file_code": "1396",
+      "url": "https://p2.mov2day.xyz/proxy?url=https%3A%2F%2Fbcdn.hakunaymatata.com%2Fresource%2F4bcb03a385a192da226f644b36521279.mp4%3Fsign%3Daab9484b1cf658970bb10fbf019a36db%26t%3D1792087839",
+      "source": "oreon",
+      "tracks": [
+        {
+          "label": "English",
+          "file": "https://cacdn.hakunaymatata.com/subtitle/b0d60bcb906b28585fdfed481fee80a1.srt?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9jYWNkbi5oYWt1bmF5bWF0YXRhLmNvbS9zdWJ0aXRsZS8qIiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzkyNjkzMjQ2fX19XX0_&Signature=hQAXjsehW6~WFs4q5XZ667-fRpiGlnuEY~7kigIQ9lNrt~Xk2O~TgSurh~6DvcUQudDc7DJPhYEMlT16w6jphXPQ0WX28O14NjplvicGxg9rj67Iak~3gE9pLSbCQNrTTE5OfEpwytyM1OqUwdhYVZ~9AxEM2djniPWOlRQy5e4iR9Lf-zOvQ84el24BMz5UTT01qFZ0NWOnaw3E5bbh4QBeEhwFUjuhdM9QtPAlsdT2mWl4j2Zwtlw1WFy3Yb9tcYyEMjGVPsoJ0w7DktN~GFq4GYUJQeLpOERUWZHa~-~nenUJxHbBV5bwM2i9oSttHYJ65J-8dphNPRVk7kcm2g__&Key-Pair-Id=KMHN1LQ1HEUPL"
+        },
+        {
+          "label": "Spanish",
+          "file": "https://cacdn.hakunaymatata.com/subtitle/c06903eaf6192d755227717ee5234b9e.srt?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9jYWNkbi5oYWt1bmF5bWF0YXRhLmNvbS9zdWJ0aXRsZS8qIiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzkyNjkzMjQ2fX19XX0_&Signature=hQAXjsehW6~WFs4q5XZ667-fRpiGlnuEY~7kigIQ9lNrt~Xk2O~TgSurh~6DvcUQudDc7DJPhYEMlT16w6jphXPQ0WX28O14NjplvicGxg9rj67Iak~3gE9pLSbCQNrTTE5OfEpwytyM1OqUwdhYVZ~9AxEM2djniPWOlRQy5e4iR9Lf-zOvQ84el24BMz5UTT01qFZ0NWOnaw3E5bbh4QBeEhwFUjuhdM9QtPAlsdT2mWl4j2Zwtlw1WFy3Yb9tcYyEMjGVPsoJ0w7DktN~GFq4GYUJQeLpOERUWZHa~-~nenUJxHbBV5bwM2i9oSttHYJ65J-8dphNPRVk7kcm2g__&Key-Pair-Id=KMHN1LQ1HEUPL"
+        }
+      ],
+      "qualities": [
+        {
+          "height": 1080,
+          "url": "https://p2.mov2day.xyz/proxy?url=https%3A%2F%2Fbcdn.hakunaymatata.com%2Fresource%2F4bcb03a385a192da226f644b36521279.mp4%3Fsign%3Daab9484b1cf658970bb10fbf019a36db%26t%3D1792087839"
+        },
+        {
+          "height": 720,
+          "url": "https://p2.mov2day.xyz/proxy?url=https%3A%2F%2Fbcdn.hakunaymatata.com%2Fresource%2F5bef71d95be09ee019b1241d9b794dc2.mp4%3Fsign%3Da5d6487690bcb4b9c639bf0bc92b8ac9%26t%3D1792088617"
+        },
+        {
+          "height": 480,
+          "url": "https://p2.mov2day.xyz/proxy?url=https%3A%2F%2Fbcdn.hakunaymatata.com%2Fresource%2Fh265%2F4890e567708b5b6519552b0140155b23.mp4%3Fsign%3D9a292581f096a527acddb2ab7c6f7278%26t%3D1792091632"
+        },
+        {
+          "height": 360,
+          "url": "https://p2.mov2day.xyz/proxy?url=https%3A%2F%2Fbcdn.hakunaymatata.com%2Fresource%2Fh265%2F45e5def63c520d108092cc539a889ebc.mp4%3Fsign%3Dd35f6d9c4a24fd9e958c64e2f5d192bd%26t%3D1792091014"
+        }
+      ]
+    }
+  ]
+}
