@@ -79,8 +79,8 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       },
     },
     {
-      id: 'bingebang:bingebang.tv',
-      canonicalDomain: 'bingebang.tv',
+      id: 'bingebang:bingebang.st',
+      canonicalDomain: 'bingebang.st',
       aliases: [],
       fmhy: {
         name: 'BingeBang',
@@ -112,7 +112,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       probe: {
         outcome: 'matched',
         observedAt: new Date(0),
-        finalUrl: 'https://bingebang.tv/',
+        finalUrl: 'https://bingebang.st/',
       },
     },
     {
@@ -202,7 +202,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       observedAt: new Date(0),
     },
     {
-      sourceId: 'bingebang:bingebang.tv',
+      sourceId: 'bingebang:bingebang.st',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
       recentFailures: 0,
