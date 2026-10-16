@@ -38,8 +38,8 @@ describe('Soaper source family', () => {
   test('follows the exact movie and later episode catalog entries to their configured host', async () => {
     const family = new SoaperFamily(host);
     for (const media of [movie, episode]) await expect(family.discoverMedia(media, source, services, new AbortController().signal)).resolves.toMatchObject({ type: 'streams' });
-    expect(host.discover).toHaveBeenNthCalledWith(1, movie, source.id, 'soaper', services, expect.any(AbortSignal));
-    expect(host.discover).toHaveBeenNthCalledWith(2, episode, source.id, 'soaper', services, expect.any(AbortSignal));
+    expect(host.discover).toHaveBeenNthCalledWith(1, movie, new URL('https://vidsrcme.ru/embed/movie?tmdb=27205'), source.id, 'soaper', services, expect.any(AbortSignal));
+    expect(host.discover).toHaveBeenNthCalledWith(2, episode, new URL('https://vidsrcme.ru/embed/tv?tmdb=76479&season=2&episode=1'), source.id, 'soaper', services, expect.any(AbortSignal));
     expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://soapgo.test/tv/7e9XdO6Yjg-the-boys/s2e1-the-big-ride') }), expect.any(AbortSignal));
     expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://soapgo.test/embed/tv/1vNAnvzQ85/2/1') }), expect.any(AbortSignal));
   });
@@ -53,7 +53,7 @@ describe('Soaper source family', () => {
   test('does not confuse a season release year with the series start year', async () => {
     fixtures['search-the-boys'] = (fixtures['search-the-boys'] as string).replace('2019-07-25', '2020-09-04');
     await expect(new SoaperFamily(host).discoverMedia(episode, source, services, new AbortController().signal)).resolves.toMatchObject({ type: 'streams' });
-    expect(host.discover).toHaveBeenCalledWith(episode, source.id, 'soaper', services, expect.any(AbortSignal));
+    expect(host.discover).toHaveBeenCalledWith(episode, new URL('https://vidsrcme.ru/embed/tv?tmdb=76479&season=2&episode=1'), source.id, 'soaper', services, expect.any(AbortSignal));
   });
 
   test.each([

@@ -1,5 +1,7 @@
-import type { ExtractionResult, FamilyEvidence, MediaIdentity, RequestServices, SourceRecord } from '../../engine/core/models';
+import * as cheerio from 'cheerio';
+import type { ExtractionResponse, ExtractionResult, FamilyEvidence, MediaIdentity, RequestServices, SourceRecord } from '../../engine/core/models';
 import type { FamilyMatch, SourceFamily, SourceProbeSnapshot } from '../../engine/health';
+import { TransportFailure } from '../../engine/transport/transport-director';
 import { VidsrcMeApiHostArchitecture, type VidsrcMeHostArchitecture } from '../hosts/vidsrcme-host-architecture';
 
 interface SixtySevenMoviesSearchResponse {
@@ -14,7 +16,7 @@ export class SixtySevenMoviesFamily implements SourceFamily {
   public classify(_source: SourceRecord, snapshot: SourceProbeSnapshot): FamilyMatch | null {
     const evidence: FamilyEvidence[] = [];
     if (snapshot.htmlSample && /(?:<title>|application-name[^>]+content=)[^<>"]*67movies/i.test(snapshot.htmlSample)) evidence.push({ type: 'script-signature', fingerprint: 'sixty-seven-movies-brand' });
-    if (snapshot.htmlSample && /67movies\.net[^<]{0,160}(?:movies|tv shows)|(?:movies|tv shows)[^<]{0,160}67movies\.net/i.test(snapshot.htmlSample)) evidence.push({ type: 'route-shape', value: 'sixty-seven-movies-catalog' });
+    if (snapshot.htmlSample && /67movies\.[a-z]+[^<]{0,160}(?:movies|tv shows)|(?:movies|tv shows)[^<]{0,160}67movies\.[a-z]+/i.test(snapshot.htmlSample)) evidence.push({ type: 'route-shape', value: 'sixty-seven-movies-catalog' });
     if (snapshot.assetPaths.some(path => /\/_next\/static\/chunks\/(?:app\/)?(?:page|layout)-[a-z0-9]+\.js$/i.test(path))) evidence.push({ type: 'asset-path', value: 'sixty-seven-movies-next-client' });
     if (evidence.length < 3) return null;
     return { familyId: this.id, confidence: 1, evidence };
@@ -33,6 +35,33 @@ export class SixtySevenMoviesFamily implements SourceFamily {
       && result.media_type === (media.type === 'movie' ? 'movie' : 'tv')
       && (media.type !== 'movie' || media.year === undefined || !(result.release_date ?? result.first_air_date) || Number((result.release_date ?? result.first_air_date)?.slice(0, 4)) === media.year));
     if (!match) return { type: 'empty', reason: 'not-found' };
-    return this.host.discover(media, source.id, this.id, services, signal);
+    const watchUrl = new URL(`/watch/${media.type === 'movie' ? `movie/${media.tmdbId}` : `tv/${media.tmdbId}/${media.season}/${media.episode}`}`, search);
+    const watch = await services.request({ url: watchUrl, expectedContent: 'html', stateScope: { kind: 'source', key: source.id } }, signal);
+    const $ = cheerio.load(watch.text());
+    const assets = $('script[src]').map((_index, element) => $(element).attr('src')).get().filter(path => /^\/_next\/static\/chunks\/app\/watch\/.+\/page-[a-z0-9]+\.js(?:\?|$)/i.test(path));
+    for (const asset of assets) {
+      const script = await services.request({ url: new URL(asset, watch.finalUrl), expectedContent: 'text', referrer: watch.finalUrl, stateScope: { kind: 'source', key: source.id } }, signal);
+      const client = script.text();
+      const player = client.match(/case"vsembed":return"tv"===[^?]+\?"(https:\/\/[^"/]+\/embed\/tv\/)"[^;]+?:"(https:\/\/[^"/]+\/embed\/movie\/)"/);
+      if (!/\{key:"vsembed",label:"VsEmbed"\}/.test(client) || !player) continue;
+      if (media.type === 'episode') {
+        const key = client.match(/\b(?:let|const)\s+[\w$]+="([a-f0-9]{32})"/)?.[1];
+        if (!key || !client.includes('https://api.themoviedb.org/3/tv/')) return { type: 'failure', failure: { code: 'PAGE_STRUCTURE_CHANGED', message: '67Movies watch client no longer exposes its season catalog', stage: 'stage:discovery', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'watch-season-catalog' } } };
+        const seasonUrl = new URL(`https://api.themoviedb.org/3/tv/${media.tmdbId}/season/${media.season}`);
+        seasonUrl.searchParams.set('api_key', key);
+        let season: ExtractionResponse;
+        try {
+          season = await services.request({ url: seasonUrl, expectedContent: 'json', stateScope: { kind: 'source', key: source.id } }, signal);
+        } catch (error) {
+          if (error instanceof TransportFailure && error.failure.code === 'HTTP_NOT_FOUND') return { type: 'empty', reason: 'not-found' };
+          throw error;
+        }
+        const catalog = season.json() as { season_number?: number; episodes?: readonly { episode_number?: number }[] };
+        if (!Array.isArray(catalog.episodes)) return { type: 'failure', failure: { code: 'RESPONSE_SCHEMA_CHANGED', message: '67Movies season catalog did not contain episodes', stage: 'stage:discovery', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'episodes' } } };
+        if (catalog.season_number !== media.season || !catalog.episodes.some(episode => episode.episode_number === media.episode)) return { type: 'empty', reason: 'not-found' };
+      }
+      return this.host.discover(media, new URL(`${media.tmdbId}${media.type === 'episode' ? `/${media.season}/${media.episode}` : ''}`, player[media.type === 'movie' ? 2 : 1]), source.id, this.id, services, signal);
+    }
+    return { type: 'failure', failure: { code: 'EMBED_NOT_FOUND', message: '67Movies watch client no longer configures its VsEmbed player', stage: 'stage:extraction', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'watch-player-assets' } } };
   }
 }

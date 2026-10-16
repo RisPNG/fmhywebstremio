@@ -49,6 +49,12 @@ export class SoaperFamily implements SourceFamily {
     if (!configuration || !html.includes('https://vidsrcme.ru/embed/movie') || !html.includes('https://vidsrcme.ru/embed/tv')) return { type: 'failure', failure: { code: 'PAGE_STRUCTURE_CHANGED', message: 'Soaper player no longer exposes its VidsrcMe fallback configuration', stage: 'stage:extraction', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: player.status, bodyCaptured: false, parserPath: 'resolverConfig' } } };
     const configured = JSON.parse(configuration) as SoaperPlayerConfiguration;
     if (configured.tmdb !== media.tmdbId || configured.type !== (media.type === 'movie' ? 'movie' : 'tv') || (media.type === 'episode' && (configured.season !== media.season || configured.episode !== media.episode))) return { type: 'failure', failure: { code: 'RESULT_MAPPING_FAILED', message: 'Soaper player does not match the requested media', stage: 'stage:extraction', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'resolverConfig' } } };
-    return this.host.discover(media, source.id, this.id, services, signal);
+    const fallback = new URL(html.match(new RegExp(`https://vidsrcme\\.ru/embed/${media.type === 'movie' ? 'movie' : 'tv'}`))?.[0] as string);
+    fallback.searchParams.set('tmdb', String(configured.tmdb));
+    if (media.type === 'episode') {
+      fallback.searchParams.set('season', String(configured.season));
+      fallback.searchParams.set('episode', String(configured.episode));
+    }
+    return this.host.discover(media, fallback, source.id, this.id, services, signal);
   }
 }
