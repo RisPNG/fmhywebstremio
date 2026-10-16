@@ -1,0 +1,19 @@
+{
+  "result": true,
+  "type": "tv",
+  "title": "Game of Thrones",
+  "tmdb_id": "1399",
+  "imdb_id": "tt0944947",
+  "season": 1,
+  "episode": 1,
+  "view_type": "episode",
+  "view_id": 21504,
+  "sources": [
+    {
+      "file_code": "8attl0cjdiou",
+      "url": "https://bx.netrocdn.site/hls2/04/00003/8attl0cjdiou_,h,x,.urlset/master.m3u8?t=0RoKZ7HQ2Gr4ZSeMPYk9eRmUHqzIl01MJP9eouLP42s&s=1792117323&e=43200&v=&srv=s2&i=0.3&sp=0",
+      "source": "vidora",
+      "tracks": []
+    }
+  ]
+}

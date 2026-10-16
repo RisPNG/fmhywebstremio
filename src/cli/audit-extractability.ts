@@ -15,6 +15,7 @@ import { CinetaroFamily } from '../extractors/sources/cinetaro-family';
 import { CinriftFamily } from '../extractors/sources/cinrift-family';
 import { DooplayFamily } from '../extractors/sources/dooplay-family';
 import { MovieNerdsFamily } from '../extractors/sources/movienerds-family';
+import { PressPlayXFamily } from '../extractors/sources/pressplayx-family';
 import { PStreamFamily } from '../extractors/sources/pstream-family';
 import { SixtySevenMoviesFamily } from '../extractors/sources/sixty-seven-movies-family';
 import { SoaperFamily } from '../extractors/sources/soaper-family';
@@ -24,7 +25,7 @@ const dataDirectory = resolve(process.env['EXTRACTABILITY_DATA_DIR'] ?? '.data/e
 const transport = new TransportDirector({ globalConcurrency: 24, perHostConcurrency: 3, maxRetries: 1 });
 const registry = new SourceRegistry();
 const registryStore = new JsonSourceRegistryStore(resolve(dataDirectory, 'sources.json'));
-const families = new Map<string, SourceFamily>([['anicine', new AnicineFamily()], ['bingebang', new BingeBangFamily()], ['cinemaos', new CinemaOsFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['movienerds', new MovieNerdsFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()], ['soaper', new SoaperFamily()], ['tmdb-embed-catalog', new TmdbEmbedCatalogFamily()]]);
+const families = new Map<string, SourceFamily>([['anicine', new AnicineFamily()], ['bingebang', new BingeBangFamily()], ['cinemaos', new CinemaOsFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['movienerds', new MovieNerdsFamily()], ['pressplayx', new PressPlayXFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()], ['soaper', new SoaperFamily()], ['tmdb-embed-catalog', new TmdbEmbedCatalogFamily()]]);
 const watch = process.argv.includes('--watch');
 const controller = new AbortController();
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => controller.abort(new Error(signal)));

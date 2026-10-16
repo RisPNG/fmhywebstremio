@@ -1,0 +1,17 @@
+{
+  "result": true,
+  "type": "movie",
+  "title": "Inception",
+  "tmdb_id": "27205",
+  "imdb_id": "tt1375666",
+  "year": 2010,
+  "sources": [
+    {
+      "file_code": "27205",
+      "url": "https://p1.mov2day.xyz/proxy?url=https%3A%2F%2Fnetoda.tech%2Fhls%2Ff0c07977184032fb-4db9288f1060be05616c061c-642eb0eccdc7f5a79d3d74a5014e1222d4d43384efec0e7718984e79abeedfb61781c2aa05ab785991eb5f0767031e4282c536%2Fmaster.m3u8&data=T3JpZ2luPWh0dHBzOi8vbmV0b2RhLnRlY2h8UmVmZXJlcj1odHRwczovL25ldG9kYS50ZWNoLw%3D%3D&type=/index.m3u8",
+      "source": "scrapify",
+      "tracks": [],
+      "qualities": []
+    }
+  ]
+}
