@@ -11,18 +11,20 @@ describe('CinePro host architecture', () => {
   beforeEach(() => {
     bodies = {
       player: readFileSync(resolve(__dirname, '../__fixtures__/anicine/cinepro-player.html'), 'utf8'),
+      application: 'const api="https://api.cinepro.test",ttl=60;async function playbackToken(){return fetch(`${api}/v1/token`)}',
       token: '{"token":"public-fixture-token","expiresAt":"2099-01-01T00:00:00Z"}',
       sources: readFileSync(resolve(__dirname, '../__fixtures__/anicine/cinepro-sources.json'), 'utf8'),
     };
     services = { request: jest.fn(async (request: ExtractionRequest) => {
-      const body = bodies[request.url.pathname === '/v1/token' ? 'token' : request.url.pathname.startsWith('/v1/') ? 'sources' : 'player'] as string;
+      const body = bodies[request.url.pathname.startsWith('/assets/') ? 'application' : request.url.pathname === '/v1/token' ? 'token' : request.url.pathname.startsWith('/v1/') ? 'sources' : 'player'] as string;
       return { status: 200, headers: {}, finalUrl: request.url, redirectChain: [], body: Buffer.from(body), text: () => body, json: () => JSON.parse(body) as unknown, truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } };
     }) };
   });
 
   test('exchanges the public token and returns viewer URLs without propagating authorization', async () => {
     const result = await new CineproApiHostArchitecture().discover(movie, new URL('https://player.test/movie/27205'), 'source', 'anicine', services, new AbortController().signal);
-    expect(services.request).toHaveBeenLastCalledWith(expect.objectContaining({ url: new URL('https://player.test/v1/movies/27205'), headers: { Authorization: 'Bearer public-fixture-token' } }), expect.any(AbortSignal));
+    expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://api.cinepro.test/v1/token'), stateScope: { kind: 'host', key: 'api.cinepro.test' } }), expect.any(AbortSignal));
+    expect(services.request).toHaveBeenLastCalledWith(expect.objectContaining({ url: new URL('https://api.cinepro.test/v1/movies/27205'), headers: { Authorization: 'Bearer public-fixture-token' } }), expect.any(AbortSignal));
     expect(result).toMatchObject({ type: 'streams', streams: [{ protocol: 'hls', sourceId: 'source', sourceExtractor: 'anicine', hostExtractor: 'cinepro-api' }, {}, {}] });
     expect(JSON.stringify(result)).not.toContain('public-fixture-token');
     if (result.type === 'streams') expect(result.streams[0]?.subtitles).toEqual([{ url: new URL('https://subtitles.test/english.vtt'), label: 'English', format: 'vtt' }]);
@@ -31,11 +33,12 @@ describe('CinePro host architecture', () => {
 
   test('requests the exact later-season episode from the selected host', async () => {
     await new CineproApiHostArchitecture().discover({ ...movie, type: 'episode', tmdbId: 1429, season: 2, episode: 1 }, new URL('https://series.test/tv/1429/2/1'), 'source', 'anicine', services, new AbortController().signal);
-    expect(services.request).toHaveBeenLastCalledWith(expect.objectContaining({ url: new URL('https://series.test/v1/tv/1429/seasons/2/episodes/1') }), expect.any(AbortSignal));
+    expect(services.request).toHaveBeenLastCalledWith(expect.objectContaining({ url: new URL('https://api.cinepro.test/v1/tv/1429/seasons/2/episodes/1') }), expect.any(AbortSignal));
   });
 
   test.each([
     ['player', '<title>Different player</title>', 'PAGE_STRUCTURE_CHANGED'],
+    ['application', 'const unrelated="https://unrelated.test";', 'PAGE_STRUCTURE_CHANGED'],
     ['token', '{}', 'RESPONSE_SCHEMA_CHANGED'],
     ['sources', '{}', 'RESPONSE_SCHEMA_CHANGED'],
   ])('preserves typed failure for changed %s', async (key, body, code) => {

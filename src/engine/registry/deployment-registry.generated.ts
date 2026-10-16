@@ -40,8 +40,8 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       },
     },
     {
-      id: 'anicine:anicine.xyz',
-      canonicalDomain: 'anicine.xyz',
+      id: 'anicine:anicine.sbs',
+      canonicalDomain: 'anicine.sbs',
       aliases: [],
       fmhy: {
         name: 'AniCine',
@@ -75,7 +75,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       probe: {
         outcome: 'matched',
         observedAt: new Date(0),
-        finalUrl: 'https://anicine.xyz/',
+        finalUrl: 'https://anicine.sbs/',
       },
     },
     {
@@ -195,7 +195,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       observedAt: new Date(0),
     },
     {
-      sourceId: 'anicine:anicine.xyz',
+      sourceId: 'anicine:anicine.sbs',
       lastOutcome: 'healthy',
       recentSuccesses: 5,
       recentFailures: 0,
