@@ -116,39 +116,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       },
     },
     {
-      id: 'cinego:cinego.co',
-      canonicalDomain: 'cinego.co',
-      aliases: [],
-      fmhy: {
-        name: 'CineGo',
-        section: '▷ Multi-Server',
-        tags: [],
-        firstSeenAt: new Date(0),
-        lastSeenAt: new Date(0),
-      },
-      status: 'supported',
-      family: {
-        id: 'cinego',
-        confidence: 0.8500000000000001,
-        evidence: [
-          {
-            type: 'route-shape',
-            value: 'cinego-catalog-routes',
-          },
-          {
-            type: 'script-signature',
-            fingerprint: 'cinego-player-grant',
-          },
-        ],
-        lastProbedAt: new Date(0),
-      },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://cinego.co/',
-      },
-    },
-    {
       id: 'soapgo:soapgo.to',
       canonicalDomain: 'soapgo.to',
       aliases: [],
@@ -205,13 +172,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       sourceId: 'bingebang:bingebang.st',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
-      recentFailures: 0,
-      observedAt: new Date(0),
-    },
-    {
-      sourceId: 'cinego:cinego.co',
-      lastOutcome: 'healthy',
-      recentSuccesses: 2,
       recentFailures: 0,
       observedAt: new Date(0),
     },
