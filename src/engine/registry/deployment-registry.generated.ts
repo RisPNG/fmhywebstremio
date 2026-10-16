@@ -17,12 +17,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         firstSeenAt: new Date(0),
         lastSeenAt: new Date(0),
       },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://67movies.st/',
-      },
-      status: 'supported',
       family: {
         id: 'sixty-seven-movies',
         confidence: 1,
@@ -42,6 +36,12 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         ],
         lastProbedAt: new Date(0),
       },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://67movies.st/',
+      },
+      status: 'supported',
     },
     {
       id: 'anicine:anicine.sbs',

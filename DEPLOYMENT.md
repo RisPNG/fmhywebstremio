@@ -4,6 +4,8 @@ The addon is a normal Node.js Stremio addon. Build it with `mise exec -- npm ci`
 
 Before publishing, run `mise exec -- npm run verify:deployment`. It builds and starts the production entry point on a temporary local port, then verifies readiness, manifest, configuration, and stream-route contracts.
 
+The contract check runs in development mode. Verify the deployed revision and production startup results through `/stats` and the eligible sources through `/live`, then request known movie and episode streams and read their media. Source reachability and extraction checks must run from the hosting network, where upstream access rules can differ from the local network.
+
 Expose the service over HTTPS and verify these endpoints before installing it in Stremio:
 
 - `/startup` and `/ready` return `{ "status": "ok" }`;

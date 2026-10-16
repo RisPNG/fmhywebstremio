@@ -2,7 +2,7 @@ import * as cheerio from 'cheerio';
 import type { ExtractionResponse, ExtractionResult, FamilyEvidence, MediaIdentity, RequestServices, SourceRecord } from '../../engine/core/models';
 import type { FamilyMatch, SourceFamily, SourceProbeSnapshot } from '../../engine/health';
 import { TransportFailure } from '../../engine/transport/transport-director';
-import { VidsrcMeApiHostArchitecture, type VidsrcMeHostArchitecture } from '../hosts/vidsrcme-host-architecture';
+import { VidloveApiHostArchitecture, type VidloveHostArchitecture } from '../hosts/vidlove-host-architecture';
 
 interface SixtySevenMoviesSearchResponse {
   results?: readonly { id?: number; media_type?: string; title?: string; name?: string; release_date?: string; first_air_date?: string }[];
@@ -11,7 +11,7 @@ interface SixtySevenMoviesSearchResponse {
 export class SixtySevenMoviesFamily implements SourceFamily {
   public readonly id = 'sixty-seven-movies';
 
-  public constructor(private readonly host: VidsrcMeHostArchitecture = new VidsrcMeApiHostArchitecture()) {}
+  public constructor(private readonly host: VidloveHostArchitecture = new VidloveApiHostArchitecture()) {}
 
   public classify(_source: SourceRecord, snapshot: SourceProbeSnapshot): FamilyMatch | null {
     const evidence: FamilyEvidence[] = [];
@@ -42,8 +42,8 @@ export class SixtySevenMoviesFamily implements SourceFamily {
     for (const asset of assets) {
       const script = await services.request({ url: new URL(asset, watch.finalUrl), expectedContent: 'text', referrer: watch.finalUrl, stateScope: { kind: 'source', key: source.id } }, signal);
       const client = script.text();
-      const player = client.match(/case"vsembed":return"tv"===[^?]+\?"(https:\/\/[^"/]+\/embed\/tv\/)"[^;]+?:"(https:\/\/[^"/]+\/embed\/movie\/)"/);
-      if (!/\{key:"vsembed",label:"VsEmbed"\}/.test(client) || !player) continue;
+      const player = client.match(/case"vidlove":default:return"tv"===[^?]+\?"(https:\/\/[^"/]+\/embed\/tv\/)"[^;]+?:"(https:\/\/[^"/]+\/embed\/movie\/)"/);
+      if (!/\[\{key:"vidlove",label:"Vidlove"(?:,|\})/.test(client) || !player) continue;
       if (media.type === 'episode') {
         const key = client.match(/\b(?:let|const)\s+[\w$]+="([a-f0-9]{32})"/)?.[1];
         if (!key || !client.includes('https://api.themoviedb.org/3/tv/')) return { type: 'failure', failure: { code: 'PAGE_STRUCTURE_CHANGED', message: '67Movies watch client no longer exposes its season catalog', stage: 'stage:discovery', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'watch-season-catalog' } } };
@@ -62,6 +62,6 @@ export class SixtySevenMoviesFamily implements SourceFamily {
       }
       return this.host.discover(media, new URL(`${media.tmdbId}${media.type === 'episode' ? `/${media.season}/${media.episode}` : ''}`, player[media.type === 'movie' ? 2 : 1]), source.id, this.id, services, signal);
     }
-    return { type: 'failure', failure: { code: 'EMBED_NOT_FOUND', message: '67Movies watch client no longer configures its VsEmbed player', stage: 'stage:extraction', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'watch-player-assets' } } };
+    return { type: 'failure', failure: { code: 'EMBED_NOT_FOUND', message: '67Movies watch client no longer configures its default Vidlove player', stage: 'stage:extraction', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'watch-player-assets' } } };
   }
 }
