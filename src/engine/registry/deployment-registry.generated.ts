@@ -44,43 +44,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       },
     },
     {
-      id: '7movies:7movies.ac',
-      canonicalDomain: '7movies.ac',
-      aliases: [],
-      fmhy: {
-        name: '7Movies',
-        section: '▷ Stream Aggregators',
-        tags: [],
-        firstSeenAt: new Date(0),
-        lastSeenAt: new Date(0),
-      },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://7movies.ac/',
-      },
-      status: 'supported',
-      family: {
-        id: 'cinrift',
-        confidence: 1,
-        evidence: [
-          {
-            type: 'dom-shape',
-            fingerprint: 'cinrift-next-application',
-          },
-          {
-            type: 'script-signature',
-            fingerprint: 'cinrift-client',
-          },
-          {
-            type: 'route-shape',
-            value: '/movie|tv/{tmdbId}',
-          },
-        ],
-        lastProbedAt: new Date(0),
-      },
-    },
-    {
       id: 'anicine:anicine.sbs',
       canonicalDomain: 'anicine.sbs',
       aliases: [],
@@ -163,13 +126,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       lastOutcome: 'healthy',
       recentSuccesses: 3,
       recentFailures: 0,
-      observedAt: new Date(0),
-    },
-    {
-      sourceId: '7movies:7movies.ac',
-      lastOutcome: 'healthy',
-      recentSuccesses: 2,
-      recentFailures: 1,
       observedAt: new Date(0),
     },
     {

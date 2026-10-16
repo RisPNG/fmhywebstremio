@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { deploymentSourceRegistry } from '../src/engine/registry/deployment-registry.generated';
@@ -37,10 +37,11 @@ async function verifyDeploymentContract(): Promise<void> {
     const manifestResponse = await fetch(`http://127.0.0.1:${port}/manifest.json`);
     const manifest = await manifestResponse.json() as { id?: string; version?: string; name?: string; description?: string; resources?: unknown[]; config?: { key: string }[] };
     const sourceKeys = deploymentSourceRegistry.records.map(source => `disableFmhySource_${source.id}`).sort();
-    if (!manifestResponse.ok || manifest.id !== 'fmhy-webstream' || manifest.version !== '1.10.0' || manifest.name !== 'FMHY\'s Website Streamer' || !manifest.description?.startsWith('Provides video HTTP URLs from streaming websites listed by FMHY.') || !manifest.resources?.length || JSON.stringify(manifest.config?.map(field => field.key).sort()) !== JSON.stringify(sourceKeys) || !sourceKeys.includes('disableFmhySource_7movies:7movies.ac')) throw new Error('Manifest contract is invalid');
-    const configuredManifestResponse = await fetch(`http://127.0.0.1:${port}/disabled=7movies:7movies.ac/manifest.json`);
+    const configuredSource = deploymentSourceRegistry.records[0]?.id;
+    if (!configuredSource || !manifestResponse.ok || manifest.id !== 'fmhy-webstream' || manifest.version !== '1.10.0' || manifest.name !== 'FMHY\'s Website Streamer' || !manifest.description?.startsWith('Provides video HTTP URLs from streaming websites listed by FMHY.') || !manifest.resources?.length || JSON.stringify(manifest.config?.map(field => field.key).sort()) !== JSON.stringify(sourceKeys)) throw new Error('Manifest contract is invalid');
+    const configuredManifestResponse = await fetch(`http://127.0.0.1:${port}/disabled=${configuredSource}/manifest.json`);
     const configuredManifest = await configuredManifestResponse.json() as { config?: { key: string; default?: string }[] };
-    if (!configuredManifestResponse.ok || configuredManifest.config?.find(field => field.key === 'disableFmhySource_7movies:7movies.ac')?.default !== 'checked') throw new Error('Clean configuration path contract is invalid');
+    if (!configuredManifestResponse.ok || configuredManifest.config?.find(field => field.key === `disableFmhySource_${configuredSource}`)?.default !== 'checked') throw new Error('Clean configuration path contract is invalid');
     const configure = await fetch(`http://127.0.0.1:${port}/configure`);
     const configureBody = await configure.text();
     if (!configure.ok || !configure.headers.get('content-type')?.includes('text/html') || !configureBody.includes('FMHY\'s Website Streamer') || !configureBody.includes('Provides video HTTP URLs from streaming websites listed by FMHY.') || deploymentSourceRegistry.records.some(source => !configureBody.includes(`>${source.canonicalDomain}</div>`)) || /torbox|debrid|debris|MediaFlow|WebStreamrMBG/i.test(configureBody)) throw new Error('Configuration endpoint contract is invalid');
@@ -58,6 +59,7 @@ async function verifyDeploymentContract(): Promise<void> {
     process.stdout.write(`Deployment contract verified at http://127.0.0.1:${port}\n`);
   } finally {
     server.kill('SIGTERM');
+    await rm(dataDirectory, { recursive: true, force: true });
   }
 }
 
