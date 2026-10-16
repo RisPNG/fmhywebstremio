@@ -1,6 +1,5 @@
 import type { ExtractionResult, FamilyEvidence, MediaIdentity, RequestServices, SourceRecord } from '../../engine/core/models';
 import type { FamilyMatch, SourceFamily, SourceProbeSnapshot } from '../../engine/health';
-import { VidsrcMeApiHostArchitecture, type VidsrcMeHostArchitecture } from '../hosts/vidsrcme-host-architecture';
 
 interface CinegoSearchResponse {
   data?: readonly { t?: string; s?: string; d?: string; y?: number }[];
@@ -8,8 +7,6 @@ interface CinegoSearchResponse {
 
 export class CinegoFamily implements SourceFamily {
   public readonly id = 'cinego';
-
-  public constructor(private readonly host: VidsrcMeHostArchitecture = new VidsrcMeApiHostArchitecture()) {}
 
   public classify(_source: SourceRecord, snapshot: SourceProbeSnapshot): FamilyMatch | null {
     const evidence: FamilyEvidence[] = [];
@@ -42,6 +39,10 @@ export class CinegoFamily implements SourceFamily {
       && (media.type === 'movie' ? result.d === 'm' : result.d !== 'm')
       && (media.type !== 'movie' || media.year === undefined || result.y === undefined || result.y === media.year));
     if (!match) return { type: 'empty', reason: 'not-found' };
-    return this.host.discover(media, source.id, this.id, services, signal);
+    const home = await services.request({ url: new URL('/', search), expectedContent: 'html', stateScope: { kind: 'source', key: source.id } }, signal);
+    const configured = home.text().match(/\bplyURL\s*=\s*["']([^"']+)["']/)?.[1];
+    if (!configured) return { type: 'failure', failure: { code: 'EMBED_NOT_FOUND', message: 'CineGo no longer declares its playback host', stage: 'stage:extraction', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'plyURL' } } };
+    const player = new URL(Buffer.from(configured, 'base64').toString('utf8'));
+    return { type: 'failure', failure: { code: 'UNKNOWN_HOST', message: 'CineGo playback requires an unsupported player-grant architecture', stage: 'stage:extraction', sourceId: source.id, familyId: this.id, targetHost: player.hostname, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'plyURL' } } };
   }
 }
