@@ -35,7 +35,8 @@ export class HlsInspector implements StreamInspector {
       ...new Set([segments[0], segments[Math.floor(segments.length / 2)], segments.at(-1)].filter((segment): segment is string => segment !== undefined)),
     ];
     if (!resources.length) throw new Error('NO_PLAYABLE_VARIANTS');
-    for (const resource of resources) await services.request({ url: new URL(resource, mediaUrl), ...(candidate.headers && { headers: candidate.headers }), ...(candidate.referrer && { referrer: candidate.referrer }), expectedContent: 'binary', timeoutMs: 6000, maxBytes: 64 * 1024 }, signal);
+    const inspected = await Promise.allSettled(resources.map(async resource => services.request({ url: new URL(resource, mediaUrl), ...(candidate.headers && { headers: candidate.headers }), ...(candidate.referrer && { referrer: candidate.referrer }), expectedContent: 'binary', timeoutMs: 6000, maxBytes: 64 * 1024 }, signal)));
+    for (const result of inspected) if (result.status === 'rejected') throw result.reason;
     const fingerprint = createHash('sha256').update(JSON.stringify(variants.map(({ width, height, bitrate, codecs }) => ({ width, height, bitrate, codecs })))).digest('hex');
     return {
       url: candidate.url, protocol: 'hls', validation: 'validated',
