@@ -83,6 +83,49 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       status: 'supported',
     },
     {
+      id: 'arrowtv:arrowtv.net',
+      canonicalDomain: 'arrowtv.net',
+      aliases: [
+        'neonflix.st',
+        'cinezo.st',
+        'flikhub.net',
+      ],
+      fmhy: {
+        name: 'ArrowTV',
+        section: '▷ Stream Aggregators',
+        tags: [
+          'recommended',
+        ],
+        firstSeenAt: new Date(0),
+        lastSeenAt: new Date(0),
+      },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://arrowtv.net/',
+      },
+      status: 'supported',
+      family: {
+        id: 'arrowtv',
+        confidence: 1,
+        evidence: [
+          {
+            type: 'script-signature',
+            fingerprint: 'arrowtv-catalog-description',
+          },
+          {
+            type: 'route-shape',
+            value: 'arrowtv-tmdb-watch-routes',
+          },
+          {
+            type: 'route-shape',
+            value: 'arrowtv-catalog-nav',
+          },
+        ],
+        lastProbedAt: new Date(0),
+      },
+    },
+    {
       id: 'movienerds:movienerds.site',
       canonicalDomain: 'movienerds.site',
       aliases: [
@@ -96,12 +139,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         firstSeenAt: new Date(0),
         lastSeenAt: new Date(0),
       },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://movienerds.site/',
-      },
-      status: 'supported',
       family: {
         id: 'movienerds',
         confidence: 1,
@@ -121,6 +158,12 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         ],
         lastProbedAt: new Date(0),
       },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://movienerds.site/',
+      },
+      status: 'supported',
     },
     {
       id: 'pressplay:pressplayx.to',
@@ -135,12 +178,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         firstSeenAt: new Date(0),
         lastSeenAt: new Date(0),
       },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://pressplayx.to/',
-      },
-      status: 'supported',
       family: {
         id: 'pressplayx',
         confidence: 1,
@@ -160,6 +197,12 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         ],
         lastProbedAt: new Date(0),
       },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://pressplayx.to/',
+      },
+      status: 'supported',
     },
   ],
   health: [
@@ -174,6 +217,13 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       sourceId: 'anicine:anicine.sbs',
       lastOutcome: 'healthy',
       recentSuccesses: 5,
+      recentFailures: 0,
+      observedAt: new Date(0),
+    },
+    {
+      sourceId: 'arrowtv:arrowtv.net',
+      lastOutcome: 'healthy',
+      recentSuccesses: 3,
       recentFailures: 0,
       observedAt: new Date(0),
     },

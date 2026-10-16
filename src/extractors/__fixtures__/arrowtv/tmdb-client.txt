@@ -1,0 +1,3 @@
+"use strict";(self.__next_f=self.__next_f||[]).push;
+let d="eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI3MmJhMTBjNDI5OTE0MTU3MzgwOGQyNzEwNGVkMThmYSIsInN1YiI6IjY0ZjVhNTUwMTIxOTdlMDBmZWE5MzdmMSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.84b7vWpVEilAbly4RpS01E9tyirHdhSXjcpfmTczI3Q".replace(/[^\x20-\x7E]/g,"").trim();
+async function c(e,t={}){let i=new URL(`https://api.themoviedb.org/3/${e}`);for(let[e,r]of(i.searchParams.set("language","en-US"),Object.entries(t)))i.searchParams.set(e,r);let r=await fetch(i.toString(),{headers:{Authorization:`Bearer ${d}`,accept:"application/json"}});if(!r.ok)throw Error(`TMDB ${r.status}`);return r.json()}
