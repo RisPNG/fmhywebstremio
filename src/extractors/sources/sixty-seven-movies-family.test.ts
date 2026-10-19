@@ -7,13 +7,14 @@ import { StreamSelector } from '../../engine/protocols';
 import { SourceRegistry } from '../../engine/registry';
 import { ExtractionResolver, StaticExtractorLookup } from '../../engine/resolver';
 import { TransportFailure } from '../../engine/transport/transport-director';
+import type { CinezoHostArchitecture } from '../hosts/cinezo-host-architecture';
 import type { VidloveHostArchitecture } from '../hosts/vidlove-host-architecture';
 import { SixtySevenMoviesFamily } from './sixty-seven-movies-family';
 
 const fixture = (name: string) => readFileSync(resolve(__dirname, `../__fixtures__/sixty-seven-movies/${name}`), 'utf8');
 const response = (url: string, body: string, contentType = 'application/json'): ExtractionResponse => ({ status: 200, headers: { 'content-type': contentType }, finalUrl: new URL(url), redirectChain: [], body: Buffer.from(body), text: () => body, json: () => JSON.parse(body) as unknown, truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } });
 
-describe('67Movies source family with the configured Vidlove host architecture', () => {
+describe('67Movies source family with its configured player architectures', () => {
   const source: SourceRecord = { id: '67movies:67movies.net', canonicalDomain: '67movies.st', aliases: ['67movies.net', 'phantomflix.net', 'ravenflix.net', 'shows.st'], fmhy: { section: 'Stream Aggregators', tags: ['recommended'], firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'sixty-seven-movies', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'unknown' };
 
   test('recognizes the shared catalog client fingerprint', () => {
@@ -66,6 +67,29 @@ describe('67Movies source family with the configured Vidlove host architecture',
       { canonicalId: 'tmdb:1396:1:99', type: 'episode' as const, tmdbId: 1396, title: 'Breaking Bad', season: 1, episode: 99 },
     ]) await expect(new SixtySevenMoviesFamily(host).discoverMedia(media, source, services, new AbortController().signal)).resolves.toEqual({ type: 'empty', reason: 'not-found' });
     expect(host.discover).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    { canonicalId: 'tmdb:27205', type: 'movie' as const, tmdbId: 27205, title: 'Inception', year: 2010 },
+    { canonicalId: 'tmdb:1396:1:1', type: 'episode' as const, tmdbId: 1396, title: 'Breaking Bad', year: 2008, season: 1, episode: 1 },
+    { canonicalId: 'tmdb:1396:5:16', type: 'episode' as const, tmdbId: 1396, title: 'Breaking Bad', year: 2008, season: 5, episode: 16 },
+  ])('uses the advertised Cinezo player when Vidlove has no streams for $canonicalId', async (media) => {
+    const vidlove: VidloveHostArchitecture = { discover: jest.fn(async (): Promise<ExtractionResult> => ({ type: 'empty', reason: 'no-streams' })) };
+    const cinezo: CinezoHostArchitecture = { discover: jest.fn(async (_media, _player, sourceId, sourceExtractor): Promise<ExtractionResult> => ({ type: 'streams', streams: [{ url: new URL('https://native.test/movie.mp4'), protocol: 'http', sourceId, sourceExtractor, hostExtractor: 'cinezo-player', discoveredAt: new Date(0) }] })) };
+    const services: RequestServices = { request: jest.fn(async request => response(request.url.href, request.url.pathname === '/api/semantic-search' ? fixture(media.type === 'movie' ? 'search-inception.json' : 'search-breaking-bad.json') : request.url.pathname.startsWith('/watch/') ? fixture('watch.html') : request.url.hostname === 'api.themoviedb.org' ? JSON.stringify({ season_number: media.season, episodes: [{ episode_number: media.episode }] }) : fixture('watch-client-cinezo.txt'))) };
+    await expect(new SixtySevenMoviesFamily(vidlove, cinezo).discoverMedia(media, source, services, new AbortController().signal)).resolves.toMatchObject({ type: 'streams', streams: [{ hostExtractor: 'cinezo-player' }] });
+    const path = media.type === 'movie' ? 'movie/27205' : `tv/1396/${media.season}/${media.episode}`;
+    expect(cinezo.discover).toHaveBeenCalledWith(media, new URL(`https://api.cinezo.test/${path}`), source.id, 'sixty-seven-movies', services, expect.any(AbortSignal));
+    expect(vidlove.discover).toHaveBeenCalledTimes(1);
+  });
+
+  test('does not delegate absent catalog entries to either supported player', async () => {
+    const vidlove: VidloveHostArchitecture = { discover: jest.fn() };
+    const cinezo: CinezoHostArchitecture = { discover: jest.fn() };
+    const services: RequestServices = { request: jest.fn(async request => response(request.url.href, fixture('search-absent.json'))) };
+    await expect(new SixtySevenMoviesFamily(vidlove, cinezo).discoverMedia({ canonicalId: 'probe:absent', type: 'movie', tmdbId: 1, title: 'FMHY Extractability Probe 7b18e49a', year: 1874 }, source, services, new AbortController().signal)).resolves.toEqual({ type: 'empty', reason: 'not-found' });
+    expect(vidlove.discover).not.toHaveBeenCalled();
+    expect(cinezo.discover).not.toHaveBeenCalled();
   });
 
   test('does not use a dormant Vidlove switch when the provider is absent from the active list', async () => {

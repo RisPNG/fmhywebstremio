@@ -2,12 +2,13 @@ import * as cheerio from 'cheerio';
 import type { ExtractionResult, FamilyEvidence, MediaIdentity, RequestServices, SourceRecord } from '../../engine/core/models';
 import type { FamilyMatch, SourceFamily, SourceProbeSnapshot } from '../../engine/health';
 import { TransportFailure } from '../../engine/transport/transport-director';
+import { type CinezoHostArchitecture, CinezoPlayerHostArchitecture } from '../hosts/cinezo-host-architecture';
 import { VidloveApiHostArchitecture, type VidloveHostArchitecture } from '../hosts/vidlove-host-architecture';
 
 export class ArrowTvFamily implements SourceFamily {
   public readonly id = 'arrowtv';
 
-  public constructor(private readonly host: VidloveHostArchitecture = new VidloveApiHostArchitecture()) {}
+  public constructor(private readonly host: VidloveHostArchitecture = new VidloveApiHostArchitecture(), private readonly cinezo: CinezoHostArchitecture = new CinezoPlayerHostArchitecture()) {}
 
   public classify(_source: SourceRecord, snapshot: SourceProbeSnapshot): FamilyMatch | null {
     const html = snapshot.htmlSample ?? '';
@@ -53,7 +54,7 @@ export class ArrowTvFamily implements SourceFamily {
         const watchPage = cheerio.load(watchResponse.text());
         const player = watchPage('iframe[src]').map((_index, element) => watchPage(element).attr('src')).get().map(value => new URL(value, watchResponse.finalUrl)).find(url => url.pathname === expectedEmbedPath);
         if (!player) {
-          playerFailure = { type: 'failure', failure: { code: 'EMBED_NOT_FOUND', message: 'ArrowTV watch page no longer configures its Vidlove player', stage: 'stage:extraction', sourceId: source.id, familyId: this.id, targetHost: domain, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: watchResponse.status, bodyCaptured: false, parserPath: 'watch-player' } } };
+          playerFailure = { type: 'failure', failure: { code: 'EMBED_NOT_FOUND', message: 'ArrowTV watch page no longer configures its player', stage: 'stage:extraction', sourceId: source.id, familyId: this.id, targetHost: domain, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: watchResponse.status, bodyCaptured: false, parserPath: 'watch-player' } } };
           continue;
         }
         if (media.type === 'episode') {
@@ -83,7 +84,8 @@ export class ArrowTvFamily implements SourceFamily {
           if (!Array.isArray(catalog.episodes)) return { type: 'failure', failure: { code: 'RESPONSE_SCHEMA_CHANGED', message: 'ArrowTV season catalog did not contain episodes', stage: 'stage:discovery', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: season.status, bodyCaptured: false, parserPath: 'episodes' } } };
           if (catalog.season_number !== media.season || !catalog.episodes.some(episode => episode.episode_number === media.episode)) return { type: 'empty', reason: 'not-found' };
         }
-        const result = await this.host.discover(media, player, source.id, this.id, services, signal);
+        const host = player.hostname.startsWith('player.cinezo.') ? this.cinezo : this.host;
+        const result = await host.discover(media, player, source.id, this.id, services, signal);
         if (result.type !== 'failure' || result.failure.code !== 'PAGE_STRUCTURE_CHANGED') return result;
         playerFailure = result;
       } catch (error) {
