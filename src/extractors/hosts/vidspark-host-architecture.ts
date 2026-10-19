@@ -68,7 +68,7 @@ export class VidsparkApiHostArchitecture implements VidsparkHostArchitecture {
         for (const variant of [{ url: stream.url, height: undefined }, ...(stream.qualities && stream.qualities.length > 1 ? stream.qualities : [])]) {
           if (!variant.url) continue;
           const url = new URL(variant.url, page.finalUrl);
-          const proxied = url.pathname === '/proxy' ? url.searchParams.get('url') : null;
+          const proxied = url.searchParams.get('url');
           const declared = proxied ? url.searchParams.get('data') : null;
           const headers = declared ? Object.fromEntries(Buffer.from(declared, 'base64').toString().split('|').map(header => [header.slice(0, header.indexOf('=')).toLowerCase(), header.slice(header.indexOf('=') + 1)])) : { referer: new URL('/', page.finalUrl).href };
           const path = new URL(proxied ?? url.href).pathname;

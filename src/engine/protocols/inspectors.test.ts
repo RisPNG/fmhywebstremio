@@ -2,6 +2,40 @@ import type { ExtractionResponse, RequestServices } from '../core/models';
 import { TransportFailure } from '../transport';
 import { StreamSelector } from './stream-selector';
 
+test.each(['application/vnd.apple.mpegurl; charset=utf-8', 'audio/x-mpegurl'])('inspects extensionless HLS media declared as %s before publishing it', async (contentType) => {
+  const services: RequestServices = { request: jest.fn(async (request): Promise<ExtractionResponse> => {
+    const body = request.url.pathname === '/play' ? '#EXTM3U\n#EXTINF:6,\nsegment.ts\n#EXT-X-ENDLIST' : 'media bytes';
+    return { status: 200, headers: { 'content-type': request.url.pathname === '/play' ? contentType : 'video/mp2t' }, finalUrl: request.url, redirectChain: [], body: Buffer.from(body), text: () => body, json: () => ({}), truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } };
+  }) };
+  const result = await new StreamSelector(services).validate([{ url: new URL('https://cdn.test/play'), protocol: 'http', delivery: 'relayed', headers: { referer: 'https://player.test/' }, sourceId: 'source', sourceExtractor: 'family', discoveredAt: new Date(0) }], { concurrency: 1 }, new AbortController().signal);
+  expect(result).toMatchObject({ streams: [{ protocol: 'hls', validation: 'validated', delivery: 'relayed', headers: { referer: 'https://player.test/' } }], failures: [] });
+  expect((services.request as jest.Mock).mock.calls.map(([request]) => [request.method ?? 'GET', request.url.pathname, request.headers])).toEqual([
+    ['HEAD', '/play', { referer: 'https://player.test/' }],
+    ['GET', '/play', { referer: 'https://player.test/' }],
+    ['GET', '/segment.ts', { referer: 'https://player.test/' }],
+  ]);
+});
+
+test('rejects an extensionless HLS stream whose media fails despite a successful HEAD response', async () => {
+  const services: RequestServices = { request: jest.fn(async (request): Promise<ExtractionResponse> => {
+    if (request.url.pathname === '/segment.ts') throw new TransportFailure({ code: 'HTTP_FORBIDDEN', message: 'Media unavailable', observedAt: new Date(0), diagnostic: { sensitivity: 'privileged', bodyCaptured: false } });
+    const body = '#EXTM3U\n#EXTINF:6,\nsegment.ts\n#EXT-X-ENDLIST';
+    return { status: 200, headers: { 'content-type': 'application/vnd.apple.mpegurl' }, finalUrl: request.url, redirectChain: [], body: Buffer.from(body), text: () => body, json: () => ({}), truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } };
+  }) };
+  const result = await new StreamSelector(services).validate([{ url: new URL('https://cdn.test/play'), protocol: 'http', sourceId: 'source', sourceExtractor: 'family', discoveredAt: new Date(0) }], { concurrency: 1 }, new AbortController().signal);
+  expect(result).toMatchObject({ streams: [], failures: [{ code: 'HTTP_FORBIDDEN', stage: 'stage:protocol' }] });
+});
+
+test('inspects extensionless DASH manifests using their response media type', async () => {
+  const services: RequestServices = { request: jest.fn(async (request): Promise<ExtractionResponse> => {
+    const body = '<MPD><Period><AdaptationSet><Representation width="1920" height="1080" bandwidth="3000000" /></AdaptationSet></Period></MPD>';
+    return { status: 200, headers: { 'content-type': 'application/dash+xml' }, finalUrl: request.url, redirectChain: [], body: Buffer.from(body), text: () => body, json: () => ({}), truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } };
+  }) };
+  const result = await new StreamSelector(services).validate([{ url: new URL('https://cdn.test/play'), protocol: 'http', sourceId: 'source', sourceExtractor: 'family', discoveredAt: new Date(0) }], { concurrency: 1 }, new AbortController().signal);
+  expect(result).toMatchObject({ streams: [{ protocol: 'dash', validation: 'validated', resolution: { width: 1920, height: 1080 } }], failures: [] });
+  expect((services.request as jest.Mock).mock.calls.map(([request]) => request.method ?? 'GET')).toEqual(['HEAD', 'GET']);
+});
+
 test('validates a responsive HLS stream before the query deadline despite media request latency', async () => {
   jest.useFakeTimers();
   const controller = new AbortController();

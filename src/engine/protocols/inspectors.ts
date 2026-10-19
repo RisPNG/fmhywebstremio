@@ -65,6 +65,9 @@ export class DirectMediaInspector implements StreamInspector {
   public async inspect(candidate: StreamCandidate, services: RequestServices, signal: AbortSignal): Promise<NormalizedStream> {
     const response = await services.request({ url: candidate.url, method: 'HEAD', ...(candidate.headers && { headers: candidate.headers }), ...(candidate.referrer && { referrer: candidate.referrer }), expectedContent: 'binary', timeoutMs: 5000 }, signal);
     if (response.status < 200 || response.status >= 400) throw new Error('STREAM_EXPIRED');
+    const contentType = response.headers['content-type']?.split(';')[0]?.trim().toLowerCase();
+    if (contentType && ['application/vnd.apple.mpegurl', 'application/x-mpegurl', 'application/mpegurl', 'audio/x-mpegurl', 'audio/mpegurl'].includes(contentType)) return new HlsInspector().inspect(candidate, services, signal);
+    if (contentType === 'application/dash+xml') return new DashInspector().inspect(candidate, services, signal);
     return { url: candidate.url, protocol: 'http', validation: 'validated', ...(candidate.declaredResolution && { resolution: candidate.declaredResolution }), sourceId: candidate.sourceId, sourceExtractor: candidate.sourceExtractor, ...(candidate.hostExtractor && { hostExtractor: candidate.hostExtractor }), ...(candidate.providerContentId && { providerContentId: candidate.providerContentId }), ...(candidate.headers && { headers: candidate.headers }), ...(candidate.delivery && { delivery: candidate.delivery }), ...(candidate.subtitles && { subtitles: candidate.subtitles }) };
   }
 }

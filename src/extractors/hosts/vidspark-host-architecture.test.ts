@@ -22,10 +22,18 @@ describe('VidSpark host architecture', () => {
   }) });
   const apiRequests = (requestServices: RequestServices) => (requestServices.request as jest.Mock).mock.calls.map(([request]: [ExtractionRequest]) => request).filter(request => request.url.pathname.startsWith('/api/vidora/'));
 
-  test('follows the declared fallback player and requests the upstream that a media proxy declares', async () => {
+  test.each(['/proxy', '/', '/p1/proxy'])('follows the declared fallback player and upstream declared by a media proxy at %s', async (proxyPath) => {
     const requestServices = services((request) => {
       if (request.url.hostname === 'moviesapi.to') throw httpFailure('HTTP_NOT_FOUND');
-      if (request.url.searchParams.get('source') === 'scrapify') return response(request.url, fixture('cdn-movie-scrapify.json'));
+      if (request.url.searchParams.get('source') === 'scrapify') {
+        const payload = JSON.parse(fixture('cdn-movie-scrapify.json')) as { sources: { url: string }[] };
+        const stream = payload.sources[0];
+        if (!stream) throw new Error('Expected fixture stream');
+        const proxy = new URL(stream.url);
+        proxy.pathname = proxyPath;
+        stream.url = proxy.href;
+        return response(request.url, JSON.stringify(payload));
+      }
       throw httpFailure('HTTP_SERVER_ERROR');
     });
     const result = await new VidsparkApiHostArchitecture().discover(movie, new URL('https://moviesapi.to/movie/27205?theme=F7BD46'), 'pressplayx:pressplayx.to', 'pressplayx', requestServices, new AbortController().signal);
