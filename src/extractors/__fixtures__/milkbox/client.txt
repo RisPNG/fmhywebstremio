@@ -1,0 +1,12 @@
+const TMDB_BASE = new URL('api/tmdb/', document.baseURI).pathname;
+        const d = await tmdbJson(`/search/multi?query=${encodeURIComponent(query)}&page=${page}`);
+        const seasonInfos = await Promise.all(seasons.map(async sn => ({
+            sn,
+            eps: (await tmdbJson(`/tv/${encodeURIComponent(tmdbId)}/season/${sn}`)).episodes || []
+        })));
+function vidsparkIframe(tmdbId, type, season, episode) {
+    let url;
+    if (type === 'tv') url = `https://vidspark.to/tv/${encodeURIComponent(tmdbId)}/${encodeURIComponent(season || 1)}/${encodeURIComponent(episode || 1)}`;
+    else url = `https://vidspark.to/movie/${encodeURIComponent(tmdbId)}`;
+    return makePlaybackIframe(url);
+}
