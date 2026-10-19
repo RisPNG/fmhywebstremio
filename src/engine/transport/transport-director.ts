@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { Semaphore } from 'async-mutex';
@@ -113,7 +114,22 @@ export class TransportDirector implements RequestServices {
         const normalizedHeaders = Object.fromEntries([...response.headers.entries()].map(([name, value]) => [name.toLowerCase(), value]));
         const httpCode = response.status === 403 ? 'HTTP_FORBIDDEN' : response.status === 404 ? 'HTTP_NOT_FOUND' : response.status === 429 ? 'RATE_LIMITED' : response.status >= 500 ? 'HTTP_SERVER_ERROR' : undefined;
         if (httpCode) {
-          throw new TransportFailure({ code: httpCode, message: `HTTP request failed with status ${response.status}`, stage: 'stage:transport', targetHost: current.hostname, observedAt: new Date(), diagnostic: captureDiagnostic({ status: response.status, headers: normalizedHeaders, finalUrl: current, redirectChain, body }, { maxBytes: 2048 }) });
+          throw new TransportFailure({ code: httpCode, message: `HTTP request failed with status ${response.status}`, stage: 'stage:transport', targetHost: current.hostname, observedAt: new Date(), diagnostic: {
+            ...captureDiagnostic({ status: response.status, headers: normalizedHeaders, finalUrl: current, redirectChain, body }, { maxBytes: 2048 }),
+            transport: {
+              ...(request.expectedContent && { expectedContent: request.expectedContent }),
+              requestUrlHash: createHash('sha256').update(request.url.href).digest('hex'),
+              finalUrlHash: createHash('sha256').update(current.href).digest('hex'),
+              requestContextHash: createHash('sha256').update(JSON.stringify({ origin: headers.get('origin'), referer: headers.get('referer') })).digest('hex'),
+              bodyHash: createHash('sha256').update(body).digest('hex'),
+              bodyBytes: body.byteLength,
+              bodyTruncated: truncated,
+              redirectHosts: redirectChain.map(url => url.hostname),
+              ...(normalizedHeaders['server'] && { server: normalizedHeaders['server'] }),
+              ...((normalizedHeaders['cf-cache-status'] ?? normalizedHeaders['x-cache']) && { cacheStatus: normalizedHeaders['cf-cache-status'] ?? normalizedHeaders['x-cache'] }),
+              ...(normalizedHeaders['cf-ray'] && { edge: normalizedHeaders['cf-ray'] }),
+            },
+          } });
         }
         this.assertContentType(request, normalizedHeaders['content-type'], current);
         const text = () => new TextDecoder(normalizedHeaders['content-type']?.match(/charset=([^;]+)/i)?.[1] ?? 'utf-8').decode(body);
