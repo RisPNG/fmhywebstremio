@@ -145,6 +145,7 @@ addon.get('/live', async (_req: Request, res: Response) => {
 addon.get('/stats', async (_req: Request, res: Response) => {
   res.json({
     revision: envGet('RENDER_GIT_COMMIT') ?? 'development',
+    runtime: { node: process.version, undici: process.versions['undici'], platform: process.platform },
     sources: runtimeSourceRegistry.list().length,
     runtimeEligible: runtimeSourceRegistry.runtimeEligible().length,
     dependencies: runtimeDependencies.list().length,
@@ -162,7 +163,7 @@ const port = parseInt(envGet('PORT') || '51546');
       const corpus = source.family && defaultFamilyHealthCorpora.get(source.family.id);
       if (family && corpus) {
         const outcome = await runtimeHealth.run(source, family, corpus, new AbortController().signal);
-        startupValidation.set(source.id, { status: outcome.status, extractable: outcome.extractable, cases: outcome.cases.map(test => ({ caseId: test.caseId, stages: test.stages, ...(test.failure && { failure: { code: test.failure.code, stage: test.failure.stage, targetHost: test.failure.targetHost } }) })) });
+        startupValidation.set(source.id, { status: outcome.status, extractable: outcome.extractable, cases: outcome.cases.map(test => ({ caseId: test.caseId, stages: test.stages, ...(test.failure && { failure: { code: test.failure.code, stage: test.failure.stage, targetHost: test.failure.targetHost, ...(test.failure.diagnostic.status !== undefined && { status: test.failure.diagnostic.status }), ...(test.failure.diagnostic.contentType && { contentType: test.failure.diagnostic.contentType }), ...(test.failure.diagnostic.transport && { transport: test.failure.diagnostic.transport }) } }) })) });
       }
     }
   }

@@ -59,6 +59,19 @@ export interface FailureDiagnostic {
   bodySample?: string;
   bodyTruncated?: boolean;
   parserPath?: string;
+  transport?: {
+    expectedContent?: string;
+    requestUrlHash: string;
+    finalUrlHash: string;
+    requestContextHash: string;
+    bodyHash: string;
+    bodyBytes: number;
+    bodyTruncated: boolean;
+    redirectHosts: readonly string[];
+    server?: string;
+    cacheStatus?: string;
+    edge?: string;
+  };
 }
 export interface DiagnosticSource { status?: number; headers?: Readonly<Record<string, string>>; finalUrl?: URL; redirectChain?: readonly URL[]; body?: Uint8Array }
 export interface CaptureDiagnosticOptions { maxBytes: number; parserPath?: string; includeFullUrls?: boolean }

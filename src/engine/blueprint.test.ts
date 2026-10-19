@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 import { parseStremioMediaRequest, RuntimeStremioAdapter } from '../addon/stremio-adapter';
@@ -64,6 +65,27 @@ describe('blueprint contracts', () => {
   test('transport rejects SSRF targets before connecting', async () => {
     await expect(new TransportDirector().request({ url: new URL('http://127.0.0.1/metadata') }, new AbortController().signal)).rejects.toMatchObject({ failure: { code: 'CONNECTION_FAILED', diagnostic: { finalUrl: 'http://127.0.0.1/metadata' } } });
     await expect(new TransportDirector({ blockedCidrs: ['203.0.113.0/24'] }).request({ url: new URL('http://203.0.113.10/') }, new AbortController().signal)).rejects.toBeInstanceOf(TransportFailure);
+  });
+
+  test('diagnostics identify a failing CDN request after redirects without exposing media URLs or bodies', async () => {
+    const requested = new URL('https://203.0.113.11/private-media/master.m3u8?token=request-secret');
+    const final = new URL('https://203.0.113.12/private-media/leaf.m3u8?token=final-secret');
+    const body = 'fixture CDN failure with private response details';
+    const fetch = jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(null, { status: 302, headers: { location: final.href } })).mockResolvedValueOnce(new Response(body, { status: 404, headers: { 'content-type': 'text/plain', 'server': 'fixture-cdn', 'x-cache': 'MISS', 'cf-ray': 'fixture-SIN', 'set-cookie': 'private-cookie' } }));
+    try {
+      const result = await new TransportDirector().request({ url: requested, expectedContent: 'manifest', headers: { origin: 'https://player.test' }, referrer: new URL('https://player.test/') }, new AbortController().signal).catch(error => error as TransportFailure);
+      expect(result).toBeInstanceOf(TransportFailure);
+      const diagnostic = (result as TransportFailure).failure.diagnostic;
+      expect(diagnostic).toMatchObject({ status: 404, contentType: 'text/plain', transport: {
+        expectedContent: 'manifest', requestUrlHash: createHash('sha256').update(requested.href).digest('hex'), finalUrlHash: createHash('sha256').update(final.href).digest('hex'),
+        requestContextHash: createHash('sha256').update(JSON.stringify({ origin: 'https://player.test', referer: 'https://player.test/' })).digest('hex'), bodyHash: createHash('sha256').update(body).digest('hex'),
+        bodyBytes: Buffer.byteLength(body), bodyTruncated: false, redirectHosts: ['203.0.113.12'], server: 'fixture-cdn', cacheStatus: 'MISS', edge: 'fixture-SIN',
+      } });
+      for (const privateValue of [requested.href, final.href, body, 'request-secret', 'final-secret', 'private-cookie']) expect(JSON.stringify(diagnostic.transport)).not.toContain(privateValue);
+      expect(fetch).toHaveBeenCalledTimes(2);
+    } finally {
+      fetch.mockRestore();
+    }
   });
 });
 
