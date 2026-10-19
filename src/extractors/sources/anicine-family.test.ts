@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import type { ExtractionRequest, ExtractionResult, MediaIdentity, RequestServices, SourceRecord } from '../../engine/core/models';
 import type { SourceProbeSnapshot } from '../../engine/health';
 import type { CineproHostArchitecture } from '../hosts/cinepro-host-architecture';
+import type { XpassHostArchitecture } from '../hosts/xpass-host-architecture';
 import { AnicineFamily } from './anicine-family';
 
 describe('AniCine source family', () => {
@@ -12,11 +13,13 @@ describe('AniCine source family', () => {
   const anime: MediaIdentity = { canonicalId: 'tmdb:1429:2:1', type: 'episode', tmdbId: 1429, title: 'Attack on Titan', year: 2013, season: 2, episode: 1 };
   let fixtures: Record<string, string>;
   let host: CineproHostArchitecture;
+  let xpass: XpassHostArchitecture;
   let services: RequestServices;
 
   beforeEach(() => {
     fixtures = Object.fromEntries(['home.html', 'watch.html', 'players.txt', 'search-movie.json', 'search-series.json', 'search-anime.json', 'search-absent.json', 'series.json', 'anime.json'].map(name => [name, readFileSync(resolve(__dirname, '../__fixtures__/anicine', name), 'utf8')]));
     host = { discover: jest.fn(async (): Promise<ExtractionResult> => ({ type: 'empty', reason: 'no-streams' })) };
+    xpass = { discover: jest.fn(async (): Promise<ExtractionResult> => ({ type: 'empty', reason: 'no-streams' })) };
     services = { request: jest.fn(async (request: ExtractionRequest) => {
       const path = request.url.searchParams.get('path');
       const query = request.url.searchParams.get('query');
@@ -61,6 +64,16 @@ describe('AniCine source family', () => {
     fixtures['players.txt'] = (fixtures['players.txt'] as string).replaceAll('aniwish.anasvercel3.workers.dev', 'new-player.test');
     await new AnicineFamily(host).discoverMedia(movie, source, services, new AbortController().signal);
     expect(host.discover).toHaveBeenCalledWith(movie, new URL('https://new-player.test/movie/27205'), source.id, 'anicine', services, expect.any(AbortSignal));
+  });
+
+  test('follows the current primary Xpass movie and episode configuration', async () => {
+    fixtures['players.txt'] = readFileSync(resolve(__dirname, '../__fixtures__/anicine/players-xpass.txt'), 'utf8').replaceAll('play.xpass.top', 'current-player.test');
+    const family = new AnicineFamily(host, xpass);
+    for (const media of [movie, episode, anime]) await family.discoverMedia(media, source, services, new AbortController().signal);
+    expect(xpass.discover).toHaveBeenNthCalledWith(1, movie, new URL('https://current-player.test/e/movie/27205'), source.id, 'anicine', services, expect.any(AbortSignal));
+    expect(xpass.discover).toHaveBeenNthCalledWith(2, episode, new URL('https://current-player.test/e/tv/76479/2/1'), source.id, 'anicine', services, expect.any(AbortSignal));
+    expect(xpass.discover).toHaveBeenNthCalledWith(3, anime, new URL('https://current-player.test/e/tv/1429/2/1'), source.id, 'anicine', services, expect.any(AbortSignal));
+    expect(host.discover).not.toHaveBeenCalled();
   });
 
   test.each([
