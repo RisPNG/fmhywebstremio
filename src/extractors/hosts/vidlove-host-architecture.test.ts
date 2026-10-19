@@ -44,7 +44,7 @@ describe('Vidlove host architecture', () => {
     const exposed = await new RuntimeStremioAdapter(engine, relay).findStreams({ config: {}, hostUrl: new URL('https://addon.test/') } as Context, media.type === 'movie' ? 'movie' : 'series', media.type === 'movie' ? 'tmdb:27205' : 'tmdb:1396:1:1');
     const relayUrl = new URL(exposed.streams[0]?.url as string);
     const parts = relayUrl.pathname.split('/');
-    expect(relay.resolveTarget(parts.at(-3) as string, parts.at(-2) as string)).toEqual({ url: validated.streams[0]?.url, headers: { referer: 'https://player.vidlove.test/' } });
+    expect(relay.resolveTarget(parts.at(-3) as string, parts.at(-2) as string)).toEqual({ url: validated.streams[0]?.url, headers: { referer: 'https://player.vidlove.test/' }, resource: { kind: 'file' } });
   });
 
   test('keeps working providers when another startup source fails', async () => {

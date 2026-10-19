@@ -20,17 +20,41 @@ describe('VidBolt native player architecture', () => {
         expect(request.url.searchParams.get('id')).toBe(String(media.tmdbId));
         if (media.type === 'episode') expect(request.url.searchParams.get('season')).toBe('5');
         expect(request.referrer?.hostname).toBe('player.test');
-        return response(request.url, fixture('movie.json'), 'application/json');
+        return response(request.url, request.url.searchParams.get('only') === 'orion' ? fixture('movie.json') : '{"stream":null}', 'application/json');
       }
       return response(request.url, fixture(page));
     }) };
     const result = await new VidBoltPlayerHostArchitecture().discover(media, new URL('https://player.test/advertised-player'), 'source', 'family', services, new AbortController().signal);
     expect(result).toMatchObject({ type: 'streams', streams: [{ protocol: 'hls', delivery: 'relayed', hostExtractor: 'vidbolt-player', headers: { referer: 'https://player.test/' } }] });
+    expect((services.request as jest.Mock).mock.calls.slice(1).map(([request]: [ExtractionRequest]) => request.url.searchParams.get('only'))).toEqual(['orion', 'callisto']);
+  });
+
+  test('offers native server alternatives when the default source has no audio', async () => {
+    const services: RequestServices = { request: jest.fn(async request => response(request.url, request.url.pathname === '/api/resolve' ? fixture(request.url.searchParams.get('only') === 'orion' ? 'movie.json' : 'movie-alternative.json') : fixture('movie-player.html'))) };
+    const result = await new VidBoltPlayerHostArchitecture().discover(movie, new URL('https://player.test/movie/27205'), 'source', 'family', services, new AbortController().signal);
+    expect(result).toMatchObject({ type: 'streams', streams: [{ protocol: 'hls' }, { protocol: 'hls', language: 'English', declaredResolution: { height: 1080 } }, { protocol: 'http', language: 'Russian' }] });
+    if (result.type !== 'streams') throw new Error('Expected VidBolt server choices');
+    expect(result.streams.map(stream => stream.url.hostname)).toEqual(['media.test', 'bridge.test', 'proxy.test']);
+  });
+
+  test('preserves resolved server choices when a sibling reaches the discovery deadline', async () => {
+    const controller = new AbortController();
+    const services: RequestServices = { request: jest.fn(async (request, signal) => {
+      if (request.url.searchParams.get('only') === 'callisto') return new Promise<ExtractionResponse>((_resolve, reject) => signal.addEventListener('abort', () => reject(new TransportFailure({ code: 'TIMEOUT', message: 'Discovery deadline', observedAt: new Date(0), diagnostic: { sensitivity: 'privileged', bodyCaptured: false } })), { once: true }));
+      return response(request.url, request.url.pathname === '/api/resolve' ? fixture('movie.json') : fixture('movie-player.html'));
+    }) };
+    const pending = new VidBoltPlayerHostArchitecture().discover(movie, new URL('https://player.test/movie/27205'), 'source', 'family', services, controller.signal);
+    const timer = setTimeout(() => controller.abort(), 10);
+    try {
+      await expect(pending).resolves.toMatchObject({ type: 'streams', streams: [{ url: new URL('https://media.test/movie/master.m3u8') }] });
+    } finally {
+      clearTimeout(timer);
+    }
   });
 
   test('preserves every declared source so a broken first anime variant does not suppress playable media', async () => {
     const services: RequestServices = { request: jest.fn(async (request: ExtractionRequest) => {
-      if (request.url.hostname === 'player.test') return response(request.url, request.url.pathname === '/api/resolve' ? fixture('anime.json') : fixture('anime-player.html'));
+      if (request.url.hostname === 'player.test') return response(request.url, request.url.pathname === '/api/resolve' ? request.url.searchParams.get('only') === 'callisto' ? fixture('anime.json') : '{"stream":null}' : fixture('anime-player.html'));
       if (request.url.hostname === 'dead.test') throw new TransportFailure({ code: 'HTTP_NOT_FOUND', message: 'Missing variant', observedAt: new Date(0), diagnostic: { sensitivity: 'privileged', bodyCaptured: false } });
       if (request.method === 'HEAD') return response(request.url, '', 'video/mp4');
       if (request.expectedContent === 'binary') return response(request.url, 'fixture-segment', 'video/mp2t');
@@ -66,7 +90,17 @@ describe('VidBolt native player architecture', () => {
   });
 
   test.each([{ stream: null }, { stream: { server: 'orion', sources: [] } }])('reports a native unavailable stream as empty', async (payload) => {
-    const services: RequestServices = { request: jest.fn(async request => response(request.url, request.url.pathname === '/api/resolve' ? JSON.stringify(payload) : fixture('movie-player.html'))) };
+    const services: RequestServices = { request: jest.fn(async request => response(request.url, request.url.pathname === '/api/resolve' ? JSON.stringify(request.url.searchParams.get('only') === 'orion' ? payload : { stream: null }) : fixture('movie-player.html'))) };
+    await expect(new VidBoltPlayerHostArchitecture().discover(movie, new URL('https://player.test/movie/27205'), 'source', 'family', services, new AbortController().signal)).resolves.toEqual({ type: 'empty', reason: 'no-streams' });
+  });
+
+  test('rejects a response that does not honor the selected native server', async () => {
+    const services: RequestServices = { request: jest.fn(async request => response(request.url, request.url.pathname === '/api/resolve' ? JSON.stringify({ stream: { server: 'unadvertised', sources: [{ url: 'https://media.test/wrong.m3u8', kind: 'hls' }] } }) : fixture('movie-player.html'))) };
+    await expect(new VidBoltPlayerHostArchitecture().discover(movie, new URL('https://player.test/movie/27205'), 'source', 'family', services, new AbortController().signal)).resolves.toMatchObject({ type: 'failure', failure: { code: 'RESULT_MAPPING_FAILED' } });
+  });
+
+  test('does not advertise protocols unsupported by its header-bound delivery', async () => {
+    const services: RequestServices = { request: jest.fn(async request => response(request.url, request.url.pathname === '/api/resolve' ? JSON.stringify({ stream: { server: request.url.searchParams.get('only'), sources: [{ url: 'https://media.test/manifest.mpd', kind: 'dash' }] } }) : fixture('movie-player.html'))) };
     await expect(new VidBoltPlayerHostArchitecture().discover(movie, new URL('https://player.test/movie/27205'), 'source', 'family', services, new AbortController().signal)).resolves.toEqual({ type: 'empty', reason: 'no-streams' });
   });
 });

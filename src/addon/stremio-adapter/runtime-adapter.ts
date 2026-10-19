@@ -28,7 +28,7 @@ export class RuntimeStremioAdapter implements StremioStreamProvider {
     return { streams: result.streams.map((stream) => {
       if (stream.delivery === 'relayed' && this.relay) {
         const { headers, ...relayedStream } = stream;
-        return normalizedStreamToStremio({ ...relayedStream, url: this.relay.createUrl(ctx.hostUrl, stream.url, headers) });
+        return normalizedStreamToStremio({ ...relayedStream, url: this.relay.createUrl(ctx.hostUrl, { url: stream.url, ...(headers && { headers }), resource: stream.protocol === 'hls' ? { kind: 'playlist' } : stream.protocol === 'dash' ? { kind: 'file', format: 'dash' } : { kind: 'file' } }) });
       }
       return normalizedStreamToStremio(stream);
     }), diagnostics: [...new Set(result.failures.map(failure => `${failure.code}@${failure.stage}:${failure.sourceId ?? 'metadata'}:${failure.familyId ?? 'resolver'}`))] };

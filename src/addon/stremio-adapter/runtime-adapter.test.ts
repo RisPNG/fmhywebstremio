@@ -14,8 +14,19 @@ describe('RuntimeStremioAdapter', () => {
     const url = new URL(result.streams[0]?.url as string);
     const [, signature, payload] = url.pathname.match(/^\/hls-relay\/([^/]+)\/([^/]+)\/playlist\.m3u8$/) ?? [];
     expect(url.origin).toBe(context.hostUrl.origin);
-    expect(relay.resolveTarget(signature as string, payload as string)).toEqual({ url: target });
+    expect(relay.resolveTarget(signature as string, payload as string)).toEqual({ url: target, resource: { kind: 'playlist' } });
     expect(result.streams[0]).toMatchObject({ name: 'cinego.test 800p\n800p', title: 'cinego:cinego.test · vidsrcme-api' });
+  });
+
+  test.each(['hls', 'dash', 'http'] as const)('signs root resource semantics from %s rather than its opaque URL', async (protocol) => {
+    const target = new URL('https://media.test/opaque-image.png');
+    const engine: StreamEngine = { findStreams: jest.fn(async () => ({ streams: [{ url: target, protocol, validation: 'validated' as const, delivery: 'relayed' as const, headers: { referer: 'https://player.test/' }, sourceId: 'source', sourceExtractor: 'source' }], failures: [], unverified: [], deadline: { budgetMs: 1, elapsedMs: 1, exceeded: false, sourcesAttempted: 1, sourcesCompleted: 1, sourcesCancelled: 0 } })) };
+    const relay = new HlsRelay();
+    const result = await new RuntimeStremioAdapter(engine, relay).findStreams({ hostUrl: new URL('https://addon.test/'), id: 'fixture', config: {} }, 'movie', 'tmdb:27205');
+    const url = new URL(result.streams[0]?.url as string);
+    const parts = url.pathname.split('/');
+    expect(parts.at(-1)).toBe(protocol === 'hls' ? 'playlist.m3u8' : protocol === 'dash' ? 'manifest.mpd' : 'media.bin');
+    expect(relay.resolveTarget(parts.at(-3) as string, parts.at(-2) as string)).toEqual({ url: target, headers: { referer: 'https://player.test/' }, resource: protocol === 'hls' ? { kind: 'playlist' } : protocol === 'dash' ? { kind: 'file', format: 'dash' } : { kind: 'file' } });
   });
 });
 
