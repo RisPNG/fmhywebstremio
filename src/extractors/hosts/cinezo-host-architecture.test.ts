@@ -39,9 +39,9 @@ describe('Cinezo native player architecture', () => {
     const relay = new HlsRelay();
     const stream = result.streams[0];
     if (!stream) throw new Error('Expected Cinezo stream');
-    const url = relay.createUrl(new URL('https://addon.test/'), stream.url, stream.headers);
+    const url = relay.createUrl(new URL('https://addon.test/'), { url: stream.url, ...(stream.headers && { headers: stream.headers }), resource: { kind: 'file' } });
     const parts = url.pathname.split('/');
-    expect(relay.resolveTarget(parts.at(-3) as string, parts.at(-2) as string)).toEqual({ url: stream.url, headers: { referer: 'https://player.cinezo.test/' } });
+    expect(relay.resolveTarget(parts.at(-3) as string, parts.at(-2) as string)).toEqual({ url: stream.url, headers: { referer: 'https://player.cinezo.test/' }, resource: { kind: 'file' } });
   });
 
   test('uses the native HLS stream when the original container cannot play directly', async () => {

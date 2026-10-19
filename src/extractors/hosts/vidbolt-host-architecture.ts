@@ -29,16 +29,29 @@ export class VidBoltPlayerHostArchitecture implements VidBoltHostArchitecture {
     const type = media.type === 'movie' ? 'movie' : 'tv';
     const expectedTitle = media.title.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
     if (configured.title?.type !== type || configured.title.id !== String(media.tmdbId) || configured.name?.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim() !== expectedTitle || endpoint.searchParams.get('type') !== type || endpoint.searchParams.get('id') !== String(media.tmdbId) || (media.type === 'episode' && (configured.title.season !== String(media.season) || configured.title.episode !== String(media.episode) || endpoint.searchParams.get('season') !== String(media.season) || endpoint.searchParams.get('episode') !== String(media.episode))) || (media.type === 'movie' && media.year !== undefined && configured.sub !== String(media.year))) return { type: 'failure', failure: { code: 'RESULT_MAPPING_FAILED', message: 'VidBolt player does not match the requested movie or episode', stage: 'stage:extraction', sourceId, extractorId: 'vidbolt-player', targetHost: page.finalUrl.hostname, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'player-identity' } } };
-    const response = await services.request({ url: endpoint, expectedContent: 'json', referrer: page.finalUrl, stateScope: { kind: 'host', key: endpoint.hostname } }, signal);
-    const payload = response.json() as VidBoltPlaybackResponse;
-    if (!('stream' in payload) || (payload.stream && !Array.isArray(payload.stream.sources))) return { type: 'failure', failure: { code: 'RESPONSE_SCHEMA_CHANGED', message: 'VidBolt resolver response did not contain its stream sources', stage: 'stage:extraction', sourceId, extractorId: 'vidbolt-player', targetHost: response.finalUrl.hostname, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: response.status, bodyCaptured: false, parserPath: 'stream.sources' } } };
-    if (!payload.stream) return { type: 'empty', reason: 'no-streams' };
-    if (!configured.servers?.some(server => server.id === payload.stream?.server)) return { type: 'failure', failure: { code: 'RESULT_MAPPING_FAILED', message: 'VidBolt resolver returned a server absent from the player', stage: 'stage:extraction', sourceId, extractorId: 'vidbolt-player', targetHost: response.finalUrl.hostname, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'stream.server' } } };
-    const streams: StreamCandidate[] = (payload.stream.sources ?? []).flatMap((source) => {
-      if (!source.url) return [];
-      const height = /^4k$/i.test(source.quality ?? '') ? 2160 : Number(source.quality?.match(/\d+/)?.[0]);
-      return [{ url: new URL(source.url, response.finalUrl), protocol: source.kind === 'hls' ? 'hls' as const : source.kind === 'dash' ? 'dash' as const : 'http' as const, delivery: 'relayed' as const, headers: { referer: new URL('/', page.finalUrl).href }, ...(source.language && { language: source.language }), ...(height > 0 && { declaredResolution: { width: Math.round(height * 16 / 9), height } }), ...(source.quality && { label: source.quality }), sourceId, sourceExtractor, hostExtractor: 'vidbolt-player', discoveredAt: new Date() }];
-    });
-    return streams.length ? { type: 'streams', streams } : { type: 'empty', reason: 'no-streams' };
+    const servers = [...new Set((configured.servers ?? []).flatMap(server => server.id ? [server.id] : []))];
+    if (!servers.length) return { type: 'failure', failure: { code: 'PAGE_STRUCTURE_CHANGED', message: 'VidBolt player no longer declares its playback servers', stage: 'stage:extraction', sourceId, extractorId: 'vidbolt-player', targetHost: page.finalUrl.hostname, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'player-servers' } } };
+    const results = await Promise.allSettled(servers.map(async (server): Promise<ExtractionResult> => {
+      const selected = new URL(endpoint);
+      selected.searchParams.set('only', server);
+      const response = await services.request({ url: selected, expectedContent: 'json', referrer: page.finalUrl, stateScope: { kind: 'host', key: endpoint.hostname } }, signal);
+      const payload = response.json() as VidBoltPlaybackResponse;
+      if (!('stream' in payload) || (payload.stream && !Array.isArray(payload.stream.sources))) return { type: 'failure', failure: { code: 'RESPONSE_SCHEMA_CHANGED', message: 'VidBolt resolver response did not contain its stream sources', stage: 'stage:extraction', sourceId, extractorId: 'vidbolt-player', targetHost: response.finalUrl.hostname, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: response.status, bodyCaptured: false, parserPath: 'stream.sources' } } };
+      if (!payload.stream) return { type: 'empty', reason: 'no-streams' };
+      if (payload.stream.server !== server) return { type: 'failure', failure: { code: 'RESULT_MAPPING_FAILED', message: 'VidBolt resolver returned a different playback server', stage: 'stage:extraction', sourceId, extractorId: 'vidbolt-player', targetHost: response.finalUrl.hostname, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'stream.server' } } };
+      const streams: StreamCandidate[] = (payload.stream.sources ?? []).flatMap((source) => {
+        if (!source.url || (source.kind !== 'hls' && source.kind !== 'mp4')) return [];
+        const height = /^4k$/i.test(source.quality ?? '') ? 2160 : Number(source.quality?.match(/\d+/)?.[0]);
+        return [{ url: new URL(source.url, response.finalUrl), protocol: source.kind === 'hls' ? 'hls' as const : 'http' as const, delivery: 'relayed' as const, headers: { referer: new URL('/', page.finalUrl).href }, ...(source.language && { language: source.language }), ...(height > 0 && { declaredResolution: { width: Math.round(height * 16 / 9), height } }), ...(source.quality && { label: source.quality }), sourceId, sourceExtractor, hostExtractor: 'vidbolt-player', discoveredAt: new Date() }];
+      });
+      return streams.length ? { type: 'streams', streams } : { type: 'empty', reason: 'no-streams' };
+    }));
+    const streams = results.flatMap(result => result.status === 'fulfilled' && result.value.type === 'streams' ? result.value.streams : []);
+    if (streams.length) return { type: 'streams', streams };
+    const failure = results.find(result => result.status === 'fulfilled' && result.value.type === 'failure');
+    if (failure?.status === 'fulfilled') return failure.value;
+    const rejected = results.find(result => result.status === 'rejected');
+    if (rejected?.status === 'rejected') throw rejected.reason;
+    return { type: 'empty', reason: 'no-streams' };
   }
 }
