@@ -112,6 +112,49 @@ describe('ArrowTV source family with its configured player architectures', () =>
     expect(vidlove.discover).not.toHaveBeenCalled();
   });
 
+  test.each([
+    { canonicalId: 'tmdb:27205', type: 'movie' as const, tmdbId: 27205, title: 'Inception', year: 2010 },
+    { canonicalId: 'tmdb:1396:1:1', type: 'episode' as const, tmdbId: 1396, title: 'Breaking Bad', year: 2008, season: 1, episode: 1 },
+    { canonicalId: 'tmdb:1396:5:16', type: 'episode' as const, tmdbId: 1396, title: 'Breaking Bad', year: 2008, season: 5, episode: 16 },
+  ])('uses the mirror declared Cinezo option when its default Vidlove is empty for $canonicalId', async (media) => {
+    const vidlove: VidloveHostArchitecture = { discover: jest.fn(async (): Promise<ExtractionResult> => ({ type: 'empty', reason: 'no-streams' })) };
+    const cinezo: CinezoHostArchitecture = { discover: jest.fn(async (_media, _player, sourceId, sourceExtractor): Promise<ExtractionResult> => ({ type: 'streams', streams: [{ url: new URL('https://native.test/movie.mp4'), protocol: 'http', sourceId, sourceExtractor, hostExtractor: 'cinezo-player', discoveredAt: new Date(0) }] })) };
+    const path = media.type === 'movie' ? 'movie/27205' : `tv/1396/${media.season}/${media.episode}`;
+    const services: RequestServices = { request: jest.fn(async (request) => {
+      if (request.url.hostname === 'arrowtv.net' || request.url.hostname === 'neonflix.st') return forbidden(request.url.href);
+      const body = request.url.pathname === '/search'
+        ? fixture(media.type === 'movie' ? 'search-inception.html' : 'search-breaking-bad.html')
+        : request.url.pathname.startsWith('/watch/')
+          ? fixture('watch-movie.html').replace('/embed/movie/27205', `/embed/${path}`)
+          : request.url.hostname === 'api.themoviedb.org'
+            ? JSON.stringify({ season_number: media.season, episodes: [{ episode_number: media.episode }] })
+            : fixture('watch-client-cinezo.txt');
+      return response(request.url.href, body);
+    }) };
+    await expect(new ArrowTvFamily(vidlove, cinezo).discoverMedia(media, source, services, new AbortController().signal)).resolves.toMatchObject({ type: 'streams', streams: [{ hostExtractor: 'cinezo-player' }] });
+    expect(cinezo.discover).toHaveBeenCalledWith(media, new URL(`https://current-native.test/embed/${path}`), source.id, 'arrowtv', services, expect.any(AbortSignal));
+    expect(vidlove.discover).toHaveBeenCalledTimes(1);
+  });
+
+  test('continues to the next native mirror when the known player has no streams', async () => {
+    const mirrors = { ...source, canonicalDomain: 'mirror-first.test', aliases: ['mirror-next.test'] };
+    const host: VidloveHostArchitecture = { discover: jest.fn(async (_media, player, sourceId, sourceExtractor): Promise<ExtractionResult> => player.hostname === 'mirror-next.test'
+      ? { type: 'streams', streams: [{ url: new URL('https://media.test/movie.mp4'), protocol: 'http', sourceId, sourceExtractor, discoveredAt: new Date(0) }] }
+      : { type: 'empty', reason: 'no-streams' }) };
+    const services: RequestServices = { request: jest.fn(async request => response(request.url.href, request.url.pathname === '/search' ? fixture('search-inception.html') : request.url.pathname.startsWith('/watch/') ? fixture('watch-movie.html').replace('player.vidlove.cc', request.url.hostname) : fixture('tmdb-client.txt'))) };
+    await expect(new ArrowTvFamily(host).discoverMedia({ canonicalId: 'tmdb:27205', type: 'movie', tmdbId: 27205, title: 'Inception', year: 2010 }, mirrors, services, new AbortController().signal)).resolves.toMatchObject({ type: 'streams' });
+    expect(host.discover).toHaveBeenCalledTimes(2);
+    expect(host.discover).toHaveBeenLastCalledWith(expect.anything(), new URL('https://mirror-next.test/embed/movie/27205'), source.id, 'arrowtv', services, expect.any(AbortSignal));
+  });
+
+  test('keeps a true catalog absence from becoming playback on another mirror', async () => {
+    const host: VidloveHostArchitecture = { discover: jest.fn() };
+    const services: RequestServices = { request: jest.fn(async request => response(request.url.href, fixture('search-absent.html'))) };
+    await expect(new ArrowTvFamily(host).discoverMedia({ canonicalId: 'probe:absent', type: 'movie', tmdbId: 1, title: 'FMHY Extractability Probe 7b18e49a', year: 1874 }, source, services, new AbortController().signal)).resolves.toEqual({ type: 'empty', reason: 'not-found' });
+    expect(services.request).toHaveBeenCalledTimes(1);
+    expect(host.discover).not.toHaveBeenCalled();
+  });
+
   test('surfaces the transport failure when every mirror refuses the catalog', async () => {
     const services: RequestServices = { request: jest.fn(async (request: ExtractionRequest) => forbidden(request.url.href)) };
     await expect(new ArrowTvFamily({ discover: jest.fn() }).discoverMedia({ canonicalId: 'tmdb:27205', type: 'movie', tmdbId: 27205, title: 'Inception', year: 2010 }, source, services, new AbortController().signal)).rejects.toBeInstanceOf(TransportFailure);
