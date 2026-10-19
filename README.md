@@ -19,6 +19,8 @@ Stremio request
 
 Runtime sources come from the freshly audited FMHY registry. Every one-shot audit also generates the committed deployment registry, so the same passed sources are available on stateless hosts after the audit changes are committed. New integrations belong in focused source-family or host-extractor modules rather than route handlers. Sites absent from the current FMHY list or without fresh stream validation are not shipped.
 
+IMDb requests use Cinemeta to find the TMDB ID. When a TMDB access token is configured, IMDb and direct TMDB requests use the same canonical TMDB metadata before source matching. This keeps alternate Cinemeta titles from hiding a title that the source already carries. Without a token, IMDb requests retain Cinemeta metadata and direct TMDB requests retain their ID-only identity.
+
 ## Development
 
 Use the repository's mise-managed toolchain:
