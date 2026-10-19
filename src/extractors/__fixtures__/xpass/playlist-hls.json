@@ -1,0 +1,1 @@
+{"playlist":[{"sources":[{"file":"https://cdn.test/master.m3u8","type":"hls","label":"TIK 1"}],"tracks":[{"file":"https://subs.test/english.vtt","label":"English","language":"en","kind":"captions"},{"file":"https://subs.test/thumbnails.vtt","kind":"thumbnails"}]}]}
