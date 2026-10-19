@@ -22,8 +22,9 @@ export class BingeBangFamily implements SourceFamily {
 
   public async discoverMedia(media: MediaIdentity, source: SourceRecord, services: RequestServices, signal: AbortSignal): Promise<ExtractionResult> {
     if (!media.title || (media.type === 'episode' && (!media.season || !media.episode))) return { type: 'empty', reason: 'not-found' };
-    const catalogUrl = new URL('/api/search/multi', `https://${source.canonicalDomain}/`);
+    const catalogUrl = new URL(`/api/search/${media.type === 'movie' ? 'movie' : 'tv'}`, `https://${source.canonicalDomain}/`);
     catalogUrl.searchParams.set('query', media.title);
+    catalogUrl.searchParams.set('page', '1');
     const response = await services.request({ url: catalogUrl, expectedContent: 'json', referrer: new URL(`https://${source.canonicalDomain}/`), stateScope: { kind: 'source', key: source.id } }, signal);
     const results = (response.json() as BingeBangSearchResponse).results;
     if (!Array.isArray(results)) return { type: 'failure', failure: { code: 'RESPONSE_SCHEMA_CHANGED', message: 'BingeBang search response did not contain results', stage: 'stage:discovery', sourceId: source.id, familyId: this.id, targetHost: source.canonicalDomain, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: response.status, ...(response.headers['content-type'] && { contentType: response.headers['content-type'] }), finalUrl: response.finalUrl.toString(), bodyCaptured: true, bodyBytes: response.body.byteLength, parserPath: 'results' } } };

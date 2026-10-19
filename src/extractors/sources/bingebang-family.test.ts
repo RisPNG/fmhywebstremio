@@ -20,7 +20,7 @@ describe('BingeBang source family', () => {
     expect(family.classify(source, { ...snapshot, routeHints: ['/explore', '/movies'] })).toBeNull();
   });
 
-  test('matches the exact catalog entry and sends the requested later season to the player architecture', async () => {
+  test('uses native typed Explore searches and sends the exact movie and later season to the player architecture', async () => {
     const streams: ExtractionResult = { type: 'streams', streams: [{ url: new URL('https://media.test/master.m3u8'), protocol: 'hls', delivery: 'relayed', sourceId: source.id, sourceExtractor: 'bingebang', hostExtractor: 'bingebang-player', discoveredAt: new Date(0) }] };
     const host: BingeBangHostArchitecture = { discover: jest.fn(async () => streams) };
     const family = new BingeBangFamily(host);
@@ -30,6 +30,8 @@ describe('BingeBang source family', () => {
       return { status: 200, headers: {}, finalUrl: request.url, redirectChain: [], body: Buffer.from(body), text: () => body, json: () => JSON.parse(body) as unknown, truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } };
     }) };
     for (const media of [movie, series]) await expect(family.discoverMedia(media, source, services, new AbortController().signal)).resolves.toBe(streams);
+    expect(services.request).toHaveBeenNthCalledWith(1, { url: new URL('https://bingebang.test/api/search/movie?query=Inception&page=1'), expectedContent: 'json', referrer: new URL('https://bingebang.test/'), stateScope: { kind: 'source', key: source.id } }, expect.any(AbortSignal));
+    expect(services.request).toHaveBeenNthCalledWith(2, { url: new URL('https://bingebang.test/api/search/tv?query=The+Boys&page=1'), expectedContent: 'json', referrer: new URL('https://bingebang.test/'), stateScope: { kind: 'source', key: source.id } }, expect.any(AbortSignal));
     expect(host.discover).toHaveBeenNthCalledWith(1, new URL('https://bingebang.test/movie/play/inception-2010-uyknsn'), movie, source.id, family.id, services, expect.any(AbortSignal));
     expect(host.discover).toHaveBeenNthCalledWith(2, new URL('https://bingebang.test/tv/play/the-boys-azkuo5'), series, source.id, family.id, services, expect.any(AbortSignal));
     const catalog = JSON.parse(readFileSync(resolve(__dirname, '../__fixtures__/bingebang/search-the-boys.json'), 'utf8')) as { results: { year: number }[] };
@@ -42,6 +44,8 @@ describe('BingeBang source family', () => {
     const host: BingeBangHostArchitecture = { discover: jest.fn() };
     const services: RequestServices = { request: jest.fn(async (request: ExtractionRequest) => ({ status: 200, headers: { 'content-type': 'application/json' }, finalUrl: request.url, redirectChain: [], body: Buffer.from('{}'), text: () => '{}', json: () => ({}), truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } })) };
     await expect(new BingeBangFamily(host).discoverMedia(movie, source, services, new AbortController().signal)).resolves.toMatchObject({ type: 'failure', failure: { code: 'RESPONSE_SCHEMA_CHANGED', stage: 'stage:discovery', sourceId: source.id, familyId: 'bingebang', diagnostic: { parserPath: 'results' } } });
+    expect(services.request).toHaveBeenCalledTimes(1);
+    expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://bingebang.test/api/search/movie?query=Inception&page=1') }), expect.any(AbortSignal));
     expect(host.discover).not.toHaveBeenCalled();
   });
 });
