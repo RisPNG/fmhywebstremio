@@ -99,12 +99,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         firstSeenAt: new Date(0),
         lastSeenAt: new Date(0),
       },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://arrowtv.net/',
-      },
-      status: 'supported',
       family: {
         id: 'arrowtv',
         confidence: 1,
@@ -120,6 +114,49 @@ export const deploymentSourceRegistry: SourceRegistryState = {
           {
             type: 'route-shape',
             value: 'arrowtv-catalog-nav',
+          },
+        ],
+        lastProbedAt: new Date(0),
+      },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://arrowtv.net/',
+      },
+      status: 'supported',
+    },
+    {
+      id: 'milkbox:milkbox.zapto.org',
+      canonicalDomain: 'milkbox.zapto.org',
+      aliases: [],
+      fmhy: {
+        name: 'MilkBox',
+        section: '▷ Multi-Server',
+        tags: [],
+        firstSeenAt: new Date(0),
+        lastSeenAt: new Date(0),
+      },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://milkbox.zapto.org/',
+      },
+      status: 'supported',
+      family: {
+        id: 'milkbox',
+        confidence: 1,
+        evidence: [
+          {
+            type: 'script-signature',
+            fingerprint: 'milkbox-brand',
+          },
+          {
+            type: 'dom-shape',
+            fingerprint: 'milkbox-catalog-player',
+          },
+          {
+            type: 'asset-path',
+            value: 'milkbox-app-client',
           },
         ],
         lastProbedAt: new Date(0),
@@ -222,6 +259,13 @@ export const deploymentSourceRegistry: SourceRegistryState = {
     },
     {
       sourceId: 'arrowtv:arrowtv.net',
+      lastOutcome: 'healthy',
+      recentSuccesses: 3,
+      recentFailures: 0,
+      observedAt: new Date(0),
+    },
+    {
+      sourceId: 'milkbox:milkbox.zapto.org',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
       recentFailures: 0,
