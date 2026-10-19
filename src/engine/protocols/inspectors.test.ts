@@ -97,3 +97,96 @@ test.each(['/key.bin', '/init.mp4', '/middle.ts', 'http://'])('waits for every H
     jest.useRealTimers();
   }
 });
+
+describe('separated HLS audio validation', () => {
+  const master = '#EXTM3U\n#EXT-X-VERSION:6\n#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="unused",NAME="Unrelated",URI="unrelated.m3u8"\n#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="original",NAME="French",LANGUAGE="fr",URI="french.m3u8"\n#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="original",NAME="Japanese, original",LANGUAGE="ja",DEFAULT=YES,AUTOSELECT=YES,CHANNELS="2",URI="audio.m3u8"\n#EXT-X-STREAM-INF:BANDWIDTH=3000000,RESOLUTION=1920x1080,CODECS="avc1.640028,mp4a.40.2",AUDIO="original"\nvideo.m3u8';
+  const video = '#EXTM3U\n#EXT-X-TARGETDURATION:6\n#EXTINF:6,\nfirst.ts\n#EXTINF:6,\nmiddle.ts\n#EXTINF:6,\nlast.ts\n#EXT-X-ENDLIST';
+  const audio = '#EXTM3U\n#EXT-X-VERSION:6\n#EXT-X-TARGETDURATION:6\n#EXT-X-KEY:METHOD=AES-128,URI="key.bin"\n#EXT-X-MAP:URI="init.mp4"\n#EXTINF:6,\nfirst.m4s\n#EXTINF:6,\nmiddle.m4s\n#EXTINF:6,\nlast.m4s\n#EXT-X-ENDLIST';
+  const candidate = { url: new URL('https://origin.test/master.m3u8'), protocol: 'hls' as const, delivery: 'relayed' as const, headers: { referer: 'https://player.test/' }, referrer: new URL('https://player.test/watch'), sourceId: 'source', sourceExtractor: 'family', discoveredAt: new Date(0) };
+
+  test.each([undefined, '/audio/last.m4s', '/audio/key.bin', '/audio/init.mp4', '/audio.m3u8'])('checks the selected default audio and rejects unavailable media at %s', async (failedPath) => {
+    const services: RequestServices = { request: jest.fn(async (request): Promise<ExtractionResponse> => {
+      const requestPath = request.url.pathname.replace('/catalog/', '/');
+      if (requestPath === failedPath) throw new TransportFailure({ code: 'HTTP_NOT_FOUND', message: 'Unavailable audio resource', observedAt: new Date(0), diagnostic: { sensitivity: 'privileged', bodyCaptured: false } });
+      const body = requestPath === '/master.m3u8' ? master : requestPath === '/video.m3u8' ? video : requestPath === '/audio.m3u8' ? audio : 'media bytes';
+      const finalUrl = requestPath === '/master.m3u8' ? new URL('https://cdn.test/catalog/master.m3u8') : requestPath === '/audio.m3u8' ? new URL('https://audio.test/audio/index.m3u8') : requestPath === '/video.m3u8' ? new URL('https://video.test/video/index.m3u8') : request.url;
+      return { status: 200, headers: {}, finalUrl, redirectChain: [], body: Buffer.from(body), text: () => body, json: () => ({}), truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } };
+    }) };
+    const result = await new StreamSelector(services).validate([candidate], { concurrency: 1 }, new AbortController().signal);
+    if (failedPath) expect(result).toMatchObject({ streams: [], failures: [{ code: 'HTTP_NOT_FOUND', stage: 'stage:protocol' }] });
+    else expect(result).toMatchObject({ streams: [{ validation: 'validated', language: 'ja', audioLanguages: ['ja'], videoCodec: 'avc1.640028', audioCodec: 'mp4a.40.2', resolution: { width: 1920, height: 1080 } }], failures: [] });
+    const requests = (services.request as jest.Mock).mock.calls.map(([request]) => request);
+    expect(requests.every(request => request.headers.referer === candidate.headers.referer && request.referrer.href === candidate.referrer.href)).toBe(true);
+    expect(requests.filter(request => request.expectedContent === 'manifest').map(request => request.url.href)).toEqual(['https://origin.test/master.m3u8', 'https://cdn.test/catalog/video.m3u8', 'https://cdn.test/catalog/audio.m3u8']);
+    expect(requests.some(request => /unrelated|french/.test(request.url.pathname))).toBe(false);
+    if (failedPath !== '/audio.m3u8') expect(requests.filter(request => request.url.hostname === 'audio.test').map(request => request.url.pathname)).toEqual(['/audio/key.bin', '/audio/init.mp4', '/audio/first.m4s', '/audio/middle.m4s', '/audio/last.m4s']);
+  });
+
+  test('keeps the candidate language while recording the selected native audio language', async () => {
+    const services: RequestServices = { request: jest.fn(async (request): Promise<ExtractionResponse> => {
+      const body = request.url.pathname === '/master.m3u8' ? master : video;
+      return { status: 200, headers: {}, finalUrl: request.url, redirectChain: [], body: Buffer.from(body), text: () => body, json: () => ({}), truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } };
+    }) };
+    const result = await new StreamSelector(services).validate([{ ...candidate, language: 'Japanese' }], { concurrency: 1 }, new AbortController().signal);
+    expect(result.streams).toMatchObject([{ language: 'Japanese', audioLanguages: ['ja'] }]);
+  });
+
+  test('preserves muxed audio when its default rendition has no separate URI', async () => {
+    const services: RequestServices = { request: jest.fn(async (request): Promise<ExtractionResponse> => {
+      const body = request.url.pathname === '/master.m3u8' ? master.replace(',URI="audio.m3u8"', '') : video;
+      return { status: 200, headers: {}, finalUrl: request.url, redirectChain: [], body: Buffer.from(body), text: () => body, json: () => ({}), truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } };
+    }) };
+    const result = await new StreamSelector(services).validate([candidate], { concurrency: 1 }, new AbortController().signal);
+    expect(result).toMatchObject({ streams: [{ validation: 'validated', audioLanguages: ['ja'] }], failures: [] });
+    expect((services.request as jest.Mock).mock.calls.map(([request]) => request.url.pathname)).toEqual(['/master.m3u8', '/video.m3u8', '/first.ts', '/middle.ts', '/last.ts']);
+  });
+
+  test.each([true, false])('selects an associated audio rendition without a default (autoselect=%s)', async (autoselect) => {
+    const services: RequestServices = { request: jest.fn(async (request): Promise<ExtractionResponse> => {
+      const body = request.url.pathname === '/master.m3u8' ? master.replace('DEFAULT=YES,AUTOSELECT=YES,', autoselect ? 'AUTOSELECT=YES,' : '') : video;
+      return { status: 200, headers: {}, finalUrl: request.url, redirectChain: [], body: Buffer.from(body), text: () => body, json: () => ({}), truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } };
+    }) };
+    const result = await new StreamSelector(services).validate([candidate], { concurrency: 1 }, new AbortController().signal);
+    expect(result).toMatchObject({ streams: [{ language: autoselect ? 'ja' : 'fr' }], failures: [] });
+    expect((services.request as jest.Mock).mock.calls.filter(([request]) => request.expectedContent === 'manifest').map(([request]) => request.url.pathname)).toEqual(['/master.m3u8', '/video.m3u8', autoselect ? '/audio.m3u8' : '/french.m3u8']);
+  });
+
+  test('rejects an AUDIO reference that has no corresponding rendition group', async () => {
+    const services: RequestServices = { request: jest.fn(async (request): Promise<ExtractionResponse> => {
+      const body = master.replace('AUDIO="original"', 'AUDIO="missing"');
+      return { status: 200, headers: {}, finalUrl: request.url, redirectChain: [], body: Buffer.from(body), text: () => body, json: () => ({}), truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } };
+    }) };
+    expect(await new StreamSelector(services).validate([candidate], { concurrency: 1 }, new AbortController().signal)).toMatchObject({ streams: [], failures: [{ code: 'MANIFEST_INVALID' }] });
+    expect(services.request).toHaveBeenCalledTimes(1);
+  });
+
+  test('settles both audio and video resource checks before reporting an audio failure', async () => {
+    jest.useFakeTimers();
+    let active = 0;
+    let settled = false;
+    const services: RequestServices = { request: jest.fn(async (request): Promise<ExtractionResponse> => {
+      if (request.expectedContent === 'binary') {
+        active++;
+        await new Promise<void>(resolve => setTimeout(resolve, request.url.pathname === '/last.m4s' ? 1 : 50));
+        active--;
+        if (request.url.pathname === '/last.m4s') throw new TransportFailure({ code: 'HTTP_NOT_FOUND', message: 'Missing final audio segment', observedAt: new Date(0), diagnostic: { sensitivity: 'privileged', bodyCaptured: false } });
+      }
+      const body = request.url.pathname === '/master.m3u8' ? master : request.url.pathname === '/audio.m3u8' ? audio : video;
+      return { status: 200, headers: {}, finalUrl: request.url, redirectChain: [], body: Buffer.from(body), text: () => body, json: () => ({}), truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } };
+    }) };
+    try {
+      const checking = new StreamSelector(services).validate([candidate], { concurrency: 1 }, new AbortController().signal).then((result) => {
+        settled = true;
+        return result;
+      });
+      await jest.advanceTimersByTimeAsync(1);
+      expect(settled).toBe(false);
+      expect(active).toBe(7);
+      await jest.advanceTimersByTimeAsync(50);
+      expect(await checking).toMatchObject({ streams: [], failures: [{ code: 'HTTP_NOT_FOUND' }] });
+      expect(active).toBe(0);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+});
