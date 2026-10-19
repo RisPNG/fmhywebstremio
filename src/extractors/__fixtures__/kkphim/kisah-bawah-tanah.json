@@ -1,0 +1,216 @@
+{
+  "status": true,
+  "msg": "",
+  "movie": {
+    "_id": "b84e303331d3ee7ffeda027fc64de963",
+    "name": "Chuyện rùng rợn thế giới ngầm",
+    "origin_name": "Kisah Bawah Tanah",
+    "slug": "chuyen-rung-ron-the-gioi-ngam",
+    "type": "hoathinh",
+    "year": 2026,
+    "tmdb": {
+      "id": "310817",
+      "type": "tv",
+      "season": 1,
+      "vote_average": 0,
+      "vote_count": 0
+    },
+    "imdb": {
+      "id": "tt33269221",
+      "vote_average": 0,
+      "vote_count": 0
+    },
+    "episode_current": "Hoàn Tất (26/26)",
+    "episode_total": 26,
+    "lang": "Vietsub"
+  },
+  "episodes": [
+    {
+      "server_name": "Vietsub",
+      "server_data": [
+        {
+          "name": "Tập 01",
+          "slug": "tap-01",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E01_Tập 1",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/1/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/1/index.m3u8"
+        },
+        {
+          "name": "Tập 02",
+          "slug": "tap-02",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E02_Tập 2",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/2/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/2/index.m3u8"
+        },
+        {
+          "name": "Tập 03",
+          "slug": "tap-03",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E03_Tập 3",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/3/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/3/index.m3u8"
+        },
+        {
+          "name": "Tập 04",
+          "slug": "tap-04",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E04_Tập 4",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/4/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/4/index.m3u8"
+        },
+        {
+          "name": "Tập 05",
+          "slug": "tap-05",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E05_Tập 5",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/5/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/5/index.m3u8"
+        },
+        {
+          "name": "Tập 06",
+          "slug": "tap-06",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E06_Tập 6",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/6/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/6/index.m3u8"
+        },
+        {
+          "name": "Tập 07",
+          "slug": "tap-07",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E07_Tập 7",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/7/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/7/index.m3u8"
+        },
+        {
+          "name": "Tập 08",
+          "slug": "tap-08",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E08_Tập 8",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/8/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/8/index.m3u8"
+        },
+        {
+          "name": "Tập 09",
+          "slug": "tap-09",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E09_Tập 9",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/9/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/9/index.m3u8"
+        },
+        {
+          "name": "Tập 10",
+          "slug": "tap-10",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E10_Tập 10",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/10/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/10/index.m3u8"
+        },
+        {
+          "name": "Tập 11",
+          "slug": "tap-11",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E11_Tập 11",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/11/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/11/index.m3u8"
+        },
+        {
+          "name": "Tập 12",
+          "slug": "tap-12",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E12_Tập 12",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/12/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/12/index.m3u8"
+        },
+        {
+          "name": "Tập 13",
+          "slug": "tap-13",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E13_Tập 13",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/13/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/13/index.m3u8"
+        },
+        {
+          "name": "Tập 14",
+          "slug": "tap-14",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E14_Tập 14",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/14/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/14/index.m3u8"
+        },
+        {
+          "name": "Tập 15",
+          "slug": "tap-15",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E15_Tập 15",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/15/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/15/index.m3u8"
+        },
+        {
+          "name": "Tập 16",
+          "slug": "tap-16",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E16_Tập 16",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/16/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/16/index.m3u8"
+        },
+        {
+          "name": "Tập 17",
+          "slug": "tap-17",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E17_Tập 17",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/17/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/17/index.m3u8"
+        },
+        {
+          "name": "Tập 18",
+          "slug": "tap-18",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E18_Tập 18",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/18/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/18/index.m3u8"
+        },
+        {
+          "name": "Tập 19",
+          "slug": "tap-19",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E19_Tập 19",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/19/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/19/index.m3u8"
+        },
+        {
+          "name": "Tập 20",
+          "slug": "tap-20",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E20_Tập 20",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/20/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/20/index.m3u8"
+        },
+        {
+          "name": "Tập 21",
+          "slug": "tap-21",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E21_Tập 21",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/21/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/21/index.m3u8"
+        },
+        {
+          "name": "Tập 22",
+          "slug": "tap-22",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E22_Tập 22",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/22/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/22/index.m3u8"
+        },
+        {
+          "name": "Tập 23",
+          "slug": "tap-23",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E23_Tập 23",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/23/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/23/index.m3u8"
+        },
+        {
+          "name": "Tập 24",
+          "slug": "tap-24",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E24_Tập 24",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/24/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/24/index.m3u8"
+        },
+        {
+          "name": "Tập 25",
+          "slug": "tap-25",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E25_Tập 25",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/25/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/25/index.m3u8"
+        },
+        {
+          "name": "Tập 26",
+          "slug": "tap-26",
+          "filename": "Chuyện rùng rợn thế giới ngầm_S01E26_Tập 26",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/kbt/0/26/index.m3u8",
+          "link_m3u8": "https://media.test/kbt/0/26/index.m3u8"
+        }
+      ]
+    }
+  ]
+}

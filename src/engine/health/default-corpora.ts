@@ -1,6 +1,16 @@
 import type { FamilyHealthCorpus } from './corpus';
 
 export const defaultFamilyHealthCorpora = new Map<string, FamilyHealthCorpus>([
+  ['kkphim', {
+    familyId: 'kkphim',
+    cases: [
+      { id: 'lightyear-2022', media: { canonicalId: 'tmdb:718789', type: 'movie', tmdbId: 718789, imdbId: 'tt10298810', title: 'Lightyear', year: 2022 }, expected: 'discoverable' },
+      { id: 'kisah-bawah-tanah-s01e01', media: { canonicalId: 'tmdb:310817:1:1', type: 'episode', tmdbId: 310817, imdbId: 'tt33269221', title: 'Kisah Bawah Tanah', year: 2026, season: 1, episode: 1 }, expected: 'discoverable' },
+      { id: 'kisah-bawah-tanah-s01e02', media: { canonicalId: 'tmdb:310817:1:2', type: 'episode', tmdbId: 310817, imdbId: 'tt33269221', title: 'Kisah Bawah Tanah', year: 2026, season: 1, episode: 2 }, expected: 'discoverable' },
+      { id: 'kisah-bawah-tanah-s01e26', media: { canonicalId: 'tmdb:310817:1:26', type: 'episode', tmdbId: 310817, imdbId: 'tt33269221', title: 'Kisah Bawah Tanah', year: 2026, season: 1, episode: 26 }, expected: 'discoverable' },
+      { id: 'known-absent', media: { canonicalId: 'probe:absent', type: 'movie', tmdbId: 2147483647, title: 'FMHY Extractability Probe 7b18e49a', year: 1874 }, expected: 'absent' },
+    ],
+  }],
   ['cinrift', {
     familyId: 'cinrift',
     cases: [

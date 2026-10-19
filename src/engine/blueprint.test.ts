@@ -76,7 +76,7 @@ describe('FMHY registry and health', () => {
     expect(diffDirectory(undefined, snapshot)).toHaveLength(2);
     expect(diffDirectory(snapshot, snapshot)).toEqual([{ type: 'UNCHANGED', source: '*' }]);
     const services: RequestServices = { request: jest.fn().mockResolvedValueOnce(response('https://fmhy.test/data', markdown, 'text/plain')).mockRejectedValueOnce(new Error('network')) };
-    const provider = new FmhyDirectoryProvider(services, new URL('https://fmhy.test/data'));
+    const provider = new FmhyDirectoryProvider(services, [new URL('https://fmhy.test/data')]);
     const first = await provider.fetchSnapshot(new AbortController().signal);
     const second = await provider.fetchSnapshot(new AbortController().signal);
     expect(first.ok).toBe(true);
@@ -116,7 +116,7 @@ describe('FMHY registry and health', () => {
     const services: RequestServices = { request: jest.fn().mockResolvedValueOnce(response('https://fmhy.test/data', '# Movies / TV\n## Streaming Sites\n- [Alpha](https://alpha.example)')).mockResolvedValueOnce(response('https://other.example/', '<script src="/wp-content/themes/dooplay/app.js"></script><a href="/movies/x">x</a>')) };
     const registry = new SourceRegistry();
     const probes = new SourceFamilyProbeRunner(services, [new DooplayFamily()], { maxRequests: 1, maxBytes: 10000, deadlineMs: 1000 });
-    await new FmhyMaintenanceService(new FmhyDirectoryProvider(services, new URL('https://fmhy.test/data')), registry, probes).synchronize(new AbortController().signal);
+    await new FmhyMaintenanceService(new FmhyDirectoryProvider(services, [new URL('https://fmhy.test/data')]), registry, probes).synchronize(new AbortController().signal);
     const source = registry.list()[0];
     expect(source).toMatchObject({ status: 'unsupported', probe: { outcome: 'redirected', finalUrl: 'https://other.example/' } });
     const health = new FamilyHealthRunner(new ExtractionResolver(new StaticExtractorLookup([]), services), new StreamSelector(services), services, registry);
