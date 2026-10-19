@@ -1,0 +1,53 @@
+{
+  "status": true,
+  "msg": "",
+  "movie": {
+    "_id": "54229abfcfa5649e7003b83dd4755294",
+    "name": "Lightyear: Cảnh Sát Vũ Trụ",
+    "origin_name": "Lightyear",
+    "slug": "lightyear-canh-sat-vu-tru",
+    "type": "hoathinh",
+    "year": 2022,
+    "tmdb": {
+      "id": "718789",
+      "type": "movie",
+      "season": null,
+      "vote_average": 6.9,
+      "vote_count": 3843
+    },
+    "imdb": {
+      "id": "tt10298810",
+      "vote_average": 6.1,
+      "vote_count": 134805
+    },
+    "episode_current": "Full",
+    "episode_total": 1,
+    "lang": "Vietsub + Lồng Tiếng"
+  },
+  "episodes": [
+    {
+      "server_name": "Vietsub",
+      "server_data": [
+        {
+          "name": "Full",
+          "slug": "full",
+          "filename": "Lightyear: Cảnh Sát Vũ Trụ - Lightyear - 2022 - FHD - Vietsub - Full",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/lightyear/0/1/index.m3u8",
+          "link_m3u8": "https://media.test/lightyear/0/1/index.m3u8"
+        }
+      ]
+    },
+    {
+      "server_name": "Lồng Tiếng",
+      "server_data": [
+        {
+          "name": "Full",
+          "slug": "full",
+          "filename": "Lightyear: Cảnh Sát Vũ Trụ - Lightyear - 2022 - FHD - Lồng Tiếng - Full",
+          "link_embed": "https://player.phimapi.test/player/?url=https://media.test/lightyear/1/1/index.m3u8",
+          "link_m3u8": "https://media.test/lightyear/1/1/index.m3u8"
+        }
+      ]
+    }
+  ]
+}
