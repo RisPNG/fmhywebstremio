@@ -3,7 +3,7 @@ import type { ExtractionResponse, ExtractionResult, FamilyEvidence, MediaIdentit
 import type { FamilyMatch, SourceFamily, SourceProbeSnapshot } from '../../engine/health';
 import { TransportFailure } from '../../engine/transport/transport-director';
 
-interface KkPhimEpisode { name?: string; slug: string; filename: string; link_m3u8?: string }
+interface KkPhimEpisode { name?: string; slug: string; filename: string; link_embed: string; link_m3u8?: string }
 interface KkPhimResponse {
   status?: boolean;
   movie?: { tmdb?: { id?: string; type?: string; season?: number | null } };
@@ -39,7 +39,8 @@ export class KkPhimFamily implements SourceFamily {
     const streams: StreamCandidate[] = catalog.episodes.flatMap(server => (server.server_data ?? []).flatMap((episode: KkPhimEpisode) => {
       const number = episode.name?.match(/^(?:Tập\s*)?0*(\d+)$/iu)?.[1];
       if (!episode.link_m3u8 || (media.type === 'episode' && Number(number) !== media.episode)) return [];
-      return [{ url: new URL(episode.link_m3u8), protocol: 'hls', delivery: 'relayed', label: `${server.server_name} · ${episode.filename}`, sourceId: source.id, sourceExtractor: this.id, hostExtractor: 'phimapi', discoveredAt: new Date() }];
+      const player = new URL(episode.link_embed);
+      return [{ url: new URL(episode.link_m3u8), protocol: 'hls', delivery: 'relayed', headers: { origin: player.origin, referer: new URL('/', player).href }, label: `${server.server_name} · ${episode.filename}`, sourceId: source.id, sourceExtractor: this.id, hostExtractor: 'phimapi', discoveredAt: new Date() }];
     }));
     return streams.length ? { type: 'streams', streams } : { type: 'empty', reason: 'no-streams' };
   }

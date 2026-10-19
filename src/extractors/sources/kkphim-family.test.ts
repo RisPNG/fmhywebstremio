@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { HlsRelay } from '../../addon/stremio-adapter/hls-relay';
 import type { ExtractionRequest, ExtractionResponse, RequestServices, SourceRecord } from '../../engine/core/models';
 import { defaultFamilyHealthCorpora, FamilyHealthRunner, type SourceProbeSnapshot } from '../../engine/health';
 import { StreamSelector } from '../../engine/protocols';
@@ -58,6 +59,31 @@ describe('KKPhim native TMDB catalog and HLS episodes', () => {
     const selected = await new StreamSelector(services).validate(discovered.streams, { concurrency: 2 }, new AbortController().signal);
     expect(selected.streams).toHaveLength(2);
     expect(selected.streams.every(stream => stream.validation === 'validated')).toBe(true);
+  });
+
+  test.each(['https://player.phimapi.com', 'https://configured-player.test'])('preserves the native embed request context through HLS media inspection and relay signing: %s', async (origin) => {
+    const body = fixture('kisah-bawah-tanah.json').replaceAll('https://player.phimapi.com', origin);
+    const services: RequestServices = { request: jest.fn(async (request: ExtractionRequest) => {
+      if (request.url.hostname === 'phimapi.com') return response(request.url, body);
+      if (request.url.pathname.endsWith('/index.m3u8')) return response(request.url, '#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=3500000,RESOLUTION=1920x1080\n3500kb/hls/media.m3u8\n', 'application/vnd.apple.mpegurl');
+      if (request.url.pathname.endsWith('/media.m3u8')) return response(request.url, '#EXTM3U\n#EXT-X-TARGETDURATION:6\n#EXTINF:6,\nfirst.ts\n#EXTINF:6,\nmiddle.ts\n#EXTINF:6,\nlast.ts\n#EXT-X-ENDLIST\n', 'application/vnd.apple.mpegurl');
+      return response(request.url, 'G actual media bytes', 'video/mp2t');
+    }) };
+    const discovered = await new KkPhimFamily().discoverMedia(episode, source, services, new AbortController().signal);
+    if (discovered.type !== 'streams') throw new Error('Expected native episode stream');
+    const selected = await new StreamSelector(services).validate(discovered.streams, { concurrency: 2 }, new AbortController().signal);
+    const stream = selected.streams[0];
+    if (!stream?.headers) throw new Error('Expected validated episode stream with native context');
+    const headers = { origin, referer: `${origin}/` };
+    expect(stream).toMatchObject({ validation: 'validated', headers });
+    const mediaRequests = (services.request as jest.Mock).mock.calls.map(([request]: [ExtractionRequest]) => request).filter(request => request.url.hostname === 'media.test');
+    expect(mediaRequests).toHaveLength(5);
+    expect(mediaRequests.every(request => JSON.stringify(request.headers) === JSON.stringify(headers))).toBe(true);
+    expect(mediaRequests.map(request => request.url.pathname)).toEqual(expect.arrayContaining(['/kbt/0/1/3500kb/hls/media.m3u8', '/kbt/0/1/3500kb/hls/first.ts', '/kbt/0/1/3500kb/hls/middle.ts', '/kbt/0/1/3500kb/hls/last.ts']));
+    const relay = new HlsRelay();
+    const signed = relay.createUrl(new URL('https://addon.test/'), { url: stream.url, headers: stream.headers, resource: { kind: 'playlist' } });
+    const parts = signed.pathname.split('/');
+    expect(relay.resolveTarget(parts.at(-3) as string, parts.at(-2) as string)).toMatchObject({ url: stream.url, headers, resource: { kind: 'playlist' } });
   });
 
   test.each([
