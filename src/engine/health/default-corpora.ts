@@ -1,6 +1,44 @@
 import type { FamilyHealthCorpus } from './corpus';
 
+const kisahBawahTanahEpisodes = [
+  { season: 1, episode: 1, title: 'The Mart' },
+  { season: 1, episode: 2, title: 'Toyol Handler' },
+  { season: 1, episode: 3, title: 'Who is Dalang?' },
+  { season: 1, episode: 4, title: 'Insert' },
+  { season: 1, episode: 5, title: 'Amok Salmah the Pontianak' },
+  { season: 1, episode: 6, title: 'Holidays in the Swamp' },
+  { season: 1, episode: 7, title: 'Where is Tok Mart?' },
+  { season: 1, episode: 8, title: 'Air MaXXXwater' },
+  { season: 1, episode: 9, title: 'Brain Farm' },
+  { season: 1, episode: 10, title: 'Looking for Flowers' },
+  { season: 1, episode: 11, title: 'Solomon the Wish-Giver' },
+  { season: 1, episode: 12, title: 'Sacred Tomb' },
+  { season: 1, episode: 13, title: 'Fog' },
+  { season: 1, episode: 14, title: 'Graffiti' },
+  { season: 1, episode: 15, title: 'RnR' },
+  { season: 1, episode: 16, title: 'Vincent' },
+  { season: 1, episode: 17, title: 'Attack of the Clones' },
+  { season: 1, episode: 18, title: 'Hospital' },
+  { season: 1, episode: 19, title: 'Dracu-LAH' },
+  { season: 1, episode: 20, title: 'Chin Oil' },
+  { season: 1, episode: 21, title: 'Back to School' },
+  { season: 1, episode: 22, title: 'Amok Penanggal' },
+  { season: 1, episode: 23, title: 'Yellow Car' },
+  { season: 1, episode: 24, title: 'The Mega Fight' },
+  { season: 1, episode: 25, title: 'Spirit Building Camp' },
+  { season: 1, episode: 26, title: 'Seven Wells' },
+];
+
 export const defaultFamilyHealthCorpora = new Map<string, FamilyHealthCorpus>([
+  ['bilibili', {
+    familyId: 'bilibili',
+    cases: [
+      { id: 'kisah-bawah-tanah-s01e01', media: { canonicalId: 'tmdb:310817:1:1', type: 'episode', tmdbId: 310817, imdbId: 'tt33269221', title: 'Kisah Bawah Tanah', year: 2026, season: 1, episode: 1, episodes: kisahBawahTanahEpisodes }, expected: 'discoverable' },
+      { id: 'kisah-bawah-tanah-s01e02', media: { canonicalId: 'tmdb:310817:1:2', type: 'episode', tmdbId: 310817, imdbId: 'tt33269221', title: 'Kisah Bawah Tanah', year: 2026, season: 1, episode: 2, episodes: kisahBawahTanahEpisodes }, expected: 'discoverable' },
+      { id: 'kisah-bawah-tanah-s01e26', media: { canonicalId: 'tmdb:310817:1:26', type: 'episode', tmdbId: 310817, imdbId: 'tt33269221', title: 'Kisah Bawah Tanah', year: 2026, season: 1, episode: 26, episodes: kisahBawahTanahEpisodes }, expected: 'discoverable' },
+      { id: 'known-absent', media: { canonicalId: 'probe:absent', type: 'episode', tmdbId: 2147483647, title: 'FMHY Extractability Probe 7b18e49a', year: 1874, season: 1, episode: 1, episodes: [{ season: 1, episode: 1, title: 'FMHY Extractability Probe 7b18e49a' }] }, expected: 'absent' },
+    ],
+  }],
   ['kkphim', {
     familyId: 'kkphim',
     cases: [

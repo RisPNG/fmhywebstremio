@@ -9,6 +9,7 @@ import { TransportDirector } from '../engine/transport';
 import { extractorRegistry } from '../extractors/registry.generated';
 import { AnicineFamily } from '../extractors/sources/anicine-family';
 import { ArrowTvFamily } from '../extractors/sources/arrowtv-family';
+import { BiliBiliFamily } from '../extractors/sources/bilibili-family';
 import { BingeBangFamily } from '../extractors/sources/bingebang-family';
 import { CinegoFamily } from '../extractors/sources/cinego-family';
 import { CinemaOsFamily } from '../extractors/sources/cinemaos-family';
@@ -28,13 +29,13 @@ const dataDirectory = resolve(process.env['EXTRACTABILITY_DATA_DIR'] ?? '.data/e
 const transport = new TransportDirector({ globalConcurrency: 24, perHostConcurrency: 3, maxRetries: 1 });
 const registry = new SourceRegistry();
 const registryStore = new JsonSourceRegistryStore(resolve(dataDirectory, 'sources.json'));
-const families = new Map<string, SourceFamily>([['anicine', new AnicineFamily()], ['arrowtv', new ArrowTvFamily()], ['bingebang', new BingeBangFamily()], ['cinemaos', new CinemaOsFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['kkphim', new KkPhimFamily()], ['milkbox', new MilkBoxFamily()], ['movienerds', new MovieNerdsFamily()], ['pressplayx', new PressPlayXFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()], ['soaper', new SoaperFamily()], ['tmdb-embed-catalog', new TmdbEmbedCatalogFamily()]]);
+const families = new Map<string, SourceFamily>([['anicine', new AnicineFamily()], ['arrowtv', new ArrowTvFamily()], ['bilibili', new BiliBiliFamily()], ['bingebang', new BingeBangFamily()], ['cinemaos', new CinemaOsFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['kkphim', new KkPhimFamily()], ['milkbox', new MilkBoxFamily()], ['movienerds', new MovieNerdsFamily()], ['pressplayx', new PressPlayXFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()], ['soaper', new SoaperFamily()], ['tmdb-embed-catalog', new TmdbEmbedCatalogFamily()]]);
 const watch = process.argv.includes('--watch');
 const controller = new AbortController();
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => controller.abort(new Error(signal)));
 
 const provider = new FmhyDirectoryProvider(transport, undefined, new JsonDirectorySnapshotStore(resolve(dataDirectory, 'fmhy-snapshot.json')));
-const probes = new SourceFamilyProbeRunner(transport, [...families.values()], { maxRequests: 1, maxBytes: 2 * 1024 * 1024, deadlineMs: Number(process.env['EXTRACTABILITY_RECOGNITION_TIMEOUT_MS'] ?? 10000) });
+const probes = new SourceFamilyProbeRunner(transport, [...families.values()], { maxRequests: 8, maxBytes: 2 * 1024 * 1024, deadlineMs: Number(process.env['EXTRACTABILITY_RECOGNITION_TIMEOUT_MS'] ?? 10000) });
 const maintenance = new FmhyMaintenanceService(provider, registry, probes, registryStore, Number(process.env['EXTRACTABILITY_CONCURRENCY'] ?? 8), watch ? Number(process.env['EXTRACTABILITY_REPROBE_INTERVAL_MS'] ?? 24 * 60 * 60 * 1000) : 0);
 const dependencies = new DependencyGraph();
 const dependencyStore = new JsonDependencyStore(resolve(dataDirectory, 'dependencies.json'));

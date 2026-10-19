@@ -15,10 +15,13 @@ export class SourceRegistry {
       seen.add(id);
       const existing = this.records.get(id);
       const domains = [...new Set(entry.urls.map(url => url.hostname))];
+      const retained = existing && domains.includes(existing.canonicalDomain) ? existing : undefined;
+      const canonicalDomain = retained?.canonicalDomain ?? domains[0] ?? entry.urls[0]?.hostname ?? id;
+      if (existing && !retained) this.history.delete(id);
       this.records.set(id, {
-        id, canonicalDomain: domains[0] ?? entry.urls[0]?.hostname ?? id, aliases: domains.slice(1),
+        id, canonicalDomain, aliases: domains.filter(domain => domain !== canonicalDomain),
         fmhy: { name: entry.name, section: entry.section, tags: entry.tags, firstSeenAt: existing?.fmhy.firstSeenAt ?? snapshot.fetchedAt, lastSeenAt: snapshot.fetchedAt },
-        ...(existing?.family && { family: existing.family }), ...(existing?.probe && { probe: existing.probe }), status: existing?.status ?? 'unknown',
+        ...(retained?.family && { family: retained.family }), ...(retained?.probe && { probe: retained.probe }), status: existing?.status === 'disabled' ? 'disabled' : retained?.status ?? 'unknown',
       });
     }
     for (const id of this.records.keys()) if (!seen.has(id)) {

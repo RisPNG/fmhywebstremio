@@ -1,0 +1,81 @@
+{
+  "code": 0,
+  "message": "0",
+  "ttl": 1,
+  "data": {
+    "playurl": {
+      "quality": 16,
+      "duration": 726726,
+      "expire_at": 1792391801,
+      "video": [
+        {
+          "video_resource": {
+            "id": "/iupxcodeboss/fc/jl/n260728ad2rd5fhek4iy9t3gjr1jjlfc-1-112111110022.mp4",
+            "quality": 16,
+            "bandwidth": 0,
+            "codec_id": 7,
+            "duration": 726726,
+            "size": 34242314,
+            "md5": "",
+            "url": "https://media.test/bilibili/e26.mp4",
+            "backup_url": [],
+            "container": 2,
+            "start_with_sap": 0,
+            "codecs": "",
+            "sar": "",
+            "frame_rate": "",
+            "segment_base": {
+              "range": "",
+              "index_range": ""
+            },
+            "width": 0,
+            "height": 0,
+            "mime_type": ""
+          },
+          "stream_info": {
+            "quality": 16,
+            "desc_text": "",
+            "desc_words": "360P",
+            "intact": false,
+            "no_rexcode": false
+          },
+          "audio_quality": 30216
+        },
+        {
+          "video_resource": {
+            "id": "/iupxcodeboss/fc/jl/n260728ad2rd5fhek4iy9t3gjr1jjlfc-1-112111110022.mp4",
+            "quality": 16,
+            "bandwidth": 0,
+            "codec_id": 7,
+            "duration": 726726,
+            "size": 34242314,
+            "md5": "",
+            "url": "https://media.test/bilibili/e26.mp4",
+            "backup_url": [],
+            "container": 2,
+            "start_with_sap": 0,
+            "codecs": "",
+            "sar": "",
+            "frame_rate": "",
+            "segment_base": {
+              "range": "",
+              "index_range": ""
+            },
+            "width": 0,
+            "height": 0,
+            "mime_type": ""
+          },
+          "stream_info": {
+            "quality": 16,
+            "desc_text": "",
+            "desc_words": "360P",
+            "intact": false,
+            "no_rexcode": false
+          },
+          "audio_quality": 30216
+        }
+      ],
+      "audio_resource": null
+    }
+  }
+}

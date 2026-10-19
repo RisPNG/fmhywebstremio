@@ -1,0 +1,29 @@
+{
+  "code": 0,
+  "message": "0",
+  "data": {
+    "modules": [
+      {
+        "type": "ugc",
+        "items": [
+          {
+            "aid": "4799034694834688",
+            "title": "TheMart (E1) 💀",
+            "duration": "12:12"
+          },
+          {
+            "aid": "4795059984799232",
+            "title": "𝐃𝐞𝐞 The Series (E1) 🎸",
+            "duration": "21:15"
+          },
+          {
+            "aid": "2003244967",
+            "title": "MART IN ELGIN OUT",
+            "duration": "2:50"
+          }
+        ]
+      }
+    ],
+    "has_next": true
+  }
+}

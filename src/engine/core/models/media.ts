@@ -12,4 +12,5 @@ export interface MediaRequest {
 export interface MediaIdentity extends MediaRequest {
   canonicalId: string;
   title: string;
+  episodes?: readonly { season: number; episode: number; title?: string }[];
 }

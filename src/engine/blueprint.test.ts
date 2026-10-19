@@ -146,6 +146,58 @@ describe('FMHY registry and health', () => {
     expect(report).toMatchObject({ ok: false, totals: { redirected: 1, runtimeEligible: 0 }, sites: [{ status: 'redirected', observedFinalUrl: 'https://other.example/' }] });
   });
 
+  test.each([false, true])('recognizes and retains a declared alternate domain after an unlisted redirect: %s', async (redirected) => {
+    let markdown = '# Movies / TV\n## Streaming Sites\n- [Alpha](https://alpha.example) / [International](https://beta.example)';
+    const services: RequestServices = { request: jest.fn(async request => request.url.hostname === 'fmhy.test' ? response(request.url.href, markdown) : request.url.hostname === 'alpha.example' ? response(redirected ? 'https://unlisted.example/' : request.url.href, redirected ? '<script src="/wp-content/themes/dooplay/app.js"></script><a href="/movies/x">x</a>' : '<html><body>Mainland player</body></html>') : response('https://www.beta.example/', '<script src="/wp-content/themes/dooplay/app.js"></script><a href="/movies/x">x</a>')) };
+    const registry = new SourceRegistry();
+    const probes = new SourceFamilyProbeRunner(services, [new DooplayFamily()], { maxRequests: 2, maxBytes: 10000, deadlineMs: 1000 });
+    const maintenance = new FmhyMaintenanceService(new FmhyDirectoryProvider(services, [new URL('https://fmhy.test/data')]), registry, probes);
+
+    await maintenance.synchronize(new AbortController().signal);
+
+    expect(registry.list()).toMatchObject([{ id: 'alpha:alpha.example', canonicalDomain: 'beta.example', aliases: ['alpha.example'], family: { id: 'dooplay' }, probe: { outcome: 'matched', finalUrl: 'https://www.beta.example/' } }]);
+    expect((services.request as jest.Mock).mock.calls.map(([request]) => request.url.href)).toEqual(['https://fmhy.test/data', 'https://alpha.example/', 'https://beta.example/']);
+    await maintenance.synchronize(new AbortController().signal);
+    expect(registry.list()[0]).toMatchObject({ canonicalDomain: 'beta.example', aliases: ['alpha.example'] });
+    expect(services.request).toHaveBeenCalledTimes(4);
+    registry.set({ ...(registry.list()[0] as SourceRecord), status: 'supported' });
+    registry.recordHealth({ sourceId: 'alpha:alpha.example', lastOutcome: 'healthy', recentSuccesses: 2, recentFailures: 0, observedAt: new Date() });
+    expect(registry.runtimeEligible()).toHaveLength(1);
+    markdown = '# Movies / TV\n## Streaming Sites\n- [Alpha](https://alpha.example)';
+    await maintenance.synchronize(new AbortController().signal);
+    expect(registry.list()[0]).toMatchObject({ canonicalDomain: 'alpha.example', aliases: [], status: 'unsupported', probe: { outcome: redirected ? 'redirected' : 'unsupported', finalUrl: redirected ? 'https://unlisted.example/' : 'https://alpha.example/' } });
+    expect(registry.list()[0]?.family).toBeUndefined();
+    expect(registry.health().has('alpha:alpha.example')).toBe(false);
+    expect(registry.runtimeEligible()).toEqual([]);
+    expect(services.request).toHaveBeenCalledTimes(6);
+  });
+
+  test('keeps alternate-domain recognition within the source request and byte budgets', async () => {
+    const source: SourceRecord = { id: 'alpha', canonicalDomain: 'alpha.example', aliases: ['beta.example'], fmhy: { firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, status: 'unknown' };
+    const services: RequestServices = { request: jest.fn(async request => response(request.url.href, '<html>Unknown player</html>')) };
+    await expect(new SourceFamilyProbeRunner(services, [new DooplayFamily()], { maxRequests: 1, maxBytes: 100, deadlineMs: 1000 }).recognize(source, new AbortController().signal)).resolves.toMatchObject({ type: 'failure', failure: { code: 'FAMILY_PROBE_BUDGET_EXCEEDED' } });
+    expect(services.request).toHaveBeenCalledTimes(1);
+    (services.request as jest.Mock).mockClear();
+    await expect(new SourceFamilyProbeRunner(services, [new DooplayFamily()], { maxRequests: 2, maxBytes: 40, deadlineMs: 1000 }).recognize(source, new AbortController().signal)).resolves.toMatchObject({ type: 'failure', failure: { code: 'FAMILY_PROBE_BUDGET_EXCEEDED' } });
+    expect((services.request as jest.Mock).mock.calls.map(([request]) => request.maxBytes)).toEqual([40, 13]);
+    const blocked: RequestServices = { request: jest.fn().mockRejectedValueOnce(new TransportFailure({ code: 'HTTP_FORBIDDEN', message: 'forbidden', observedAt: new Date(0), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, bodyBytes: 480 } })).mockResolvedValueOnce(response('https://beta.example/', '<script src="/wp-content/themes/dooplay/app.js"></script><a href="/movies/x">x</a>')) };
+    await expect(new SourceFamilyProbeRunner(blocked, [new DooplayFamily()], { maxRequests: 2, maxBytes: 500, deadlineMs: 1000 }).recognize(source, new AbortController().signal)).resolves.toMatchObject({ type: 'failure', failure: { code: 'FAMILY_PROBE_BUDGET_EXCEEDED' } });
+    expect((blocked.request as jest.Mock).mock.calls.map(([request]) => request.maxBytes)).toEqual([500, 20]);
+  });
+
+  test('preserves administrative disabling when the active alternate domain leaves the directory', () => {
+    const registry = new SourceRegistry();
+    registry.apply(parseFmhyDirectory('# Movies / TV\n## Streaming Sites\n- [Alpha](https://alpha.example) / [International](https://beta.example)'));
+    registry.set({ ...(registry.list()[0] as SourceRecord), canonicalDomain: 'beta.example', aliases: ['alpha.example'], status: 'disabled', family: { id: 'dooplay', confidence: 1, evidence: [], lastProbedAt: new Date() }, probe: { outcome: 'matched', observedAt: new Date(), finalUrl: 'https://beta.example/' } });
+    registry.recordHealth({ sourceId: 'alpha:alpha.example', lastOutcome: 'healthy', recentSuccesses: 2, recentFailures: 0, observedAt: new Date() });
+    registry.apply(parseFmhyDirectory('# Movies / TV\n## Streaming Sites\n- [Alpha](https://alpha.example)'));
+    expect(registry.list()[0]).toMatchObject({ canonicalDomain: 'alpha.example', aliases: [], status: 'disabled' });
+    expect(registry.list()[0]?.family).toBeUndefined();
+    expect(registry.list()[0]?.probe).toBeUndefined();
+    expect(registry.health().size).toBe(0);
+    expect(registry.runtimeEligible()).toEqual([]);
+  });
+
   test('distinguishes a blocked family probe from an unreachable site', async () => {
     const source: SourceRecord = { id: 'blocked', canonicalDomain: 'blocked.test', aliases: [], fmhy: { firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, status: 'unknown' };
     const blocked: RequestServices = { request: jest.fn().mockRejectedValue(new TransportFailure({ code: 'HTTP_FORBIDDEN', message: 'forbidden', observedAt: new Date(0), diagnostic: { sensitivity: 'privileged', bodyCaptured: false } })) };
