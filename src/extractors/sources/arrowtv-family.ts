@@ -52,24 +52,25 @@ export class ArrowTvFamily implements SourceFamily {
         }
         const watchResponse = await services.request({ url: watch, expectedContent: 'html', stateScope: { kind: 'source', key: source.id } }, signal);
         const watchPage = cheerio.load(watchResponse.text());
-        const player = watchPage('iframe[src]').map((_index, element) => watchPage(element).attr('src')).get().map(value => new URL(value, watchResponse.finalUrl)).find(url => url.pathname === expectedEmbedPath);
-        if (!player) {
+        const players = new Map(watchPage('iframe[src]').map((_index, element) => watchPage(element).attr('src')).get().map(value => new URL(value, watchResponse.finalUrl)).filter(url => url.pathname === expectedEmbedPath).map(url => [url.href, { url, host: url.hostname.startsWith('player.cinezo.') ? this.cinezo : this.host }]));
+        let token: string | undefined;
+        const assets = watchPage('script[src]').map((_index, element) => watchPage(element).attr('src')).get().reverse();
+        for (const asset of assets) {
+          const script = await services.request({ url: new URL(asset, watchResponse.finalUrl), expectedContent: 'text', referrer: watchResponse.finalUrl, stateScope: { kind: 'source', key: source.id } }, signal);
+          const client = script.text();
+          const configured = [...client.matchAll(new RegExp('\\{key:"(vidlove|cinezo)",label:"[^"]+",url:[^=]+=>`(https://[^`]+/embed/' + (media.type === 'movie' ? 'movie' : 'tv') + '/)\\$\\{', 'g'))];
+          for (const server of configured) {
+            const url = new URL(`${media.tmdbId}${media.type === 'episode' ? `/${media.season}/${media.episode}` : ''}`, server[2]);
+            players.set(url.href, { url, host: server[1] === 'cinezo' ? this.cinezo : this.host });
+          }
+          if (client.includes('api.themoviedb.org/3/')) token = client.match(/"(eyJhbGciOi[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)"/)?.[1] ?? token;
+          if (configured.length && (media.type === 'movie' || token)) break;
+        }
+        if (!players.size) {
           playerFailure = { type: 'failure', failure: { code: 'EMBED_NOT_FOUND', message: 'ArrowTV watch page no longer configures its player', stage: 'stage:extraction', sourceId: source.id, familyId: this.id, targetHost: domain, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: watchResponse.status, bodyCaptured: false, parserPath: 'watch-player' } } };
           continue;
         }
         if (media.type === 'episode') {
-          let token: string | undefined;
-          const assets = watchPage('script[src]').map((_index, element) => watchPage(element).attr('src')).get();
-          for (const asset of assets) {
-            const script = await services.request({ url: new URL(asset, watchResponse.finalUrl), expectedContent: 'text', referrer: watchResponse.finalUrl, stateScope: { kind: 'source', key: source.id } }, signal);
-            const client = script.text();
-            if (!client.includes('api.themoviedb.org/3/')) continue;
-            const candidate = client.match(/"(eyJhbGciOi[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)"/)?.[1];
-            if (candidate) {
-              token = candidate;
-              break;
-            }
-          }
           if (!token) return { type: 'failure', failure: { code: 'PAGE_STRUCTURE_CHANGED', message: 'ArrowTV watch page no longer exposes its season catalog', stage: 'stage:discovery', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: watchResponse.status, bodyCaptured: false, parserPath: 'watch-season-catalog' } } };
           const seasonUrl = new URL(`https://api.themoviedb.org/3/tv/${media.tmdbId}/season/${media.season}`);
           seasonUrl.searchParams.set('language', 'en-US');
@@ -84,10 +85,14 @@ export class ArrowTvFamily implements SourceFamily {
           if (!Array.isArray(catalog.episodes)) return { type: 'failure', failure: { code: 'RESPONSE_SCHEMA_CHANGED', message: 'ArrowTV season catalog did not contain episodes', stage: 'stage:discovery', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: season.status, bodyCaptured: false, parserPath: 'episodes' } } };
           if (catalog.season_number !== media.season || !catalog.episodes.some(episode => episode.episode_number === media.episode)) return { type: 'empty', reason: 'not-found' };
         }
-        const host = player.hostname.startsWith('player.cinezo.') ? this.cinezo : this.host;
-        const result = await host.discover(media, player, source.id, this.id, services, signal);
-        if (result.type !== 'failure' || result.failure.code !== 'PAGE_STRUCTURE_CHANGED') return result;
-        playerFailure = result;
+        const results = await Promise.allSettled([...players.values()].map(player => player.host.discover(media, player.url, source.id, this.id, services, signal)));
+        const streams = results.flatMap(result => result.status === 'fulfilled' && result.value.type === 'streams' ? result.value.streams : []);
+        if (streams.length) return { type: 'streams', streams };
+        const failure = results.find(result => result.status === 'fulfilled' && result.value.type === 'failure');
+        if (failure?.status === 'fulfilled') playerFailure = failure.value;
+        else if (results.some(result => result.status === 'fulfilled' && result.value.type === 'empty')) playerFailure = { type: 'empty', reason: 'no-streams' };
+        const rejected = results.find(result => result.status === 'rejected');
+        if (rejected?.status === 'rejected') blocked = rejected.reason;
       } catch (error) {
         if (error instanceof TransportFailure) {
           blocked = error;
