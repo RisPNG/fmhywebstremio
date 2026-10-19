@@ -126,6 +126,51 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       status: 'supported',
     },
     {
+      id: 'bilibili:bilibili.com',
+      canonicalDomain: 'bilibili.tv',
+      aliases: [
+        'bilibili.com',
+        'watch.typetype.video',
+        'typetype.video',
+        'github.com',
+        'reddit.com',
+      ],
+      fmhy: {
+        name: 'BiliBili',
+        section: '▷ Video Streaming',
+        tags: [
+          'recommended',
+        ],
+        firstSeenAt: new Date(0),
+        lastSeenAt: new Date(0),
+      },
+      status: 'supported',
+      family: {
+        id: 'bilibili',
+        confidence: 1,
+        evidence: [
+          {
+            type: 'script-signature',
+            fingerprint: 'bilibili-international-brand',
+          },
+          {
+            type: 'script-signature',
+            fingerprint: 'bilibili-bstar-metadata',
+          },
+          {
+            type: 'asset-path',
+            value: 'bilibili-bstar-client',
+          },
+        ],
+        lastProbedAt: new Date(0),
+      },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://www.bilibili.tv/',
+      },
+    },
+    {
       id: 'milkbox:milkbox.zapto.org',
       canonicalDomain: 'milkbox.zapto.org',
       aliases: [],
@@ -259,6 +304,13 @@ export const deploymentSourceRegistry: SourceRegistryState = {
     },
     {
       sourceId: 'arrowtv:arrowtv.net',
+      lastOutcome: 'healthy',
+      recentSuccesses: 3,
+      recentFailures: 0,
+      observedAt: new Date(0),
+    },
+    {
+      sourceId: 'bilibili:bilibili.com',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
       recentFailures: 0,

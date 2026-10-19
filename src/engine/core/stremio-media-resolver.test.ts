@@ -11,6 +11,35 @@ describe('StremioMediaResolver', () => {
     await expect(new StremioMediaResolver(services, '').resolve({ type: 'movie', imdbId: 'tt1375666' }, new AbortController().signal)).resolves.toEqual({ type: 'movie', imdbId: 'tt1375666', canonicalId: 'tmdb:27205', tmdbId: 27205, title: 'Inception', year: 2010 });
   });
 
+  test.each([{ token: '', requests: 1 }, { token: 'fixture-token', requests: 2 }])('retains native episode metadata through $requests metadata stages', async ({ token, requests }) => {
+    const fixture = readFileSync(resolve(__dirname, '__fixtures__/cinemeta-kisah-bawah-tanah.json'), 'utf8');
+    const services: RequestServices = { request: jest.fn(async (request): Promise<ExtractionResponse> => {
+      const payload = request.url.hostname === 'v3-cinemeta.strem.io' ? JSON.parse(fixture) as unknown : { id: 310817, name: 'Kisah Bawah Tanah' };
+      const body = JSON.stringify(payload);
+      return { status: 200, headers: {}, body: Buffer.from(body), finalUrl: request.url, redirectChain: [], truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 }, text: () => body, json: () => payload };
+    }) };
+    const request = { type: 'episode' as const, imdbId: 'tt33269221', season: 1, episode: 2, preferredLanguages: ['ms'] };
+    const identity = await new StremioMediaResolver(services, token).resolve(request, new AbortController().signal);
+    expect(identity).toMatchObject({ ...request, canonicalId: 'tmdb:310817', tmdbId: 310817, title: 'Kisah Bawah Tanah', year: 2026 });
+    expect(identity.episodes).toHaveLength(26);
+    expect(identity.episodes?.slice(0, 2)).toEqual([{ season: 1, episode: 1, title: 'The Mart' }, { season: 1, episode: 2, title: 'Toyol Handler' }]);
+    expect(identity.episodes?.at(-1)).toEqual({ season: 1, episode: 26, title: 'Seven Wells' });
+    expect([...new Set(identity.episodes?.map(episode => episode.season))]).toEqual([1]);
+    expect(services.request).toHaveBeenCalledTimes(requests);
+  });
+
+  test('keeps regular episode coordinates and optional titles without admitting specials or invalid numbering', async () => {
+    const payload = { meta: { name: 'Series', moviedb_id: 1396, videos: [
+      { season: 0, episode: 1, title: 'Special' }, { season: 1, episode: 0 }, { season: -1, episode: 1 }, { season: 1.5, episode: 1 }, { season: 1, episode: 1.5 }, { season: '1', episode: 4 },
+      { season: 1, episode: 2, title: '  A regular episode  ' }, { season: 2, episode: 1, title: ' ' }, { season: 2, episode: 2 }, { season: 2, episode: 3, title: 7 },
+    ] } };
+    const body = JSON.stringify(payload);
+    const services: RequestServices = { request: async (request): Promise<ExtractionResponse> => ({ status: 200, headers: {}, body: Buffer.from(body), finalUrl: request.url, redirectChain: [], truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 }, text: () => body, json: () => payload }) };
+    const identity = await new StremioMediaResolver(services, '').resolve({ type: 'episode', imdbId: 'tt0903747', season: 2, episode: 1 }, new AbortController().signal);
+    expect(identity.episodes).toEqual([{ season: 1, episode: 2, title: 'A regular episode' }, { season: 2, episode: 1 }, { season: 2, episode: 2 }, { season: 2, episode: 3 }]);
+    expect(payload.meta.videos[6]?.title).toBe('  A regular episode  ');
+  });
+
   test('lets ID-native families use TMDB requests without a metadata secret', async () => {
     const services = { request: jest.fn() } as unknown as RequestServices;
 

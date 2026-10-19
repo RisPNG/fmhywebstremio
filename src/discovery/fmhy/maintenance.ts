@@ -27,7 +27,8 @@ export class FmhyMaintenanceService {
             delete unassigned.family;
             this.registry.set({ ...unassigned, status: 'unsupported', probe: { outcome: 'redirected', observedAt: new Date(), finalUrl: recognition.snapshot.finalUrl.href, message: `Candidate redirected to ${recognition.snapshot.finalUrl.hostname}` } });
           } else {
-            this.registry.set({ ...source, family: { id: recognition.match.familyId, confidence: recognition.match.confidence, evidence: [...recognition.match.evidence], lastProbedAt: new Date() }, probe: { outcome: 'matched', observedAt: new Date(), finalUrl: recognition.snapshot.finalUrl.href } });
+            const canonicalDomain = [source.canonicalDomain, ...source.aliases].find(domain => domain.replace(/^www\d*\./, '') === recognition.snapshot.finalUrl.hostname.replace(/^www\d*\./, '')) as string;
+            this.registry.set({ ...source, canonicalDomain, aliases: [source.canonicalDomain, ...source.aliases].filter(domain => domain !== canonicalDomain), family: { id: recognition.match.familyId, confidence: recognition.match.confidence, evidence: [...recognition.match.evidence], lastProbedAt: new Date() }, probe: { outcome: 'matched', observedAt: new Date(), finalUrl: recognition.snapshot.finalUrl.href } });
           }
         } else if (redirected && recognition.snapshot) {
           const unassigned = { ...source };
