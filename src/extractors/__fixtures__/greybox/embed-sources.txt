@@ -1,0 +1,155 @@
+/* Greybox embed provider registry — the SINGLE SOURCE OF TRUTH for external
+ * embed providers. Loaded before js/source-resolver.js and js/stream.js.
+ *
+ *   Provider Registry  (this file)
+ *          │
+ *   ┌──────┼──────────┬──────────────┐
+ *   ↓      ↓          ↓              ↓
+ * Movies   TV       Sports      (future types)
+ *   │      │          │
+ *   └──────┼──────────┘
+ *          ↓
+ *   Generic resolver — js/source-resolver.js → GreyboxSources.resolveSource()
+ *          ↓
+ *   <iframe id="embed-frame">   (js/stream.js → Stream.Player)
+ *
+ * Sports metadata NEVER lives here: js/sports-data.js produces normalized
+ * events, the player (js/sports-player.js) asks the resolver for a URL, and
+ * this registry only maps (provider, type, id) → embed URL template.
+ *
+ * ── Adding a provider = editing this array (no player/resolver changes) ──
+ *   {
+ *     id: 'my-provider',            // stable identity, used by the source picker
+ *     name: 'My Provider',          // display label
+ *     type: 'embed',
+ *     enabled: true,
+ *     priority: 20,                 // lower number = tried first
+ *     movieTemplate:  'https://host/embed/movie/{tmdb_id}',
+ *     tvTemplate:     'https://host/embed/tv/{tmdb_id}/{season}/{episode}',
+ *     sportsTemplate: 'https://host/embed/sports/{id}',
+ *     supports: { movie: true, tv: true, sports: true },
+ *     note: 'optional description shown in the source picker',
+ *     development: true             // optional: marks a dev-only placeholder
+ *   }
+ *
+ * ── Supported placeholders (URL-encoded at resolve time) ──
+ *   {id} {tmdb_id}      content identifier (movie/TV id, or sports event id)
+ *   {season} {episode}  TV routing (default 1 / 1 when not supplied)
+ *   {videoId}           sports event metadata.videoId (official YouTube replays)
+ *   {sport} {competition} {league}   normalized sports event fields
+ * Unknown placeholders are REJECTED by the resolver (never shipped to an
+ * iframe), and every resolved URL must parse as HTTPS (see js/source-resolver.js).
+ *
+ * ── SPORTS PROVIDER ──
+ * `damitv-embed` is the sports embed provider. Its template follows DAMITV's
+ * own published embed format — https://damitv.st/embed/?id={id} — where {id}
+ * is a DAMITV stream id (e.g. cfb/2026-10-03/nd-unc), URL-encoded by the
+ * resolver exactly the way their API emits it (%2F for the slashes). Greybox
+ * event ids come from a different feed, so js/sports-data.js maps a
+ * normalized event to its DAMITV stream id via /api/sports/streams before
+ * this template is filled; when nothing matches, the event id is used as-is.
+ *
+ * ── DEVELOPMENT PLACEHOLDER ──
+ * `provider-placeholder` points at https://example.com for movies and TV
+ * (serves no video). It exists so the source-picker flow can be built and
+ * tested end to end without hard-coding any third-party streaming provider.
+ * Its movie/TV supports follow the operator's EMBED slot (restored Oct 18
+ * 2026, see the entry below).
+ *
+ * ── THE KNOB (Oct 17 2026; playback restored Oct 18 2026) ──
+ * `greybox-embed` is flagged `embedSlot: true`: at resolve time
+ * js/source-resolver.js rebuilds its template from the operator's `EMBED`
+ * slot in js/stream.js, so EMBED.base stays the single host knob.
+ *
+ * MOVIE AND TV PLAYBACK IS RESTORED through the operator's own embed host:
+ * greybox-embed carries supports { movie:true, tv:true } and resolves
+ * movie/TV URLs from the EMBED slot alone — the single-knob contract the
+ * Oct 17 interim briefly disabled (kept here for the record: during the
+ * interim both supports flags were false and the static mirror templates
+ * were deleted, so no path could produce a movie/TV embed URL). Sports
+ * (official YouTube replays + DAMITV) is unaffected.
+ */
+(function (root) {
+  'use strict';
+
+  var registry = {
+    version: 1,
+    providers: [
+      {
+        id: 'greybox-embed',
+        name: 'Greybox configured provider',
+        type: 'embed',
+        enabled: true,
+        priority: 1,
+        // THE KNOB — this entry is flagged `embedSlot: true`, so
+        // js/source-resolver.js rebuilds its movie/TV template from the
+        // `EMBED` slot in js/stream.js at resolve time: set the host ONCE in
+        // stream.js and the player, the source picker and every Watch button
+        // follow.
+        //
+        // RESTORED (Oct 18 2026): the operator's host in EMBED.base (the knob
+        // in js/stream.js) is the authorized embed host, so movie/TV supports
+        // are back on — the resolver rebuilds this entry's templates from the
+        // slot at resolve time. The static mirrors stay here ONLY for
+        // headless/stale runs — keep them in step with the slot. Sports stays
+        // off (the official YouTube/DAMITV providers own it).
+        embedSlot: true,
+        movieTemplate: 'https://vidoraplayer.vidora-081.workers.dev/embed/movie/{tmdb_id}',
+        tvTemplate: 'https://vidoraplayer.vidora-081.workers.dev/embed/tv/{tmdb_id}/{season}/{episode}',
+        supports: { movie: true, tv: true, sports: false },
+        note: 'Greybox embed host — movie/TV templates rebuilt from the EMBED slot (js/stream.js) at resolve time'
+      },
+      {
+        id: 'youtube-embed',
+        name: 'YouTube (official embed)',
+        type: 'embed',
+        enabled: true,
+        priority: 10,
+        // Only resolves when the sports event carries metadata.videoId
+        // (replays and official live uploads). For a plain fixture the
+        // resolver reports an unresolved {videoId} and the next provider
+        // is tried — no probing, no guessing.
+        sportsTemplate: 'https://www.youtube-nocookie.com/embed/{videoId}',
+        supports: { movie: false, tv: false, sports: true },
+        note: 'Official YouTube player — rights-holder channels only'
+      },
+      {
+        id: 'damitv-embed',
+        name: 'DAMITV',
+        type: 'embed',
+        enabled: true,
+        priority: 20,
+        // Official DAMITV embed format (their own docs + API `iframe` field):
+        //   https://damitv.st/embed/?id=<stream-id>
+        // {id} is the DAMITV stream id resolved for this event by
+        // js/sports-data.js (via /api/sports/streams); slashes are
+        // URL-encoded to %2F, matching the URLs their API publishes.
+        sportsTemplate: 'https://damitv.st/embed/?id={id}',
+        supports: { movie: false, tv: false, sports: true },
+        note: 'DAMITV live sports — official embed player'
+      },
+      {
+        id: 'provider-placeholder',
+        name: 'Provider Placeholder',
+        type: 'embed',
+        enabled: true,
+        priority: 100,
+        // DEVELOPMENT PLACEHOLDER ONLY — https://example.com serves no video.
+        // DMCA INTERIM (Oct 17 2026): movie/TV playback removed everywhere, so
+        // this stub is off for movie/TV too (supports false) — it can never
+        // emit a URL from the picker or a Watch button. Flip supports.movie/tv
+        // back on for local source-picker development only.
+        // Sports is intentionally NOT supported here: sports uses damitv-embed.
+        movieTemplate: 'https://example.com/embed/movie/{tmdb_id}',
+        tvTemplate: 'https://example.com/embed/tv/{tmdb_id}/{season}/{episode}',
+        supports: { movie: false, tv: false, sports: false },
+        development: true,
+        note: 'Development placeholder (https://example.com) — movie/TV supports off during the DMCA playback removal'
+      }
+    ]
+  };
+
+  root.GreyboxEmbedSources = registry;
+  // Headless/test hook. Browser behaviour unchanged.
+  if (typeof module !== 'undefined' && module.exports) module.exports = registry;
+})(typeof window !== 'undefined' ? window : globalThis);

@@ -1,0 +1,135 @@
+{
+  "id": 1396,
+  "season_number": 5,
+  "name": "Season 5",
+  "episodes": [
+    {
+      "episode_number": 1,
+      "name": "Live Free or Die",
+      "overview": "As Walt deals with the aftermath of the Casa Tranquila explosion, Hank works to wrap up his investigation of Gus' empire.",
+      "runtime": 43,
+      "air_date": "2012-07-15",
+      "still_path": "/uShB5dWoA3xIivZ9jvwWnGCVvt4.jpg"
+    },
+    {
+      "episode_number": 2,
+      "name": "Madrigal",
+      "overview": "Walt and Jesse pursue an unlikely business partner. The DEA filters through various leads in hopes of finding something.",
+      "runtime": 48,
+      "air_date": "2012-07-22",
+      "still_path": "/9WIzJqqUthdASBRE1Ts8ymrDhIv.jpg"
+    },
+    {
+      "episode_number": 3,
+      "name": "Hazard Pay",
+      "overview": "Walt and Jesse formulate a new business plan. Walt shares a secret with Marie.",
+      "runtime": 48,
+      "air_date": "2012-07-29",
+      "still_path": "/l84H1dZVkQGgFVomKHc67RKaEC2.jpg"
+    },
+    {
+      "episode_number": 4,
+      "name": "Fifty-One",
+      "overview": "Walt celebrates another birthday. Skyler contemplates her options, and an associate puts a crimp in Walt and Jesse's business strategy.",
+      "runtime": 48,
+      "air_date": "2012-08-05",
+      "still_path": "/zxcf3ER2rzU9IxCxJEhCCw1MyT.jpg"
+    },
+    {
+      "episode_number": 5,
+      "name": "Dead Freight",
+      "overview": "Walt's team gets creative to obtain the methylamine they need to continue their operation.",
+      "runtime": 49,
+      "air_date": "2012-08-12",
+      "still_path": "/ay9uj9CMQJezaB407JCPMDYSptK.jpg"
+    },
+    {
+      "episode_number": 6,
+      "name": "Buyout",
+      "overview": "Walt, Jesse, and Mike struggle over the future of their business, as occupational hazards weigh on Jesse.",
+      "runtime": 48,
+      "air_date": "2012-08-19",
+      "still_path": "/6SHawaVRg4Iw3Ry2adH29TjHYhK.jpg"
+    },
+    {
+      "episode_number": 7,
+      "name": "Say My Name",
+      "overview": "Walt takes control of business matters; Mike deals with the consequences of his actions.",
+      "runtime": 48,
+      "air_date": "2012-08-26",
+      "still_path": "/2NA7ti9jsWnG4xreMEFwbq4DH1f.jpg"
+    },
+    {
+      "episode_number": 8,
+      "name": "Gliding Over All",
+      "overview": "Walt takes care of loose ends; Walt makes a dangerous decision.",
+      "runtime": 48,
+      "air_date": "2012-09-02",
+      "still_path": "/uTAPBgAah14jQbV98Sw7iqJD4W7.jpg"
+    },
+    {
+      "episode_number": 9,
+      "name": "Blood Money",
+      "overview": "As Walt and Jesse adjust to life out of the business, Hank grapples with a troubling lead.",
+      "runtime": 48,
+      "air_date": "2013-08-11",
+      "still_path": "/uvxl7TMG4dZG9D5bzzQzKqfUdnD.jpg"
+    },
+    {
+      "episode_number": 10,
+      "name": "Buried",
+      "overview": "While Skyler's past catches up with her, Walt covers his tracks. Jesse continues to struggle with his guilt.",
+      "runtime": 48,
+      "air_date": "2013-08-18",
+      "still_path": "/b0aRvTXslQgJpCmmcmoYqS9MsIB.jpg"
+    },
+    {
+      "episode_number": 11,
+      "name": "Confessions",
+      "overview": "Jesse decides to make a change, while Walt and Skyler try to deal with an unexpected demand.",
+      "runtime": 48,
+      "air_date": "2013-08-25",
+      "still_path": "/75lrTEzbUh4iZlMs0aN4mKisD4C.jpg"
+    },
+    {
+      "episode_number": 12,
+      "name": "Rabid Dog",
+      "overview": "An unusual strategy starts to bear fruit, while plans are set in motion that could change everything.",
+      "runtime": 48,
+      "air_date": "2013-09-01",
+      "still_path": "/5VkI8lm7Xcmlxk92pWRyW341d70.jpg"
+    },
+    {
+      "episode_number": 13,
+      "name": "To'hajiilee",
+      "overview": "Things heat up for Walt in unexpected ways.",
+      "runtime": 47,
+      "air_date": "2013-09-08",
+      "still_path": "/lunoCRprYl0jEJEkGTS8v6eFq1n.jpg"
+    },
+    {
+      "episode_number": 14,
+      "name": "Ozymandias",
+      "overview": "Everyone copes with radically changed circumstances.",
+      "runtime": 48,
+      "air_date": "2013-09-15",
+      "still_path": "/k80r5JYO4LLrPJbWDXmlg7IxRMI.jpg"
+    },
+    {
+      "episode_number": 15,
+      "name": "Granite State",
+      "overview": "Events set in motion long ago move toward a conclusion.",
+      "runtime": 54,
+      "air_date": "2013-09-22",
+      "still_path": "/pkAdPUHvRlvTnz2uA0gAQiGXpos.jpg"
+    },
+    {
+      "episode_number": 16,
+      "name": "Felina",
+      "overview": "All bad things must come to an end.",
+      "runtime": 56,
+      "air_date": "2013-09-29",
+      "still_path": "/pA0YwyhvdDXP3BEGL2grrIhq8aM.jpg"
+    }
+  ]
+}

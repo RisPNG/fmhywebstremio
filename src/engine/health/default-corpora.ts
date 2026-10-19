@@ -91,6 +91,19 @@ export const defaultFamilyHealthCorpora = new Map<string, FamilyHealthCorpus>([
       { id: 'known-absent', media: { canonicalId: 'probe:absent', type: 'movie', tmdbId: 1, title: 'FMHY Extractability Probe 7b18e49a', year: 1874 }, expected: 'absent' },
     ],
   }],
+  ['greybox', {
+    familyId: 'greybox',
+    cases: [
+      { id: 'inception-2010', media: { canonicalId: 'tmdb:27205', type: 'movie', tmdbId: 27205, imdbId: 'tt1375666', title: 'Inception', year: 2010 }, expected: 'discoverable' },
+      { id: 'breaking-bad-s01e01', media: { canonicalId: 'tmdb:1396:1:1', type: 'episode', tmdbId: 1396, imdbId: 'tt0903747', title: 'Breaking Bad', year: 2008, season: 1, episode: 1 }, expected: 'discoverable' },
+      { id: 'the-boys-s02e01', media: { canonicalId: 'tmdb:76479:2:1', type: 'episode', tmdbId: 76479, imdbId: 'tt1190634', title: 'The Boys', year: 2019, season: 2, episode: 1 }, expected: 'discoverable' },
+      { id: 'kahar-kapla-high-council-2024', media: { canonicalId: 'tmdb:1303517', type: 'movie', tmdbId: 1303517, imdbId: 'tt31242447', title: 'Kahar: Kapla High Council', year: 2024 }, expected: 'discoverable' },
+      { id: 'kudrat-1968-high-council-s01e01', media: { canonicalId: 'tmdb:334097:1:1', type: 'episode', tmdbId: 334097, imdbId: 'tt35052365', title: 'Kudrat 1968: High Council', year: 2026, season: 1, episode: 1 }, expected: 'discoverable' },
+      { id: 'kudrat-1968-high-council-s01e04', media: { canonicalId: 'tmdb:334097:1:4', type: 'episode', tmdbId: 334097, imdbId: 'tt35052365', title: 'Kudrat 1968: High Council', year: 2026, season: 1, episode: 4 }, expected: 'discoverable' },
+      { id: 'project-high-council-s01e01', media: { canonicalId: 'tmdb:218507:1:1', type: 'episode', tmdbId: 218507, imdbId: 'tt21841200', title: 'Project: High Council', year: 2023, season: 1, episode: 1 }, expected: 'discoverable' },
+      { id: 'known-absent', media: { canonicalId: 'probe:absent', type: 'movie', tmdbId: 2147483647, title: 'FMHY Extractability Probe 7b18e49a', year: 1874 }, expected: 'absent' },
+    ],
+  }],
   ['soaper', {
     familyId: 'soaper',
     cases: [
