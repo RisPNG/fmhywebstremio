@@ -2,7 +2,9 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { ExtractionRequest, ExtractionResult, MediaIdentity, RequestServices, SourceRecord } from '../../engine/core/models';
 import type { SourceProbeSnapshot } from '../../engine/health';
+import { TransportFailure } from '../../engine/transport/transport-director';
 import type { CineproHostArchitecture } from '../hosts/cinepro-host-architecture';
+import type { VidBoltHostArchitecture } from '../hosts/vidbolt-host-architecture';
 import type { XpassHostArchitecture } from '../hosts/xpass-host-architecture';
 import { AnicineFamily } from './anicine-family';
 
@@ -74,6 +76,32 @@ describe('AniCine source family', () => {
     expect(xpass.discover).toHaveBeenNthCalledWith(2, episode, new URL('https://current-player.test/e/tv/76479/2/1'), source.id, 'anicine', services, expect.any(AbortSignal));
     expect(xpass.discover).toHaveBeenNthCalledWith(3, anime, new URL('https://current-player.test/e/tv/1429/2/1'), source.id, 'anicine', services, expect.any(AbortSignal));
     expect(host.discover).not.toHaveBeenCalled();
+  });
+
+  test('keeps advertised VidBolt results when Xpass is blocked and deduplicates the primary and vidpass URLs', async () => {
+    fixtures['players.txt'] = readFileSync(resolve(__dirname, '../__fixtures__/anicine/players-vidbolt.txt'), 'utf8').replaceAll('vidbolt.xyz', 'configured-vidbolt.test');
+    xpass.discover = jest.fn(async () => {
+      throw new TransportFailure({ code: 'HTTP_FORBIDDEN', message: 'Blocked', observedAt: new Date(0), diagnostic: { sensitivity: 'privileged', bodyCaptured: false } });
+    });
+    const vidbolt: VidBoltHostArchitecture = { discover: jest.fn(async (_media, _player, sourceId, sourceExtractor): Promise<ExtractionResult> => ({ type: 'streams', streams: [{ url: new URL('https://media.test/master.m3u8'), protocol: 'hls', sourceId, sourceExtractor, hostExtractor: 'vidbolt-player', discoveredAt: new Date(0) }] })) };
+    const family = new AnicineFamily(host, xpass, vidbolt);
+    for (const media of [movie, episode, anime]) await expect(family.discoverMedia(media, source, services, new AbortController().signal)).resolves.toMatchObject({ type: 'streams', streams: [{ hostExtractor: 'vidbolt-player' }] });
+    expect(xpass.discover).toHaveBeenCalledTimes(3);
+    expect(vidbolt.discover).toHaveBeenNthCalledWith(1, movie, new URL('https://configured-vidbolt.test/movie/27205'), source.id, 'anicine', services, expect.any(AbortSignal));
+    expect(vidbolt.discover).toHaveBeenNthCalledWith(2, episode, new URL('https://configured-vidbolt.test/tv/76479/2/1'), source.id, 'anicine', services, expect.any(AbortSignal));
+    expect(vidbolt.discover).toHaveBeenNthCalledWith(3, anime, new URL('https://configured-vidbolt.test/tv/1429/2/1'), source.id, 'anicine', services, expect.any(AbortSignal));
+    await expect(family.discoverMedia({ ...movie, title: 'FMHY Extractability Probe 7b18e49a' }, source, services, new AbortController().signal)).resolves.toEqual({ type: 'empty', reason: 'not-found' });
+    expect(vidbolt.discover).toHaveBeenCalledTimes(3);
+    expect(host.discover).not.toHaveBeenCalled();
+  });
+
+  test('preserves a working primary player when the advertised alternative fails', async () => {
+    fixtures['players.txt'] = readFileSync(resolve(__dirname, '../__fixtures__/anicine/players-vidbolt.txt'), 'utf8');
+    xpass.discover = jest.fn(async (_media, _player, sourceId, sourceExtractor): Promise<ExtractionResult> => ({ type: 'streams', streams: [{ url: new URL('https://media.test/movie.mp4'), protocol: 'http', sourceId, sourceExtractor, hostExtractor: 'xpass-player', discoveredAt: new Date(0) }] }));
+    const vidbolt: VidBoltHostArchitecture = { discover: jest.fn(async () => {
+      throw new TransportFailure({ code: 'HTTP_FORBIDDEN', message: 'Blocked', observedAt: new Date(0), diagnostic: { sensitivity: 'privileged', bodyCaptured: false } });
+    }) };
+    await expect(new AnicineFamily(host, xpass, vidbolt).discoverMedia(movie, source, services, new AbortController().signal)).resolves.toMatchObject({ type: 'streams', streams: [{ hostExtractor: 'xpass-player' }] });
   });
 
   test.each([
