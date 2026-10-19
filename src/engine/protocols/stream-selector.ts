@@ -2,7 +2,7 @@ import { Semaphore } from 'async-mutex';
 import type { Failure, FailureCode, NormalizedStream, RequestServices, SourceHealthHistory, StreamCandidate } from '../core/models';
 import { DashInspector, DirectMediaInspector, HlsInspector } from './inspectors';
 
-export interface StreamSelectionOptions { concurrency: number; preferredLanguages?: readonly string[]; health?: ReadonlyMap<string, SourceHealthHistory> }
+export interface StreamSelectionOptions { concurrency: number; goal?: 'all' | 'first-validated'; preferredLanguages?: readonly string[]; health?: ReadonlyMap<string, SourceHealthHistory> }
 
 export class StreamSelector {
   public constructor(private readonly services: RequestServices) {}
@@ -17,6 +17,8 @@ export class StreamSelector {
   }
 
   public async validate(candidates: readonly StreamCandidate[], options: StreamSelectionOptions, signal: AbortSignal): Promise<{ streams: NormalizedStream[]; unverified: StreamCandidate[]; failures: Failure[] }> {
+    const completion = options.goal === 'first-validated' ? new AbortController() : undefined;
+    const validationSignal = completion ? AbortSignal.any([signal, completion.signal]) : signal;
     const rounds = new Map<string, number>();
     const ordered = this.preOrder(candidates, options).map((candidate) => {
       const round = rounds.get(candidate.sourceId) ?? 0;
@@ -25,12 +27,15 @@ export class StreamSelector {
     }).sort((a, b) => a.round - b.round).map(item => item.candidate);
     const concurrency = new Semaphore(Math.max(1, options.concurrency));
     const settled = await Promise.all(ordered.map(candidate => concurrency.runExclusive(async () => {
-      if (signal.aborted) return { candidate };
+      if (validationSignal.aborted) return { candidate };
       const inspector = candidate.protocol === 'hls' ? new HlsInspector() : candidate.protocol === 'dash' ? new DashInspector() : candidate.protocol === 'http' ? new DirectMediaInspector() : undefined;
       if (!inspector) return { candidate };
       try {
-        return { stream: await inspector.inspect(candidate, this.services, signal) };
+        const stream = await inspector.inspect(candidate, this.services, validationSignal);
+        completion?.abort();
+        return { stream };
       } catch (error) {
+        if (completion?.signal.aborted) return { candidate };
         const nested = error && typeof error === 'object' && 'failure' in error ? (error as { failure?: Failure }).failure : undefined;
         if (nested) {
           return { failure: { ...nested, stage: 'stage:protocol', sourceId: nested.sourceId ?? candidate.sourceId, extractorId: nested.extractorId ?? candidate.hostExtractor ?? candidate.sourceExtractor, targetHost: nested.targetHost ?? candidate.url.hostname } satisfies Failure };
@@ -48,14 +53,27 @@ export class StreamSelector {
   }
 
   public deduplicate(streams: readonly NormalizedStream[]): NormalizedStream[] {
-    const keys = new Set<string>();
-    return streams.filter((stream) => {
+    const identities = new Map<string, NormalizedStream[]>();
+    const unique: NormalizedStream[] = [];
+    for (const stream of [...streams].sort((a, b) => ({ validated: 0, unverified: 1, failed: 2 }[a.validation]) - ({ validated: 0, unverified: 1, failed: 2 }[b.validation]))) {
       const canonical = new URL(stream.url);
       canonical.hash = '';
-      const key = `${stream.sourceId}:${stream.providerContentId ? `${stream.hostExtractor ?? stream.sourceExtractor}:${stream.providerContentId}` : stream.structuralFingerprint ?? canonical.href}`;
-      if (keys.has(key)) return false;
-      keys.add(key);
-      return true;
-    });
+      const key = JSON.stringify([stream.sourceId, stream.protocol, stream.providerContentId ? [stream.hostExtractor ?? stream.sourceExtractor, stream.providerContentId] : canonical.href]);
+      const renditions = identities.get(key) ?? [];
+      const existing = renditions.find(rendition => (rendition.language === undefined || stream.language === undefined || rendition.language === stream.language)
+        && (rendition.audioLanguages === undefined || stream.audioLanguages === undefined || JSON.stringify(rendition.audioLanguages) === JSON.stringify(stream.audioLanguages))
+        && (rendition.subtitles === undefined || stream.subtitles === undefined || JSON.stringify(rendition.subtitles.map(track => [track.url.href, track.language, track.label, track.format])) === JSON.stringify(stream.subtitles.map(track => [track.url.href, track.language, track.label, track.format]))));
+      if (existing) {
+        if (existing.language === undefined && stream.language !== undefined) existing.language = stream.language;
+        if (existing.audioLanguages === undefined && stream.audioLanguages !== undefined) existing.audioLanguages = stream.audioLanguages;
+        if (existing.subtitles === undefined && stream.subtitles !== undefined) existing.subtitles = stream.subtitles;
+        continue;
+      }
+      const retained = { ...stream };
+      renditions.push(retained);
+      identities.set(key, renditions);
+      unique.push(retained);
+    }
+    return unique;
   }
 }

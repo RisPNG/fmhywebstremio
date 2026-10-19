@@ -217,7 +217,7 @@ describe('protocol vertical slice', () => {
   test('deduplicates equivalent streams within a source without discarding another source', () => {
     const selector = new StreamSelector({ request: jest.fn() } as unknown as RequestServices);
     const stream = { url: new URL('https://shared.cdn.test/master.m3u8'), protocol: 'hls' as const, validation: 'validated' as const, sourceId: 'cinego:cinego.test', sourceExtractor: 'cinego', structuralFingerprint: 'hls:fixture' };
-    expect(selector.deduplicate([stream, { ...stream, url: new URL('https://duplicate.cdn.test/master.m3u8') }, { ...stream, sourceId: 'cinetaro:cinetaro.test', sourceExtractor: 'cinetaro' }]).map(value => value.sourceId)).toEqual(['cinego:cinego.test', 'cinetaro:cinetaro.test']);
+    expect(selector.deduplicate([stream, { ...stream, url: new URL('https://shared.cdn.test/master.m3u8#duplicate') }, { ...stream, sourceId: 'cinetaro:cinetaro.test', sourceExtractor: 'cinetaro' }]).map(value => value.sourceId)).toEqual(['cinego:cinego.test', 'cinetaro:cinetaro.test']);
   });
 
   test.each([undefined, '/middle.ts', '/last.ts'])('validates separated HLS positions and rejects inaccessible media at %s', async (failedPath) => {

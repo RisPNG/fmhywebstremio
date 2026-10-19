@@ -33,7 +33,9 @@ describe('VidsrcMe API host architecture', () => {
     expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL('https://player.test/embed/player/movie/27205?vs=fixture-player-grant'), referrer: new URL('https://player.test/embed/movie/27205?vs=fixture-wrapper-grant') }), signal);
     if (result.type !== 'streams') throw new Error('VidsrcMe did not return stream candidates');
     const validation = await new StreamSelector(services).validate(result.streams, { concurrency: 2 }, signal);
-    expect(validation).toMatchObject({ streams: [{ validation: 'validated', delivery: 'relayed' }], failures: [{ code: 'MANIFEST_INVALID', extractorId: 'vidsrcme-api' }] });
+    expect(validation.streams).toHaveLength(2);
+    expect(validation.streams).toEqual(expect.arrayContaining(urls.slice(1).map(value => expect.objectContaining({ url: new URL(`${value}?token=token-${new URL(value).hostname}`), validation: 'validated', delivery: 'relayed' }))));
+    expect(validation.failures).toMatchObject([{ code: 'MANIFEST_INVALID', extractorId: 'vidsrcme-api' }]);
     for (const value of urls) expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL(`${value}?token=token-${new URL(value).hostname}`), expectedContent: 'manifest' }), signal);
     for (const hostname of ['media.vidsrcme.test', 'backup.vidsrcme.test']) expect(services.request).toHaveBeenCalledWith(expect.objectContaining({ url: new URL(`https://${hostname}/segment-1.ts`), expectedContent: 'binary' }), signal);
   });
