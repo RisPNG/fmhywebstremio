@@ -171,43 +171,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       },
     },
     {
-      id: 'bingebang:bingebang.st',
-      canonicalDomain: 'bingebang.st',
-      aliases: [],
-      fmhy: {
-        name: 'BingeBang',
-        section: '▷ Stream Aggregators',
-        tags: [],
-        firstSeenAt: new Date(0),
-        lastSeenAt: new Date(0),
-      },
-      status: 'supported',
-      family: {
-        id: 'bingebang',
-        confidence: 1,
-        evidence: [
-          {
-            type: 'script-signature',
-            fingerprint: 'bingebang-client',
-          },
-          {
-            type: 'api-shape',
-            fingerprint: 'bingebang-explore-search',
-          },
-          {
-            type: 'route-shape',
-            value: '/movie|tv/watch/{slug}',
-          },
-        ],
-        lastProbedAt: new Date(0),
-      },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://bingebang.st/',
-      },
-    },
-    {
       id: 'milkbox:milkbox.zapto.org',
       canonicalDomain: 'milkbox.zapto.org',
       aliases: [],
@@ -350,13 +313,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       sourceId: 'bilibili:bilibili.com',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
-      recentFailures: 0,
-      observedAt: new Date(0),
-    },
-    {
-      sourceId: 'bingebang:bingebang.st',
-      lastOutcome: 'healthy',
-      recentSuccesses: 7,
       recentFailures: 0,
       observedAt: new Date(0),
     },
