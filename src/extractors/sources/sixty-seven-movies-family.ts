@@ -2,6 +2,7 @@ import * as cheerio from 'cheerio';
 import type { ExtractionResponse, ExtractionResult, FamilyEvidence, MediaIdentity, RequestServices, SourceRecord } from '../../engine/core/models';
 import type { FamilyMatch, SourceFamily, SourceProbeSnapshot } from '../../engine/health';
 import { TransportFailure } from '../../engine/transport/transport-director';
+import { type CinezoHostArchitecture, CinezoPlayerHostArchitecture } from '../hosts/cinezo-host-architecture';
 import { VidloveApiHostArchitecture, type VidloveHostArchitecture } from '../hosts/vidlove-host-architecture';
 
 interface SixtySevenMoviesSearchResponse {
@@ -11,7 +12,7 @@ interface SixtySevenMoviesSearchResponse {
 export class SixtySevenMoviesFamily implements SourceFamily {
   public readonly id = 'sixty-seven-movies';
 
-  public constructor(private readonly host: VidloveHostArchitecture = new VidloveApiHostArchitecture()) {}
+  public constructor(private readonly host: VidloveHostArchitecture = new VidloveApiHostArchitecture(), private readonly cinezo: CinezoHostArchitecture = new CinezoPlayerHostArchitecture()) {}
 
   public classify(_source: SourceRecord, snapshot: SourceProbeSnapshot): FamilyMatch | null {
     const evidence: FamilyEvidence[] = [];
@@ -42,8 +43,13 @@ export class SixtySevenMoviesFamily implements SourceFamily {
     for (const asset of assets) {
       const script = await services.request({ url: new URL(asset, watch.finalUrl), expectedContent: 'text', referrer: watch.finalUrl, stateScope: { kind: 'source', key: source.id } }, signal);
       const client = script.text();
-      const player = client.match(/case"vidlove":default:return"tv"===[^?]+\?"(https:\/\/[^"/]+\/embed\/tv\/)"[^;]+?:"(https:\/\/[^"/]+\/embed\/movie\/)"/);
-      if (!/\[\{key:"vidlove",label:"Vidlove"(?:,|\})/.test(client) || !player) continue;
+      const players = [...client.matchAll(/\{key:"(vidlove|cinezo)",label:"[^"\n]+"/g)].flatMap((server) => {
+        const paths = server[1] === 'vidlove'
+          ? client.match(/case"vidlove":default:return"tv"===[^?]+\?"(https:\/\/[^"/]+\/embed\/tv\/)"[^;]+?:"(https:\/\/[^"/]+\/embed\/movie\/)"/)
+          : client.match(/case"cinezo":return"tv"===[^?]+\?"(https:\/\/[^"/]+\/tv\/)"[^;]+?:"(https:\/\/[^"/]+\/movie\/)"/);
+        return paths ? [{ host: server[1] === 'vidlove' ? this.host : this.cinezo, url: new URL(`${media.tmdbId}${media.type === 'episode' ? `/${media.season}/${media.episode}` : ''}`, paths[media.type === 'movie' ? 2 : 1]) }] : [];
+      });
+      if (!players.length) continue;
       if (media.type === 'episode') {
         const key = client.match(/\b(?:let|const)\s+[\w$]+="([a-f0-9]{32})"/)?.[1];
         if (!key || !client.includes('https://api.themoviedb.org/3/tv/')) return { type: 'failure', failure: { code: 'PAGE_STRUCTURE_CHANGED', message: '67Movies watch client no longer exposes its season catalog', stage: 'stage:discovery', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'watch-season-catalog' } } };
@@ -60,8 +66,15 @@ export class SixtySevenMoviesFamily implements SourceFamily {
         if (!Array.isArray(catalog.episodes)) return { type: 'failure', failure: { code: 'RESPONSE_SCHEMA_CHANGED', message: '67Movies season catalog did not contain episodes', stage: 'stage:discovery', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'episodes' } } };
         if (catalog.season_number !== media.season || !catalog.episodes.some(episode => episode.episode_number === media.episode)) return { type: 'empty', reason: 'not-found' };
       }
-      return this.host.discover(media, new URL(`${media.tmdbId}${media.type === 'episode' ? `/${media.season}/${media.episode}` : ''}`, player[media.type === 'movie' ? 2 : 1]), source.id, this.id, services, signal);
+      const results = await Promise.allSettled(players.map(player => player.host.discover(media, player.url, source.id, this.id, services, signal)));
+      const streams = results.flatMap(result => result.status === 'fulfilled' && result.value.type === 'streams' ? result.value.streams : []);
+      if (streams.length) return { type: 'streams', streams };
+      const failure = results.find(result => result.status === 'fulfilled' && result.value.type === 'failure');
+      if (failure?.status === 'fulfilled') return failure.value;
+      const rejected = results.find(result => result.status === 'rejected');
+      if (rejected?.status === 'rejected') throw rejected.reason;
+      return { type: 'empty', reason: 'no-streams' };
     }
-    return { type: 'failure', failure: { code: 'EMBED_NOT_FOUND', message: '67Movies watch client no longer configures its default Vidlove player', stage: 'stage:extraction', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'watch-player-assets' } } };
+    return { type: 'failure', failure: { code: 'EMBED_NOT_FOUND', message: '67Movies watch client no longer configures a supported player', stage: 'stage:extraction', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'watch-player-assets' } } };
   }
 }
