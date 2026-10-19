@@ -126,43 +126,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       status: 'supported',
     },
     {
-      id: 'kkphim:kkphim.com',
-      canonicalDomain: 'kkphim.com',
-      aliases: [],
-      fmhy: {
-        name: 'kkphim',
-        section: '▷ Streaming / Phát trực tuyến',
-        tags: [],
-        firstSeenAt: new Date(0),
-        lastSeenAt: new Date(0),
-      },
-      status: 'supported',
-      family: {
-        id: 'kkphim',
-        confidence: 1,
-        evidence: [
-          {
-            type: 'script-signature',
-            fingerprint: 'kkphim-brand',
-          },
-          {
-            type: 'route-shape',
-            value: 'kkphim-api-catalog',
-          },
-          {
-            type: 'asset-path',
-            value: 'kkphim-main-client',
-          },
-        ],
-        lastProbedAt: new Date(0),
-      },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://kkphim.com/',
-      },
-    },
-    {
       id: 'milkbox:milkbox.zapto.org',
       canonicalDomain: 'milkbox.zapto.org',
       aliases: [],
@@ -298,13 +261,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       sourceId: 'arrowtv:arrowtv.net',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
-      recentFailures: 0,
-      observedAt: new Date(0),
-    },
-    {
-      sourceId: 'kkphim:kkphim.com',
-      lastOutcome: 'healthy',
-      recentSuccesses: 4,
       recentFailures: 0,
       observedAt: new Date(0),
     },
