@@ -1,0 +1,1 @@
+{"stream":{"server":"orion","sources":[{"url":"https://media.test/movie/master.m3u8","kind":"hls","quality":"720p","master":true}],"resolvedAt":1792370000000}}

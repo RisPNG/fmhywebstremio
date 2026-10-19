@@ -2,6 +2,7 @@ import * as cheerio from 'cheerio';
 import type { ExtractionResult, FamilyEvidence, MediaIdentity, RequestServices, SourceRecord } from '../../engine/core/models';
 import type { FamilyMatch, SourceFamily, SourceProbeSnapshot } from '../../engine/health';
 import { CineproApiHostArchitecture, type CineproHostArchitecture } from '../hosts/cinepro-host-architecture';
+import { type VidBoltHostArchitecture, VidBoltPlayerHostArchitecture } from '../hosts/vidbolt-host-architecture';
 import { type XpassHostArchitecture, XpassPlayerHostArchitecture } from '../hosts/xpass-host-architecture';
 
 interface AnicineCatalog {
@@ -13,7 +14,7 @@ interface AnicineCatalog {
 export class AnicineFamily implements SourceFamily {
   public readonly id = 'anicine';
 
-  public constructor(private readonly host: CineproHostArchitecture = new CineproApiHostArchitecture(), private readonly xpass: XpassHostArchitecture = new XpassPlayerHostArchitecture()) {}
+  public constructor(private readonly host: CineproHostArchitecture = new CineproApiHostArchitecture(), private readonly xpass: XpassHostArchitecture = new XpassPlayerHostArchitecture(), private readonly vidbolt: VidBoltHostArchitecture = new VidBoltPlayerHostArchitecture()) {}
 
   public classify(_source: SourceRecord, snapshot: SourceProbeSnapshot): FamilyMatch | null {
     const $ = cheerio.load(snapshot.htmlSample ?? '');
@@ -57,13 +58,22 @@ export class AnicineFamily implements SourceFamily {
     const assets = player('script[src]').map((_index, element) => player(element).attr('src')).get().filter(path => path.startsWith('/_next/static/chunks/') && !commonAssets.has(path));
     for (const asset of assets.slice(0, 8)) {
       const script = await services.request({ url: new URL(asset, watch.finalUrl), expectedContent: 'text', referrer: watch.finalUrl, maxBytes: 1024 * 1024, stateScope: { kind: 'source', key: source.id } }, signal);
-      const configured = script.text().match(new RegExp(`id:"anicine-1",label:"anicine-1",region:"US",getUrl:[^=]+=>"(https://[^" ]+/${media.type === 'movie' ? 'movie' : 'tv'}/)"`))?.[1];
-      if (configured) {
-        const player = new URL(`${media.tmdbId}${media.type === 'episode' ? `/${media.season}/${media.episode}` : ''}`, configured);
-        if (player.pathname.startsWith('/e/')) return this.xpass.discover(media, player, source.id, this.id, services, signal);
-        return this.host.discover(media, player, source.id, this.id, services, signal);
+      const players = new Map<string, { url: URL; host: CineproHostArchitecture | XpassHostArchitecture | VidBoltHostArchitecture }>();
+      for (const configured of script.text().matchAll(new RegExp(`id:"(anicine-1|vidpass|vidbolt)",label:"[^"\\n]+",region:"US",getUrl:[^=]+=>"(https://[^" ]+/${media.type === 'movie' ? 'movie' : 'tv'}/)"`, 'g'))) {
+        const url = new URL(`${media.tmdbId}${media.type === 'episode' ? `/${media.season}/${media.episode}` : ''}`, configured[2]);
+        const host = url.pathname.startsWith('/e/') ? this.xpass : configured[1] === 'vidbolt' ? this.vidbolt : this.host;
+        players.set(url.href, { url, host });
       }
+      if (!players.size) continue;
+      const results = await Promise.allSettled([...players.values()].map(player => player.host.discover(media, player.url, source.id, this.id, services, signal)));
+      const streams = results.flatMap(result => result.status === 'fulfilled' && result.value.type === 'streams' ? result.value.streams : []);
+      if (streams.length) return { type: 'streams', streams };
+      const failure = results.find(result => result.status === 'fulfilled' && result.value.type === 'failure');
+      if (failure?.status === 'fulfilled') return failure.value;
+      const rejected = results.find(result => result.status === 'rejected');
+      if (rejected?.status === 'rejected') throw rejected.reason;
+      return { type: 'empty', reason: 'no-streams' };
     }
-    return { type: 'failure', failure: { code: 'EMBED_NOT_FOUND', message: 'AniCine watch page no longer configures its primary player', stage: 'stage:extraction', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: watch.status, bodyCaptured: false, parserPath: 'watch-player-assets' } } };
+    return { type: 'failure', failure: { code: 'EMBED_NOT_FOUND', message: 'AniCine watch page no longer configures a supported player', stage: 'stage:extraction', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: watch.status, bodyCaptured: false, parserPath: 'watch-player-assets' } } };
   }
 }
