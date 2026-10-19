@@ -1,0 +1,608 @@
+/* Stream resolver + player engine (embedded-player architecture).
+ *
+ * TMDB gives metadata only (titles, posters, seasons, episodes).
+ * Actual playback is the configured embed provider page loaded in the
+ * legacy compatibility <iframe> (#embed-frame). There is no custom HLS
+ * player, no direct-file mode, and no resolver strategy — see README §6.
+ *
+ * Embed URLs resolve through the provider registry
+ * (js/embed-sources.config.js → js/source-resolver.js). The `EMBED` slot
+ * below is THE KNOB: the registry's movie/TV provider is flagged
+ * `embedSlot: true`, so the resolver rebuilds that provider's template
+ * from this slot at resolve time — change `base` here and the embed player
+ * changes everywhere (player, source picker, resume links). The registry's
+ * static templates mirror these paths for headless/stale environments
+ * where this file never loads (README §6):
+ *   movie:   {base}/embed/movie/{tmdb_id}
+ *   episode: {base}/embed/tv/{tmdb_id}/{season}/{episode}
+ * TMDB supplies all titles/posters/seasons/episodes; the player loads
+ * the resolved embed URL in the iframe.
+ */
+(function () {
+  'use strict';
+
+  /* ============================================================
+   *  PUT YOUR OFFICIAL API STREAMING LINK HERE — CHANGE ONCE
+   * ------------------------------------------------------------
+   *  THIS IS THE ONLY PLACE TO SET YOUR EMBED HOST. The registry
+   *  (js/embed-sources.config.js) flags its movie/TV provider
+   *  `embedSlot: true` and js/source-resolver.js rebuilds that
+   *  provider's template from THIS slot at resolve time — so
+   *  editing `base` below re-points the player, the source picker
+   *  and every Watch button together (no second edit anywhere).
+   *  The registry's static templates only mirror these paths for
+   *  headless/stale environments where this file never loads
+   *  (README §6).
+   *    movie:   {base}/embed/movie/{tmdb_id}
+   *    episode: {base}/embed/tv/{tmdb_id}/{season}/{episode}
+   *  e.g. <iframe src="https://example.com/embed/movie/533535">
+   *  While base is still "example.com" (or blank) the app shows
+   *  "No stream source configured" instead of playing.
+   *  Only use sources you own or license.
+   *
+   * ========================================================== */
+  const EMBED = {
+    // PUT YOUR OFFICIAL API STREAMING LINK HERE (change this one line):
+    base: 'https://vidoraplayer.vidora-081.workers.dev',
+    moviePath: '/embed/movie/{tmdb_id}',
+    episodePath: '/embed/tv/{tmdb_id}/{season}/{episode}',
+  };
+
+  // Treat blank, untouched placeholder, or example.com as "not configured".
+  function usable(tpl) {
+    return !!tpl && !/PUT YOUR OFFICIAL API STREAMING LINK HERE/i.test(tpl);
+  }
+
+  function embedBase() {
+    const b = (EMBED.base || '').trim().replace(/\/+$/, '');
+    if (!b || /example\.com/i.test(b)) return '';
+    return b;
+  }
+
+  function fill(tpl, vars) {
+    return tpl
+      .split('{tmdb_id}').join(encodeURIComponent(vars.tmdbId))
+      .split('{season}').join(encodeURIComponent(vars.season || 1))
+      .split('{episode}').join(encodeURIComponent(vars.episode || 1));
+  }
+
+  // TMDB id in, embed page URL out. null = no provider resolves it yet.
+  //
+  // Registry-first: js/embed-sources.config.js (via js/source-resolver.js)
+  // is the single source of truth for embed providers whenever it is loaded.
+  // The EMBED slot above remains the legacy fallback so headless/stale
+  // environments keep resolving the exact same URLs as before.
+  function sourcesApi() {
+    try {
+      if (typeof window !== 'undefined' && window.GreyboxSources &&
+        typeof window.GreyboxSources.resolveUrl === 'function') return window.GreyboxSources;
+    } catch { /* registry optional */ }
+    return null;
+  }
+
+  function fromRegistry(type, opts) {
+    const S = sourcesApi();
+    if (!S) return null;
+    try {
+      const url = S.resolveUrl(Object.assign({ type }, opts));
+      return url || null;
+    } catch { /* fall back to the slot below */ }
+    return null;
+  }
+
+  function getMovieUrl(tmdbId) {
+    if (sourcesApi()) return fromRegistry('movie', { id: tmdbId });
+    const b = embedBase();
+    if (!b || !usable(EMBED.moviePath)) return null;
+    return b + fill(EMBED.moviePath, { tmdbId });
+  }
+
+  function getEpisodeUrl(tmdbId, season, episode) {
+    if (sourcesApi()) return fromRegistry('tv', { id: tmdbId, season, episode });
+    const b = embedBase();
+    if (!b || !usable(EMBED.episodePath)) return null;
+    return b + fill(EMBED.episodePath, { tmdbId, season, episode });
+  }
+
+  // `type` optional ('movie' default): does ANY enabled registry provider
+  // support this content type? Falls back to the legacy slot semantics when
+  // the registry is not loaded.
+  function isConfigured(type) {
+    const t = (typeof type === 'string' && type) ? type : 'movie';
+    const S = sourcesApi();
+    if (S && typeof S.providersFor === 'function') {
+      try {
+        const list = S.providersFor(t);
+        return Array.isArray(list) && list.length > 0;
+      } catch { return false; }
+    }
+    if (!embedBase()) return false;
+    if (t === 'tv') return usable(EMBED.episodePath);
+    if (t === 'sports') return false;
+    return usable(EMBED.moviePath);
+  }
+
+  const EMBED_UNCONFIGURED_ERROR = 'streams are down now, when its up you will be notified via our discord';
+
+  /* ---- watch progress (resume labels + Continue Watching shelf) ----
+   * Progress keys are read by the episode list (resume labels) through the
+   * same `Stream.resumeLabel` contract as before. The embed iframe is
+   * cross-origin, so playback time arrives through the provider's progress
+   * bridge — the configured embed player posts `{ source: '<provider>',
+   * type: 'progress'|'ended', t, d }` to its parent (see onEmbedMessage
+   * below, which origin-checks every message against the active session
+   * URL — the `source` label carries no trust, so a new embed host works
+   * without touching this file).
+   * Entries also carry title/poster metadata so the Continue Watching
+   * shelf can paint resumable cards with zero extra fetches, and the same
+   * entries sync across a signed-in account's devices (js/prefs-sync.js).
+   * Settings → Playback → "Resume playback" (greybox:resume, js/settings.js)
+   * gates both reads and writes: off = nothing remembered, nothing shown. */
+  function resumeWanted() {
+    try { return localStorage.getItem('greybox:resume') !== '0'; } catch { return true; }
+  }
+  // cross-device sync (js/prefs-sync.js): every progress write/removal
+  // schedules a snapshot push to the signed-in account (no-op signed out)
+  function syncPrefs() {
+    try { if (window.GreyboxPrefs) window.GreyboxPrefs.schedule(); } catch { /* sync optional */ }
+  }
+
+  const PROGRESS_PREFIX = 'sb_progress:';
+  // Metadata caps: entries ride in the account sync blob (60KB per-key cap
+  // in js/prefs-sync.js) and render into shelf cards — every free-text
+  // field is bounded, image paths must be TMDB-relative ('/…').
+  const PROGRESS_TEXT_MAX = 120;
+  const PROGRESS_IMG_MAX = 120;
+
+  // Sanitize optional card metadata (works for BOTH caller-supplied meta
+  // and previously stored entries — re-sanitizing stored values means a
+  // tampered/corrupted localStorage row can never paint unsafe HTML or
+  // oversized blobs into the shelf).
+  function progressMeta(meta) {
+    if (!meta || typeof meta !== 'object') return null;
+    const m = {};
+    const id = parseInt(meta.id, 10);
+    if (id > 0) m.id = id;
+    if (meta.media === 'movie' || meta.media === 'tv') m.media = meta.media;
+    const title = typeof meta.title === 'string' ? meta.title.trim().slice(0, PROGRESS_TEXT_MAX) : '';
+    if (title) m.title = title;
+    const poster = typeof meta.poster === 'string' && meta.poster.charAt(0) === '/' ? meta.poster.slice(0, PROGRESS_IMG_MAX) : '';
+    if (poster) m.poster = poster;
+    const backdrop = typeof meta.backdrop === 'string' && meta.backdrop.charAt(0) === '/' ? meta.backdrop.slice(0, PROGRESS_IMG_MAX) : '';
+    if (backdrop) m.backdrop = backdrop;
+    const season = Math.floor(Number(meta.season) || 0);
+    if (season > 0) m.season = Math.min(9999, season);
+    const episode = Math.floor(Number(meta.episode) || 0);
+    if (episode > 0) m.episode = Math.min(9999, episode);
+    const epTitle = typeof meta.epTitle === 'string' ? meta.epTitle.trim().slice(0, PROGRESS_TEXT_MAX) : '';
+    if (epTitle) m.epTitle = epTitle;
+    return m;
+  }
+
+  // Live-shelf signal: every playhead mutation (heartbeat, close-time
+  // flush, clear, clear-all) announces itself so js/app.js can re-resolve
+  // the home Continue Watching shelf the moment progress changes — the row
+  // appears/updates/disappears without a reload and without depending on
+  // any single close-path event (a suddenly-quit session still lands).
+  function emitProgressChanged() {
+    try { window.dispatchEvent(new CustomEvent('greybox:progress-changed')); } catch { /* dispatch optional */ }
+  }
+
+  const Progress = {
+    key(k) { return PROGRESS_PREFIX + k; },
+    load(k) {
+      try {
+        if (!resumeWanted()) return null;
+        const v = JSON.parse(localStorage.getItem(this.key(k)) || 'null');
+        return v && typeof v.t === 'number' ? v : null;
+      } catch { return null; }
+    },
+    // meta (optional): { id, media, title, poster, backdrop, season,
+    // episode, epTitle } — stored with the playhead so the Continue
+    // Watching shelf renders a card without any fetch. Saves without meta
+    // (bare time pings) KEEP the metadata already stored for the key.
+    save(k, t, d, meta) {
+      try {
+        if (!resumeWanted()) return;
+        if (!isFinite(t) || t < 5) return;
+        if (d && isFinite(d) && d - t < 15) { localStorage.removeItem(this.key(k)); syncPrefs(); emitProgressChanged(); return; } // finished
+        let prev = null;
+        try { prev = JSON.parse(localStorage.getItem(this.key(k)) || 'null'); } catch { prev = null; }
+        const stored = Object.assign({}, progressMeta(prev), progressMeta(meta), {
+          t: Math.floor(t), d: Math.floor(d || 0), at: Date.now(),
+        });
+        localStorage.setItem(this.key(k), JSON.stringify(stored));
+        syncPrefs();
+        emitProgressChanged();
+      } catch { /* storage full/blocked */ }
+    },
+    clear(k) { try { localStorage.removeItem(this.key(k)); syncPrefs(); emitProgressChanged(); } catch { /* noop */ } },
+    // Every meaningful playhead, newest first — the Continue Watching
+    // shelf's data source. Only real watches qualify (>=30s watched, and
+    // when duration is known >=60s of runway left) so stray 5-second opens
+    // never paint a card, and the list is capped: a shelf is not an archive.
+    entries() {
+      try {
+        if (!resumeWanted()) return [];
+        const out = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const storageKey = localStorage.key(i);
+          if (!storageKey || storageKey.indexOf(PROGRESS_PREFIX) !== 0) continue;
+          const v = JSON.parse(localStorage.getItem(storageKey) || 'null');
+          if (!v || typeof v.t !== 'number' || !(v.t >= 30)) continue;
+          if (typeof v.d === 'number' && v.d > 0 && v.d - v.t < 60) continue; // (almost) finished
+          const meta = progressMeta(v) || {};
+          out.push(Object.assign({ key: storageKey.slice(PROGRESS_PREFIX.length) }, meta, {
+            t: v.t, d: typeof v.d === 'number' ? v.d : 0, at: typeof v.at === 'number' ? v.at : 0,
+          }));
+        }
+        out.sort((a, b) => b.at - a.at);
+        return out.slice(0, 20);
+      } catch { return []; }
+    },
+    // Single-entry lookup by resume key (card click → player session).
+    entry(k) {
+      if (!k) return null;
+      const v = this.load(k);
+      return v ? Object.assign({ key: String(k) }, v) : null;
+    },
+    // "Clear history" (Continue Watching shelf + Settings): wipes every
+    // remembered playhead; signed-in accounts delete the synced snapshot
+    // too (prefs-sync pushes the absent keys as deletes). Returns count.
+    clearAll() {
+      try {
+        let n = 0;
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const storageKey = localStorage.key(i);
+          if (storageKey && storageKey.indexOf(PROGRESS_PREFIX) === 0) {
+            localStorage.removeItem(storageKey);
+            n++;
+          }
+        }
+        if (n) { syncPrefs(); emitProgressChanged(); }
+        return n;
+      } catch { return 0; }
+    },
+  };
+
+  function fmt(s) {
+    if (!isFinite(s) || s < 0) return '0:00';
+    s = Math.floor(s);
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(sec).padStart(2, '0');
+  }
+
+  /* ---- player (embedded provider page in <iframe>) ----
+   * open() accepts the long-standing normalized contract
+   * ({ title, sub, url, progressKey, onEnded, showPrevNext }) so every
+   * existing caller keeps working. Two additions for Continue Watching:
+   *   progressMeta — card metadata { id, media, title, poster, backdrop,
+   *                  season, episode, epTitle } stored with the playhead;
+   *   startAt      — resume position (seconds); appended to the embed URL
+   *                  as `?t=` so the provider starts at the saved playhead.
+   * `url` must be an embed-page URL from getMovieUrl/getEpisodeUrl; the
+   * `mode` field (previously 'file'|'embed') is accepted and ignored for
+   * backward compatibility.
+   */
+  let ctx = null;          // { title, sub, url, progressKey, progressMeta, startAt, onEnded, showPrevNext }
+  let listenersBound = false;
+  // Load generation: teardown/attach bump loadGen, attach snapshots it.
+  // The frame's load listener only hides the veil for the CURRENT attempt,
+  // so the about:blank unload below (or any stale navigation) can never
+  // lift the veil early or resurrect a torn-down session.
+  let loadGen = 0, attachedGen = 0;
+
+  function el(id) { return document.getElementById(id); }
+
+  function showLoading(on) {
+    const n = el('player-loading');
+    if (n) n.classList.toggle('hidden', !on);
+  }
+
+  function showError(msg) {
+    const box = el('player-error'), msgEl = el('player-error-msg');
+    if (!box) { if (msg) alert(msg); return; }
+    if (!msg) { box.classList.add('hidden'); return; }
+    if (msgEl) msgEl.textContent = msg;
+    box.classList.remove('hidden');
+    showLoading(false);
+  }
+
+  /* ---- embed progress bridge (player → this page) ----
+   * The configured player posts { source: '<provider>', type:
+   * 'progress'|'ended', t, d } to its parent about every 5s (plus
+   * pause/ended/page-hide).
+   * Trust rules — ALL must hold or the message is dropped:
+   *   1. a session is live AND carries a progressKey (sports/replays
+   *      sessions pass none, so they can never write progress);
+   *   2. event.source IS the active #embed-frame's contentWindow;
+   *   3. event.origin equals the exact origin of the URL this session
+   *      opened (derived from ctx.url — no hardcoded provider list);
+   *   4. the payload is an object tagged with a non-empty provider
+   *      `source` label — any label counts (trust comes from rules 2-3;
+   *      the tag only marks the payload as a bridge message, so swapping
+   *      the embed host in EMBED.base never disables resume tracking).
+   * 'ended' clears the entry and fires ctx.onEnded (TV auto-next). */
+  function onEmbedMessage(e) {
+    try {
+      if (!ctx || !ctx.progressKey) return;
+      const f = el('embed-frame');
+      if (!f || e.source !== f.contentWindow) return;
+      let origin = '';
+      try { origin = new URL(ctx.url, (typeof location !== 'undefined' ? location.href : undefined)).origin; } catch { return; }
+      if (e.origin !== origin) return;
+      const d = e.data;
+      if (!d || typeof d !== 'object' || typeof d.source !== 'string' || !d.source) return;
+      if (d.type === 'progress' && typeof d.t === 'number' && isFinite(d.t)) {
+        // Remember the newest posted playhead for close(): the frame's own
+        // final (pagehide) message can never land — the frame unloads into
+        // about:blank and ctx is nulled in close() — so this is the last
+        // position a sudden quit can persist.
+        ctx.lastT = d.t;
+        ctx.lastD = (typeof d.d === 'number' && isFinite(d.d)) ? d.d : 0;
+        Progress.save(ctx.progressKey, d.t, typeof d.d === 'number' ? d.d : 0, ctx.progressMeta);
+      } else if (d.type === 'ended') {
+        ctx.lastT = null; // finished: close() must not re-save a dead playhead
+        Progress.clear(ctx.progressKey);
+        // tracker push (js/connections.js): a finished play is announced so
+        // a connected Trakt/Simkl account gets it in their history. Sanitized
+        // copy of the resume-card meta only — never the live ctx.
+        try {
+          const m = ctx.progressMeta;
+          if (m && m.id > 0) window.dispatchEvent(new CustomEvent('greybox:watched', {
+            detail: {
+              id: m.id,
+              media: m.media,
+              title: m.title || '',
+              season: m.season || 0,
+              episode: m.episode || 0,
+            },
+          }));
+        } catch { /* dispatch optional */ }
+        if (typeof ctx.onEnded === 'function') { try { ctx.onEnded(); } catch { /* noop */ } }
+      }
+    } catch { /* the progress bridge is optional — never breaks playback */ }
+  }
+
+  // Resume position rides as `?t=<seconds>` on the embed URL; providers
+  // that understand it start at the saved playhead, others ignore it.
+  function withStartAt(url, startAt) {
+    const t = Math.floor(Number(startAt) || 0);
+    if (t <= 0 || !url) return url;
+    return url + (url.indexOf('?') >= 0 ? '&' : '?') + 't=' + t;
+  }
+
+  function teardown() {
+    loadGen++; // invalidate any in-flight load event first
+    const f = el('embed-frame');
+    if (f) { try { f.removeAttribute('src'); } catch { /* noop */ } }
+    // Defensive: the legacy direct-file <video> stage no longer ships in
+    // index.html, but a cached page may still carry it — keep it hidden.
+    try {
+      const v = el('video');
+      if (v) { try { v.pause(); } catch { /* noop */ } v.classList.add('hidden'); }
+      const stage = document.querySelector('.gx-player-stage');
+      if (stage) stage.classList.add('hidden');
+    } catch { /* noop */ }
+  }
+
+  function bindOnce() {
+    if (listenersBound) return;
+    listenersBound = true;
+    const retry = el('player-retry');
+    if (retry) retry.addEventListener('click', () => { if (ctx) open(ctx); });
+    const frame = el('embed-frame');
+    if (frame) frame.addEventListener('load', () => {
+      try { if (attachedGen !== loadGen) return; } catch { /* guard optional */ }
+      showLoading(false);
+      // Optional per-session callback (sports/multi-source sessions use it as
+      // the playability signal). Guarded by the same generation as the veil,
+      // so a stale navigation can never mark a newer attempt as playing.
+      try { if (ctx && typeof ctx.onLoad === 'function') ctx.onLoad(); } catch { /* noop */ }
+    });
+    const closeBtn = el('player-close');
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    // One page-level listener for every session (see onEmbedMessage above).
+    try { window.addEventListener('message', onEmbedMessage); } catch { /* noop */ }
+  }
+
+  function attach(url) {
+    const f = el('embed-frame');
+    if (!f) throw new Error('Missing #embed-frame element.');
+    teardown();
+    attachedGen = loadGen; // this navigation owns the next load event
+    showError(null);
+    showLoading(true);
+    // Defensive: hide any stale direct-file stage from a cached page.
+    try {
+      const v = el('video');
+      if (v) v.classList.add('hidden');
+      const stage = document.querySelector('.gx-player-stage');
+      if (stage) stage.classList.add('hidden');
+    } catch { /* noop */ }
+    f.classList.remove('hidden');
+    f.src = url;
+  }
+
+  /* ---- player-only popunder ad ----
+   * The ad code is injected ONLY while the player overlay is open —
+   * open() loads it, close() removes it — so the popunder can never arm on
+   * the homepage or anywhere else on the site: it exists for a visitor
+   * exactly when they are on the movie/TV playing screen, and it keeps
+   * working for every session because each reopen re-executes it.
+   * WHICH code: Admin -> Ads -> "Player screen ad" (enabled flag + raw
+   * snippet), served with the ads config (GET /api/config/ads; js/ads.js
+   * exposes it as window.GXAds.config().playerAd). Nothing fetched yet
+   * (slow network, API down, cached older response) -> the shipped default
+   * below keeps the player ad running. The global "Ads enabled" master
+   * switch takes it down along with every slot. The data-gx-player-ad
+   * marker guarantees one ad box per player session.
+   * Best-effort by design: the ad can never break playback. */
+  const PLAYER_AD_SRC = 'https://aarems.org/1/47b2885fb0d4d3976aa6501d312ea4eb'; // default snippet's src — the single hard-coded fallback
+  const PLAYER_AD_DEFAULT_CODE = '<script data-cfasync="false" src="' + PLAYER_AD_SRC + '"></script>';
+
+  function playerAdCfg() {
+    try {
+      const g = window.GXAds;
+      const cfg = g && typeof g.config === 'function' ? g.config() : null;
+      if (!cfg || typeof cfg !== 'object') return { enabled: true, code: PLAYER_AD_DEFAULT_CODE };
+      if (cfg.enabled === false) return { enabled: false, code: '' }; // master switch takes all ads down
+      const pa = cfg.playerAd;
+      if (!pa || typeof pa !== 'object') return { enabled: true, code: PLAYER_AD_DEFAULT_CODE };
+      return { enabled: pa.enabled !== false, code: typeof pa.code === 'string' ? pa.code : '' };
+    } catch { return { enabled: true, code: PLAYER_AD_DEFAULT_CODE }; }
+  }
+
+  function loadPlayerAd() {
+    try {
+      if (document.getElementById('gx-player-ad')) return; // one box per player session
+      const ad = playerAdCfg();
+      if (!ad.enabled || !ad.code) return;
+      const box = document.createElement('div');
+      box.id = 'gx-player-ad';
+      box.setAttribute('data-gx-player-ad', '1');
+      box.innerHTML = ad.code; // the operator's snippet, verbatim — same contract as slot code
+      // innerHTML never executes <script> tags — re-create each one with its
+      // attributes (src, async, data-*, inline body) so the network's code
+      // actually runs. Everything else (iframe, img, noscript…) is fine as-is.
+      const olds = box.querySelectorAll('script');
+      for (let i = 0; i < olds.length; i++) {
+        const old = olds[i];
+        const s = document.createElement('script');
+        for (let j = 0; j < old.attributes.length; j++) {
+          const a = old.attributes[j];
+          s.setAttribute(a.name, a.value);
+        }
+        if (!old.src) s.text = old.text;
+        if (old.parentNode) old.parentNode.replaceChild(s, old);
+      }
+      (document.body || document.head).appendChild(box);
+    } catch { /* ad is best-effort */ }
+  }
+
+  function unloadPlayerAd() {
+    try {
+      const nodes = document.querySelectorAll('[data-gx-player-ad]');
+      for (let i = 0; i < nodes.length; i++) {
+        const n = nodes[i];
+        if (n.parentNode) n.parentNode.removeChild(n);
+      }
+    } catch { /* removal is best-effort */ }
+  }
+
+  function open(c) {
+    // c: { title, sub, url, progressKey, onEnded, showPrevNext }
+    // Optional multi-source fields (sports/replays sessions only):
+    //   showSources — reveals the #player-sources picker (hidden otherwise)
+    //   onLoad      — called when THIS attempt's frame finishes loading
+    //   onClose     — called when the session ends
+    // (`mode` accepted + ignored: every source is an embed page now.)
+    if (!c || !c.url) throw new Error('No stream URL resolved.');
+    ctx = c;
+    bindOnce();
+    const p = el('player');
+    if (!p) throw new Error('Missing #player element.');
+    p.classList.remove('hidden');
+    loadPlayerAd();
+    // Same page lock as the modal (html-level: body-only still scrolls via
+    // programmatic writes + backdrop chaining). Released on close only when
+    // no card is open underneath.
+    try { document.documentElement.classList.add('gx-locked'); } catch { /* noop */ }
+    try { document.body.style.overflow = 'hidden'; } catch { /* noop */ }
+    el('player-title').textContent = '▶ ' + (c.title || 'Now Playing');
+    const sub = el('player-sub');
+    if (sub) sub.textContent = c.sub || '';
+    const bar = el('player-epbar');
+    if (bar) bar.classList.toggle('hidden', !c.showPrevNext);
+    // Source picker + its "choose another" affordance belong to multi-source
+    // sessions; movie/TV sessions keep the single-source UI exactly as-is.
+    const srcBar = el('player-sources');
+    if (srcBar) srcBar.classList.toggle('hidden', !c.showSources);
+    const altBtn = el('player-error-alt');
+    if (altBtn) altBtn.classList.toggle('hidden', !c.showSources);
+    attach(withStartAt(c.url, c.startAt));
+    return true;
+  }
+
+  function playResumeLabel(progressKey) {
+    const pr = progressKey ? Progress.load(progressKey) : null;
+    return pr ? 'Resume ' + fmt(pr.t) : null;
+  }
+
+  function close() {
+    // Final playhead flush: persist the last time the embed posted (<=5s
+    // old — heartbeats) BEFORE the frame unloads and ctx is cleared. The
+    // dying frame's own pagehide message can never reach us (the frame
+    // navigates to about:blank first), so without this a sudden quit could
+    // keep only an older heartbeat. The save also emits
+    // greybox:progress-changed, joining this session's player-closed event
+    // in re-resolving the home Continue Watching shelf right away.
+    try {
+      if (ctx && ctx.progressKey && typeof ctx.lastT === 'number') {
+        Progress.save(ctx.progressKey, ctx.lastT, ctx.lastD || 0, ctx.progressMeta);
+      }
+    } catch { /* flush is best-effort */ }
+    teardown();
+    unloadPlayerAd();
+    // Silence guarantee: removeAttribute('src') alone does NOT reliably
+    // stop a loaded cross-origin frame (audio keeps playing in back).
+    // Navigating the frame to about:blank unloads its document for sure.
+    // teardown() already bumped loadGen, so this unload's load event is
+    // ignored by the guarded listener above — the veil stays as-is.
+    try {
+      const f = el('embed-frame');
+      if (f) f.src = 'about:blank';
+    } catch { /* silence is best-effort */ }
+    // Multi-source bookkeeping (sports sessions): hide the picker chrome and
+    // let the owning module drop its per-session failed-source state.
+    try {
+      const srcBar = el('player-sources');
+      if (srcBar) srcBar.classList.add('hidden');
+      const altBtn = el('player-error-alt');
+      if (altBtn) altBtn.classList.add('hidden');
+      if (ctx && typeof ctx.onClose === 'function') ctx.onClose();
+    } catch { /* noop */ }
+    ctx = null;
+    const p = el('player');
+    if (p) p.classList.add('hidden');
+    // Keep the lock when a card is open underneath (Back still owns it);
+    // otherwise the background would scroll behind the modal.
+    try {
+      const m = document.getElementById('modal');
+      const modalOpen = !!(m && m.classList && !m.classList.contains('hidden'));
+      if (!modalOpen) {
+        try { document.documentElement.classList.remove('gx-locked'); } catch { /* noop */ }
+        try { document.body.style.overflow = ''; } catch { /* noop */ }
+      }
+    } catch { /* lock release is best-effort */ }
+    // This session's playhead just landed (or cleared on 'ended') — let the
+    // home page refresh its Continue Watching shelf. Deferred a tick so a
+    // navigation that closed the player finishes its own route bookkeeping
+    // first (stale-guarded handlers no-op cleanly on the new route).
+    try {
+      setTimeout(() => {
+        try { window.dispatchEvent(new CustomEvent('greybox:player-closed')); } catch { /* noop */ }
+      }, 50);
+    } catch { /* dispatch optional */ }
+  }
+
+  function current() { return ctx; }
+
+  const StreamAPI = {
+    EMBED, getMovieUrl, getEpisodeUrl, isConfigured,
+    EMBED_UNCONFIGURED_ERROR,
+    Progress, Player: { open, close, current, retry: () => ctx && open(ctx) },
+    fmtTime: fmt, resumeLabel: playResumeLabel,
+  };
+
+  if (typeof window !== 'undefined') window.Stream = StreamAPI;
+  // Headless/test hook. Browser behavior unchanged.
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+      EMBED, getMovieUrl, getEpisodeUrl, isConfigured,
+      EMBED_UNCONFIGURED_ERROR,
+      fmtTime: fmt, Progress,
+      PLAYER_AD_SRC, PLAYER_AD_DEFAULT_CODE, playerAdCfg, loadPlayerAd, unloadPlayerAd,
+    };
+  }
+})();

@@ -1,0 +1,87 @@
+{
+  "id": 218507,
+  "season_number": 1,
+  "name": "Miniseries",
+  "episodes": [
+    {
+      "episode_number": 1,
+      "name": "Manifesto",
+      "overview": "Troubled student Fakhri enrols in the prestigious all-boys boarding school, KUDRAT. Inside, he uncovers a sinister organisation controlling the students and reunites with his estranged brother Naim.",
+      "runtime": 50,
+      "air_date": "2023-01-23",
+      "still_path": "/STprEQTtdDNsVJxuYeDEOvioMn.jpg"
+    },
+    {
+      "episode_number": 2,
+      "name": "Of Mice & Men",
+      "overview": "Fakhri and his dorm mates continue to be hazed by the High Council and they begin to learn the consequences for snitches.",
+      "runtime": 46,
+      "air_date": "2023-01-30",
+      "still_path": "/ozR35soSps9NOMeX0Rohhgbx2Tr.jpg"
+    },
+    {
+      "episode_number": 3,
+      "name": "Bad Roots",
+      "overview": "Fakhri gets a suprise visit from his mother as he preps for the tournament. He also opens up about his past and troubles that arose 6 years ago that led to his estrangement from Naim.",
+      "runtime": 52,
+      "air_date": "2023-02-06",
+      "still_path": "/kGzepHzHFu2ssj8gBDdqtz3TP0K.jpg"
+    },
+    {
+      "episode_number": 4,
+      "name": "Laid Bare",
+      "overview": "The Form 4 class face their worst fears when they attend the yearly “Honeymoon Camp”.",
+      "runtime": 47,
+      "air_date": "2023-02-13",
+      "still_path": "/nVsNONHZyHkzUaEyJNTDzksHSU6.jpg"
+    },
+    {
+      "episode_number": 5,
+      "name": "Ashes to Ashes",
+      "overview": "Mr Sin and Mrs Faniza’s suspicions arise as the Form 4 students return sick after the “Kem Bulan Madu” & an indignant Fakhri confronts Kahar to put an end to the oppresive order by the seniors.",
+      "runtime": 48,
+      "air_date": "2023-02-20",
+      "still_path": "/si43h04S6n5fTgxc8PftL3C45Y3.jpg"
+    },
+    {
+      "episode_number": 6,
+      "name": "Predators",
+      "overview": "Naim uncovers dark secrets that even the students aren’t aware of when Amirr reveals his traumatic past.",
+      "runtime": 44,
+      "air_date": "2023-02-27",
+      "still_path": "/b2FvC5II9CQHRdajj6f9qLfFyoE.jpg"
+    },
+    {
+      "episode_number": 7,
+      "name": "Power Trip",
+      "overview": "The school authorities suspicions increase following Ariz’s case. Naim and Mia’s relationship blossoms. Meanwhile, Fakhriah begins to lose his grasp on his noble goals as power begins to corrupt him.",
+      "runtime": 49,
+      "air_date": "2023-03-06",
+      "still_path": "/uBydEOQQuHdGgWtD0RYLWnsxZHM.jpg"
+    },
+    {
+      "episode_number": 8,
+      "name": "Kingdom of Flies",
+      "overview": "Kahar’s reign begins to falter as the Form 4 students retaliate against him due to Fakhri’s influence. Pressure builds up between the Form 5 and Form 4 students.",
+      "runtime": 47,
+      "air_date": "2023-03-13",
+      "still_path": "/7CnNEOafFxdOqZnnWF8GH8Ousf.jpg"
+    },
+    {
+      "episode_number": 9,
+      "name": "Parallel",
+      "overview": "The school opens an investigation following Ayam’s case. While Fakhri’s guilt weighs upon him, Prakash urges Fakhri to stop his upcoming fight with Naim before it’s too late.",
+      "runtime": 51,
+      "air_date": "2023-03-11",
+      "still_path": "/f7r1PINPXKJGOApOUSev2UaqvfZ.jpg"
+    },
+    {
+      "episode_number": 10,
+      "name": "Men Don't Cry",
+      "overview": "The grim truth is exposed. The state of the school, its traditions, as well as Fakhri and Naim’s future are on the line as confessions come to light.",
+      "runtime": 52,
+      "air_date": "2023-03-20",
+      "still_path": "/qXpNy0sg2cFLHAXHCMmsw4hZaBl.jpg"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+{"event":"roster","providers":[{"id":"shows","label":"Supernova","probe":false}]}
+{"event":"source","provider":"shows","source":{"url":"https://vidy.test/tv/334097/1/4?overlay=true","server":"shows-main2","label":"Supernova","type":"embed","provider":"shows","gen":2}}
+{"event":"settled","provider":"shows","count":1}
+{"event":"done","sources":[{"url":"https://vidy.test/tv/334097/1/4?overlay=true","server":"shows-main2","label":"Supernova","type":"embed","provider":"shows","gen":2}]}
