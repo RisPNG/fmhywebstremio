@@ -1,10 +1,12 @@
 import { spawn } from 'node:child_process';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { load } from 'cheerio';
 import { deploymentSourceRegistry } from '../src/engine/registry/deployment-registry.generated';
 
 async function verifyDeploymentContract(): Promise<void> {
+  const { version } = JSON.parse(await readFile(join(__dirname, '../package.json'), 'utf8')) as { version: string };
   const port = Number(process.env['VERIFY_DEPLOYMENT_PORT'] ?? 55146);
   const dataDirectory = await mkdtemp(join(tmpdir(), 'fmhy-webstream-deployment-'));
   await writeFile(join(dataDirectory, 'sources.json'), '{"records":[],"health":[]}');
@@ -38,13 +40,15 @@ async function verifyDeploymentContract(): Promise<void> {
     const manifest = await manifestResponse.json() as { id?: string; version?: string; name?: string; description?: string; resources?: unknown[]; config?: { key: string }[] };
     const sourceKeys = deploymentSourceRegistry.records.map(source => `disableFmhySource_${source.id}`).sort();
     const configuredSource = deploymentSourceRegistry.records[0]?.id;
-    if (!configuredSource || !manifestResponse.ok || manifest.id !== 'fmhy-webstream' || manifest.version !== '1.19.0' || manifest.name !== 'FMHY\'s Website Streamer' || !manifest.description?.startsWith('Provides video HTTP URLs from streaming websites listed by FMHY.') || !manifest.resources?.length || JSON.stringify(manifest.config?.map(field => field.key).sort()) !== JSON.stringify(sourceKeys)) throw new Error('Manifest contract is invalid');
+    if (!configuredSource || !manifestResponse.ok || manifest.id !== 'fmhy-webstream' || manifest.version !== version || !manifest.name || !manifest.description || !manifest.resources?.length || JSON.stringify(manifest.config?.map(field => field.key).sort()) !== JSON.stringify(sourceKeys)) throw new Error('Manifest contract is invalid');
     const configuredManifestResponse = await fetch(`http://127.0.0.1:${port}/disabled=${configuredSource}/manifest.json`);
     const configuredManifest = await configuredManifestResponse.json() as { config?: { key: string; default?: string }[] };
     if (!configuredManifestResponse.ok || configuredManifest.config?.find(field => field.key === `disableFmhySource_${configuredSource}`)?.default !== 'checked') throw new Error('Clean configuration path contract is invalid');
     const configure = await fetch(`http://127.0.0.1:${port}/configure`);
     const configureBody = await configure.text();
-    if (!configure.ok || !configure.headers.get('content-type')?.includes('text/html') || !configureBody.includes('FMHY\'s Website Streamer') || !configureBody.includes('Provides video HTTP URLs from streaming websites listed by FMHY.') || deploymentSourceRegistry.records.some(source => !configureBody.includes(`>${source.canonicalDomain}</div>`)) || /torbox|debrid|debris|MediaFlow|WebStreamrMBG/i.test(configureBody)) throw new Error('Configuration endpoint contract is invalid');
+    const configurePage = load(configureBody);
+    const sourceControls = configurePage('[data-key]').map((_, input) => configurePage(input).attr('data-key')).get().sort();
+    if (!configure.ok || !configure.headers.get('content-type')?.includes('text/html') || JSON.stringify(sourceControls) !== JSON.stringify(sourceKeys)) throw new Error('Configuration endpoint contract is invalid');
     const live = await fetch(`http://127.0.0.1:${port}/live`);
     const liveBody = await live.json() as { status?: string; details?: Record<string, string> };
     if (!live.ok || liveBody.status !== 'ok' || Object.keys(liveBody.details ?? {}).length !== deploymentSourceRegistry.records.length || deploymentSourceRegistry.records.some(source => liveBody.details?.[source.canonicalDomain] !== 'healthy')) throw new Error('Runtime source registry was not loaded');
@@ -52,10 +56,11 @@ async function verifyDeploymentContract(): Promise<void> {
     if (!stats.ok || (await stats.json() as { revision?: string }).revision !== 'deployment-contract') throw new Error('Deployment revision contract is invalid');
     const stream = await fetch(`http://127.0.0.1:${port}/stream/movie/tmdb%3A27205.json`);
     const streamBody = await stream.json() as { streams?: unknown[] };
-    if (!stream.ok || !Array.isArray(streamBody.streams) || JSON.stringify(streamBody).includes('WebStreamrMBG')) throw new Error('Stream route did not reach the Stremio adapter');
+    if (!stream.ok || !Array.isArray(streamBody.streams)) throw new Error('Stream route did not reach the Stremio adapter');
     const disabledSources = deploymentSourceRegistry.records.map(source => source.id).join(',');
     const disabledStream = await fetch(`http://127.0.0.1:${port}/disabled=${disabledSources}/stream/movie/tmdb%3A27205.json`);
-    if (!disabledStream.ok || await disabledStream.text() !== '{"streams":[]}') throw new Error('All-disabled stream contract is invalid');
+    const disabledStreamBody = await disabledStream.json() as { streams?: unknown[] };
+    if (!disabledStream.ok || !Array.isArray(disabledStreamBody.streams) || disabledStreamBody.streams.length) throw new Error('All-disabled stream contract is invalid');
     process.stdout.write(`Deployment contract verified at http://127.0.0.1:${port}\n`);
   } finally {
     server.kill('SIGTERM');

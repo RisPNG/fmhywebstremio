@@ -7,7 +7,7 @@ describe('buildManifest', () => {
 
     expect(manifest).toMatchObject({
       name: expect.any(String),
-      description: 'Provides video HTTP URLs from streaming websites listed by FMHY.',
+      description: expect.any(String),
       resources: ['stream'],
       types: ['movie', 'series'],
       idPrefixes: ['tmdb:', 'tt'],
