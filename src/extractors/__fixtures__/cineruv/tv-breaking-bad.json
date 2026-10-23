@@ -1,0 +1,29 @@
+{
+  "id": 1396,
+  "title": "Breaking Bad",
+  "type": "tv",
+  "year": 2008,
+  "language": "EN",
+  "seasons": [
+    {
+      "seasonNumber": 1,
+      "episodeCount": 7
+    },
+    {
+      "seasonNumber": 2,
+      "episodeCount": 13
+    },
+    {
+      "seasonNumber": 3,
+      "episodeCount": 13
+    },
+    {
+      "seasonNumber": 4,
+      "episodeCount": 13
+    },
+    {
+      "seasonNumber": 5,
+      "episodeCount": 16
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "seasonNumber": 1,
+  "episodes": [
+    {
+      "episodeNumber": 1,
+      "name": "Pilot"
+    },
+    {
+      "episodeNumber": 2,
+      "name": "Cat's in the Bag..."
+    },
+    {
+      "episodeNumber": 3,
+      "name": "...And the Bag's in the River"
+    },
+    {
+      "episodeNumber": 4,
+      "name": "Cancer Man"
+    },
+    {
+      "episodeNumber": 5,
+      "name": "Gray Matter"
+    },
+    {
+      "episodeNumber": 6,
+      "name": "Crazy Handful of Nothin'"
+    },
+    {
+      "episodeNumber": 7,
+      "name": "A No Rough Stuff Type Deal"
+    }
+  ]
+}

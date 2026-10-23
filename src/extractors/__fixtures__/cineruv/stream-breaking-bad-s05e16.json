@@ -1,0 +1,62 @@
+{
+  "success": true,
+  "title": "Breaking Bad",
+  "year": 2008,
+  "language": "en",
+  "season": 5,
+  "episode": 16,
+  "primarySources": [
+    {
+      "id": "vidzee-v4-english",
+      "name": "VidZee • Studio Master (1080p FHD)",
+      "url": "https://api.movenerds.space/api/proxy/master.m3u8?url=https%3A%2F%2Fmedia.test%2Fvidzee-v4-english%2Fmaster.m3u8&headers=%7B%22Referer%22%3A%22https%3A%2F%2Fplayer.vidzee.wtf%2F%22%2C%22Origin%22%3A%22https%3A%2F%2Fplayer.vidzee.wtf%22%7D",
+      "type": "hls",
+      "quality": "1080p Pure Studio Master (3.0 Mbps AAC)",
+      "isDirect": false,
+      "requiresProxy": true,
+      "providerId": "vidzee",
+      "providerName": "VidZee",
+      "language": "en",
+      "is4K": false,
+      "headers": {
+        "Referer": "https://player.vidzee.wtf/",
+        "Origin": "https://player.vidzee.wtf"
+      }
+    },
+    {
+      "id": "vidrock-atlas",
+      "name": "VidRock • Atlas (1080p Pure Studio Master 6.0 Mbps AAC)",
+      "url": "https://api.movenerds.space/api/proxy/master.m3u8?url=https%3A%2F%2Fmedia.test%2Fvidrock-atlas%2Fmaster.m3u8&headers=%7B%22Referer%22%3A%22https%3A%2F%2Fvidrock.net%2F%22%2C%22Origin%22%3A%22https%3A%2F%2Fvidrock.net%22%2C%22User-Agent%22%3A%22Mozilla%2F5.0+%28Macintosh%3B+Intel+Mac+OS+X+10_15_7%29+AppleWebKit%2F537.36+%28KHTML%2C+like+Gecko%29+Chrome%2F128.0.0.0+Safari%2F537.36%22%7D",
+      "type": "hls",
+      "quality": "1080p Studio Master (6.0 Mbps AAC)",
+      "isDirect": false,
+      "requiresProxy": true,
+      "is4K": false,
+      "headers": {
+        "Referer": "https://vidrock.net/",
+        "Origin": "https://vidrock.net",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+      },
+      "providerId": "vidrock",
+      "providerName": "VidRock Atlas",
+      "language": "english"
+    },
+    {
+      "id": "cinejoy-vanguard-1",
+      "name": "CineJoy Vanguard (1080p Pure Studio Master)",
+      "url": "https://api.movenerds.space/api/proxy/master.m3u8?url=https%3A%2F%2Fmedia.test%2Fcinejoy-vanguard-1%2Fmaster.m3u8&headers=%7B%22Referer%22%3A%22https%3A%2F%2Fplayer.vidzee.wtf%2F%22%2C%22Origin%22%3A%22https%3A%2F%2Fplayer.vidzee.wtf%22%7D",
+      "type": "hls",
+      "quality": "1080p Pure Studio Master (4.9 Mbps AAC)",
+      "isDirect": false,
+      "requiresProxy": true,
+      "providerId": "cinejoy",
+      "providerName": "CineJoy",
+      "language": "en",
+      "is4K": false,
+      "headers": {
+        "Referer": "https://player.vidzee.wtf/",
+        "Origin": "https://player.vidzee.wtf"
+      }
+    }
+  ]
+}
