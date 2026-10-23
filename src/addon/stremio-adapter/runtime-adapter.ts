@@ -1,6 +1,5 @@
-import { getBuiltinEmbeds } from '@movie-web/providers';
 import type { Stream } from 'stremio-addon-sdk';
-import type { MediaIdentity, MediaRequest, NormalizedStream, SourceRecord, StreamEngine } from '../../engine/core';
+import type { MediaRequest, NormalizedStream, SourceRecord, StreamEngine } from '../../engine/core';
 import type { SourceRegistry } from '../../engine/registry';
 import type { Context } from '../../types';
 import type { HlsRelay } from './hls-relay';
@@ -9,24 +8,6 @@ export interface StremioStreamResult { streams: Stream[]; ttl?: number; diagnost
 export interface StremioStreamProvider { findStreams(ctx: Context, type: string, rawId: string): Promise<StremioStreamResult> }
 
 const languageNames = new Intl.DisplayNames(['en'], { type: 'language', fallback: 'none' });
-const playerNames: Readonly<Record<string, string>> = {
-  ...Object.fromEntries(getBuiltinEmbeds().map(({ id, name }) => [id, name])),
-  'bilibili-ugc': 'BiliBili',
-  'bingebang-player': 'BingeBang',
-  'cinepro-api': 'CinePro',
-  'cinezo-player': 'Cinezo',
-  cinextream: 'Cinextream',
-  gxplayer: 'GXPlayer',
-  phimapi: 'PhimAPI',
-  'speedracelight-api': 'Videasy',
-  'vidbolt-player': 'VidBolt',
-  'vidlove-api': 'Vidlove',
-  'vidora-player': 'Vidora',
-  'vidrift-api': 'Vidrift',
-  'vidspark-api': 'VidSpark',
-  'vidsrcme-api': 'VidsrcMe',
-  'xpass-player': 'Xpass',
-};
 
 export function parseStremioMediaRequest(type: string, rawId: string): MediaRequest {
   if (type !== 'movie' && type !== 'series') throw new Error(`Unsupported type: ${type}`);
@@ -38,9 +19,8 @@ export function parseStremioMediaRequest(type: string, rawId: string): MediaRequ
   throw new Error(`Unsupported ID: ${rawId}`);
 }
 
-export function normalizedStreamToStremio(stream: NormalizedStream, media?: MediaIdentity, source?: SourceRecord): Stream {
+export function normalizedStreamToStremio(stream: NormalizedStream, source?: SourceRecord): Stream {
   const brand = source?.fmhy.name?.replace(/\s+/g, ' ').trim() || 'N/A';
-  const title = media?.title.replace(/\s+/g, ' ').trim() || 'N/A';
   const suppliedLanguage = stream.language?.trim();
   const languages = suppliedLanguage && !['auto', 'und'].includes(suppliedLanguage.toLowerCase()) ? [suppliedLanguage] : stream.audioLanguages ?? [];
   const language = [...new Set(languages.flatMap((value) => {
@@ -51,8 +31,8 @@ export function normalizedStreamToStremio(stream: NormalizedStream, media?: Medi
   }))].join(', ') || 'N/A';
   const resolution = stream.resolution?.height ? `${stream.resolution.height}p` : 'N/A';
   const website = source?.canonicalDomain ? new URL(`https://${source.canonicalDomain}/`).href : 'N/A';
-  const player = stream.hostExtractor ? playerNames[stream.hostExtractor] ?? 'N/A' : 'N/A';
-  return { url: stream.url.href, ...(stream.subtitles && { subtitles: stream.subtitles.map(track => ({ id: track.url.href, url: track.url.href, lang: track.language ?? track.label ?? 'und' })) }), name: brand, title: `${brand} ${title}\n${language} ${resolution}\n${website} ${player}`, behaviorHints: { ...(stream.protocol !== 'http' && { notWebReady: true }), ...(stream.headers && { notWebReady: true, proxyHeaders: { request: stream.headers } }) } };
+  const player = stream.hostExtractor?.trim() || 'N/A';
+  return { url: stream.url.href, ...(stream.subtitles && { subtitles: stream.subtitles.map(track => ({ id: track.url.href, url: track.url.href, lang: track.language ?? track.label ?? 'und' })) }), name: `${brand} ${resolution}\n${language}`, title: `${website} . ${player}`, behaviorHints: { ...(stream.protocol !== 'http' && { notWebReady: true }), ...(stream.headers && { notWebReady: true, proxyHeaders: { request: stream.headers } }) } };
 }
 
 export class RuntimeStremioAdapter implements StremioStreamProvider {
@@ -63,9 +43,9 @@ export class RuntimeStremioAdapter implements StremioStreamProvider {
       const source = this.sources.get(stream.sourceId);
       if (stream.delivery === 'relayed' && this.relay) {
         const { headers, ...relayedStream } = stream;
-        return normalizedStreamToStremio({ ...relayedStream, url: this.relay.createUrl(ctx.hostUrl, { url: stream.url, ...(headers && { headers }), resource: stream.protocol === 'hls' ? { kind: 'playlist' } : stream.protocol === 'dash' ? { kind: 'file', format: 'dash' } : { kind: 'file' } }) }, result.media, source);
+        return normalizedStreamToStremio({ ...relayedStream, url: this.relay.createUrl(ctx.hostUrl, { url: stream.url, ...(headers && { headers }), resource: stream.protocol === 'hls' ? { kind: 'playlist' } : stream.protocol === 'dash' ? { kind: 'file', format: 'dash' } : { kind: 'file' } }) }, source);
       }
-      return normalizedStreamToStremio(stream, result.media, source);
+      return normalizedStreamToStremio(stream, source);
     }), diagnostics: [...new Set(result.failures.map(failure => `${failure.code}@${failure.stage}:${failure.sourceId ?? 'metadata'}:${failure.familyId ?? 'resolver'}`))] };
   }
 }
