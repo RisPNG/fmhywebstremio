@@ -1,0 +1,69 @@
+{
+  "seasonNumber": 5,
+  "episodes": [
+    {
+      "episodeNumber": 1,
+      "name": "Live Free or Die"
+    },
+    {
+      "episodeNumber": 2,
+      "name": "Madrigal"
+    },
+    {
+      "episodeNumber": 3,
+      "name": "Hazard Pay"
+    },
+    {
+      "episodeNumber": 4,
+      "name": "Fifty-One"
+    },
+    {
+      "episodeNumber": 5,
+      "name": "Dead Freight"
+    },
+    {
+      "episodeNumber": 6,
+      "name": "Buyout"
+    },
+    {
+      "episodeNumber": 7,
+      "name": "Say My Name"
+    },
+    {
+      "episodeNumber": 8,
+      "name": "Gliding Over All"
+    },
+    {
+      "episodeNumber": 9,
+      "name": "Blood Money"
+    },
+    {
+      "episodeNumber": 10,
+      "name": "Buried"
+    },
+    {
+      "episodeNumber": 11,
+      "name": "Confessions"
+    },
+    {
+      "episodeNumber": 12,
+      "name": "Rabid Dog"
+    },
+    {
+      "episodeNumber": 13,
+      "name": "To'hajiilee"
+    },
+    {
+      "episodeNumber": 14,
+      "name": "Ozymandias"
+    },
+    {
+      "episodeNumber": 15,
+      "name": "Granite State"
+    },
+    {
+      "episodeNumber": 16,
+      "name": "Felina"
+    }
+  ]
+}

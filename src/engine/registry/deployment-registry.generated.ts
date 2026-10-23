@@ -93,9 +93,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       fmhy: {
         name: 'ArrowTV',
         section: '▷ Stream Aggregators',
-        tags: [
-          'recommended',
-        ],
+        tags: [],
         firstSeenAt: new Date(0),
         lastSeenAt: new Date(0),
       },
@@ -144,7 +142,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         firstSeenAt: new Date(0),
         lastSeenAt: new Date(0),
       },
-      status: 'supported',
       family: {
         id: 'bilibili',
         confidence: 1,
@@ -168,6 +165,44 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         outcome: 'matched',
         observedAt: new Date(0),
         finalUrl: 'https://www.bilibili.tv/',
+      },
+      status: 'supported',
+    },
+    {
+      id: 'cineruv:cineruv.website',
+      canonicalDomain: 'cineruv.website',
+      aliases: [],
+      fmhy: {
+        name: 'cineruv',
+        section: '▷ Stream Aggregators',
+        tags: [],
+        firstSeenAt: new Date(0),
+        lastSeenAt: new Date(0),
+      },
+      status: 'supported',
+      family: {
+        id: 'cineruv',
+        confidence: 1,
+        evidence: [
+          {
+            type: 'script-signature',
+            fingerprint: 'cineruv-brand',
+          },
+          {
+            type: 'dom-shape',
+            fingerprint: 'cineruv-catalog-identity',
+          },
+          {
+            type: 'asset-path',
+            value: 'cineruv-vite-client',
+          },
+        ],
+        lastProbedAt: new Date(0),
+      },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://cineruv.website/',
       },
     },
     {
@@ -311,6 +346,13 @@ export const deploymentSourceRegistry: SourceRegistryState = {
     },
     {
       sourceId: 'bilibili:bilibili.com',
+      lastOutcome: 'healthy',
+      recentSuccesses: 3,
+      recentFailures: 0,
+      observedAt: new Date(0),
+    },
+    {
+      sourceId: 'cineruv:cineruv.website',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
       recentFailures: 0,
