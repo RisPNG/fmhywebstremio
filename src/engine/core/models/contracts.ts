@@ -1,5 +1,5 @@
 import type { Failure } from './failures';
-import type { MediaIdentity, MediaRequest } from './media';
+import type { MediaRequest } from './media';
 import type { NormalizedStream, StreamCandidate } from './streams';
 
 export interface ExtractionResponse {
@@ -15,7 +15,6 @@ export interface ExtractionResponse {
 }
 export interface QueryOptions { deadlineMs?: number; preferredLanguages?: readonly string[]; validationConcurrency?: number; sourceConcurrency?: number; excludedSourceIds?: readonly string[] }
 export interface StreamQueryResult {
-  media?: MediaIdentity;
   streams: readonly NormalizedStream[];
   failures: readonly Failure[];
   unverified: readonly StreamCandidate[];

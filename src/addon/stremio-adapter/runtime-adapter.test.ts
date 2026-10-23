@@ -12,37 +12,37 @@ describe('RuntimeStremioAdapter', () => {
   const stream: NormalizedStream = { url: new URL('https://media.test/movie.mp4'), protocol: 'http', validation: 'validated', sourceId: 'source', sourceExtractor: 'family' };
 
   test.each([
-    ['67movies:67movies.st', '67Movies', '67movies.st', 'cinezo-player', 'Cinezo'],
-    ['anicine:anicine.sbs', 'AniCine', 'anicine.sbs', 'xpass-player', 'Xpass'],
-    ['arrowtv:arrowtv.net', 'ArrowTV', 'arrowtv.net', 'vidlove-api', 'Vidlove'],
-    ['bilibili:bilibili.com', 'BiliBili', 'bilibili.tv', 'bilibili-ugc', 'BiliBili'],
-    ['cineruv:cineruv.website', 'cineruv', 'cineruv.website', undefined, 'N/A'],
-    ['milkbox:milkbox.zapto.org', 'MilkBox', 'milkbox.zapto.org', 'vidspark-api', 'VidSpark'],
-    ['movienerds:movienerds.site', 'MovieNerds', 'movienerds.site', undefined, 'N/A'],
-    ['pressplay:pressplayx.to', 'PressPlay', 'pressplayx.to', 'vidspark-api', 'VidSpark'],
-  ])('formats all three lines for deployed source %s', (id, brand, domain, hostExtractor, player) => {
+    ['67movies:67movies.st', '67Movies', '67movies.st', 'cinezo-player'],
+    ['anicine:anicine.sbs', 'AniCine', 'anicine.sbs', 'vidbolt-player'],
+    ['arrowtv:arrowtv.net', 'ArrowTV', 'arrowtv.net', 'vidlove-api'],
+    ['bilibili:bilibili.com', 'BiliBili', 'bilibili.tv', 'bilibili-ugc'],
+    ['cineruv:cineruv.website', 'cineruv', 'cineruv.website', undefined],
+    ['milkbox:milkbox.zapto.org', 'MilkBox', 'milkbox.zapto.org', 'vidspark-api'],
+    ['movienerds:movienerds.site', 'MovieNerds', 'movienerds.site', undefined],
+    ['pressplay:pressplayx.to', 'PressPlay', 'pressplayx.to', 'vidspark-api'],
+  ])('formats the two label lines and description for deployed source %s', (id, brand, domain, hostExtractor) => {
     const source = deploymentSourceRegistry.records.find(record => record.id === id);
     expect(source).toBeDefined();
-    expect(normalizedStreamToStremio({ ...stream, sourceId: id as string, ...(hostExtractor && { hostExtractor }), language: 'eng', resolution: { width: 1920, height: 1080 } }, media, source)).toMatchObject({ name: brand, title: `${brand} Inception\nEnglish 1080p\nhttps://${domain}/ ${player}` });
+    expect(normalizedStreamToStremio({ ...stream, sourceId: id as string, ...(hostExtractor && { hostExtractor }), language: 'eng', resolution: { width: 1920, height: 1080 } }, source)).toMatchObject({ name: `${brand} 1080p\nEnglish`, title: `https://${domain}/ . ${hostExtractor ?? 'N/A'}` });
   });
 
-  test('keeps every missing component as N/A without substituting technical identifiers', () => {
-    expect(normalizedStreamToStremio({ ...stream, hostExtractor: 'unknown-player' })).toMatchObject({ name: 'N/A', title: 'N/A N/A\nN/A N/A\nN/A N/A' });
+  test('keeps every missing component as N/A without omitting its position', () => {
+    expect(normalizedStreamToStremio(stream)).toMatchObject({ name: 'N/A N/A\nN/A', title: 'N/A . N/A' });
     const source: SourceRecord = { id: 'source:old.test', canonicalDomain: 'active.test', aliases: ['old.test'], fmhy: { name: '  Source\n Brand  ', firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, status: 'supported' };
-    expect(normalizedStreamToStremio({ ...stream, language: 'und', hostExtractor: 'cinepro-api' }, { ...media, title: ' ' }, source)).toMatchObject({ name: 'Source Brand', title: 'Source Brand N/A\nN/A N/A\nhttps://active.test/ CinePro' });
-    expect(normalizedStreamToStremio({ ...stream, language: 'es', resolution: { width: 1280, height: 720 } }, { ...media, title: '  A\n Movie  ' }, { ...source, fmhy: { ...source.fmhy, name: ' ' } }).title).toBe('N/A A Movie\nSpanish 720p\nhttps://active.test/ N/A');
+    expect(normalizedStreamToStremio({ ...stream, language: 'und', hostExtractor: 'cinepro-api' }, source)).toMatchObject({ name: 'Source Brand N/A\nN/A', title: 'https://active.test/ . cinepro-api' });
+    expect(normalizedStreamToStremio({ ...stream, language: 'es', resolution: { width: 1280, height: 720 }, hostExtractor: ' ' }, { ...source, fmhy: { ...source.fmhy, name: ' ' } })).toMatchObject({ name: 'N/A 720p\nSpanish', title: 'https://active.test/ . N/A' });
   });
 
   test.each([undefined, 'auto', 'und', '  '])('uses declared audio tracks when stream language is %s', (language) => {
-    const formatted = normalizedStreamToStremio({ ...stream, ...(language && { language }), audioLanguages: ['eng', 'spa', 'eng', 'und'] }, media);
-    expect(formatted.title).toBe('N/A Inception\nEnglish, Spanish N/A\nN/A N/A');
+    const formatted = normalizedStreamToStremio({ ...stream, ...(language && { language }), audioLanguages: ['eng', 'spa', 'eng', 'und'] });
+    expect(formatted).toMatchObject({ name: 'N/A N/A\nEnglish, Spanish', title: 'N/A . N/A' });
   });
 
-  test('uses the installed provider library names for its embedded players', () => {
-    expect(normalizedStreamToStremio({ ...stream, hostExtractor: 'filemoon' }, media).title).toBe('N/A Inception\nN/A N/A\nN/A Filemoon');
+  test('keeps the raw player identifier in the description', () => {
+    expect(normalizedStreamToStremio({ ...stream, hostExtractor: 'unknown-player' }).title).toBe('N/A . unknown-player');
   });
 
-  test('carries resolved media and active source metadata through the real engine', async () => {
+  test('carries active source metadata through the real engine', async () => {
     const sources = new SourceRegistry();
     const source: SourceRecord = { id: 'source:old.test', canonicalDomain: 'active.test', aliases: ['old.test'], fmhy: { name: 'Source Brand', firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'fixture', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'supported' };
     sources.set(source);
@@ -53,7 +53,7 @@ describe('RuntimeStremioAdapter', () => {
     const engine = new RuntimeStreamEngine(resolver, sources, new Map([['fixture', family]]), new ExtractionResolver(new StaticExtractorLookup([]), services), services);
     const result = await new RuntimeStremioAdapter(engine, sources).findStreams({ hostUrl: new URL('https://addon.test/'), id: 'fixture', config: {} }, 'movie', 'tt1375666');
     expect(result.streams).toHaveLength(1);
-    expect(result.streams[0]).toMatchObject({ name: 'Source Brand', title: 'Source Brand Canonical Title\nSpanish 720p\nhttps://active.test/ VidSpark', url: stream.url.href });
+    expect(result.streams[0]).toMatchObject({ name: 'Source Brand 720p\nSpanish', title: 'https://active.test/ . vidspark-api', url: stream.url.href });
     expect(resolver.resolve).toHaveBeenCalledTimes(1);
     expect(family.discoverMedia).toHaveBeenCalledWith(expect.objectContaining({ title: 'Canonical Title' }), source, services, expect.any(AbortSignal));
     expect(services.request).toHaveBeenCalledTimes(1);
@@ -61,7 +61,7 @@ describe('RuntimeStremioAdapter', () => {
 
   test('relays only streams from IP-bound host architectures', async () => {
     const target = new URL('https://media.example/movie/master.m3u8?token=fixture');
-    const engine: StreamEngine = { findStreams: jest.fn(async () => ({ media, streams: [{ url: target, protocol: 'hls' as const, validation: 'validated' as const, resolution: { width: 1920, height: 800 }, delivery: 'relayed' as const, sourceId: 'cinego:cinego.test', sourceExtractor: 'cinego', hostExtractor: 'vidsrcme-api' }], failures: [], unverified: [], deadline: { budgetMs: 1, elapsedMs: 1, exceeded: false, sourcesAttempted: 1, sourcesCompleted: 1, sourcesCancelled: 0 } })) };
+    const engine: StreamEngine = { findStreams: jest.fn(async () => ({ streams: [{ url: target, protocol: 'hls' as const, validation: 'validated' as const, resolution: { width: 1920, height: 800 }, delivery: 'relayed' as const, sourceId: 'cinego:cinego.test', sourceExtractor: 'cinego', hostExtractor: 'vidsrcme-api' }], failures: [], unverified: [], deadline: { budgetMs: 1, elapsedMs: 1, exceeded: false, sourcesAttempted: 1, sourcesCompleted: 1, sourcesCancelled: 0 } })) };
     const sources = new SourceRegistry();
     sources.set({ id: 'cinego:cinego.test', canonicalDomain: 'cinego.test', aliases: [], fmhy: { name: 'CineGo', firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, status: 'supported' });
     const relay = new HlsRelay();
@@ -71,7 +71,7 @@ describe('RuntimeStremioAdapter', () => {
     const [, signature, payload] = url.pathname.match(/^\/hls-relay\/([^/]+)\/([^/]+)\/playlist\.m3u8$/) ?? [];
     expect(url.origin).toBe(context.hostUrl.origin);
     expect(relay.resolveTarget(signature as string, payload as string)).toEqual({ url: target, resource: { kind: 'playlist' } });
-    expect(result.streams[0]).toMatchObject({ name: 'CineGo', title: 'CineGo Inception\nN/A 800p\nhttps://cinego.test/ VidsrcMe' });
+    expect(result.streams[0]).toMatchObject({ name: 'CineGo 800p\nN/A', title: 'https://cinego.test/ . vidsrcme-api' });
   });
 
   test.each(['hls', 'dash', 'http'] as const)('signs root resource semantics from %s rather than its opaque URL', async (protocol) => {
