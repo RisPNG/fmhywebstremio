@@ -371,7 +371,7 @@ describe('protocol vertical slice', () => {
   test('applies configured FMHY source exclusions to runtime selection', async () => {
     const engine = { findStreams: jest.fn().mockResolvedValue({ streams: [], failures: [], unverified: [], deadline: { budgetMs: 1, elapsedMs: 1, exceeded: false, sourcesAttempted: 0, sourcesCompleted: 0, sourcesCancelled: 0 } }) };
     const ctx = { hostUrl: new URL('https://addon.test/'), id: 'request', config: { 'disableFmhySource_aether:aether.test': 'on', 'multi': 'on' } };
-    await new RuntimeStremioAdapter(engine).findStreams(ctx, 'movie', 'tmdb:27205');
+    await new RuntimeStremioAdapter(engine, new SourceRegistry()).findStreams(ctx, 'movie', 'tmdb:27205');
     expect(engine.findStreams).toHaveBeenCalledWith({ type: 'movie', tmdbId: 27205 }, { excludedSourceIds: ['aether:aether.test'] });
   });
 

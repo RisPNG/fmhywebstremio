@@ -7,8 +7,8 @@ test.each(['application/vnd.apple.mpegurl; charset=utf-8', 'audio/x-mpegurl'])('
     const body = request.url.pathname === '/play' ? '#EXTM3U\n#EXTINF:6,\nsegment.ts\n#EXT-X-ENDLIST' : 'media bytes';
     return { status: 200, headers: { 'content-type': request.url.pathname === '/play' ? contentType : 'video/mp2t' }, finalUrl: request.url, redirectChain: [], body: Buffer.from(body), text: () => body, json: () => ({}), truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } };
   }) };
-  const result = await new StreamSelector(services).validate([{ url: new URL('https://cdn.test/play'), protocol: 'http', delivery: 'relayed', headers: { referer: 'https://player.test/' }, sourceId: 'source', sourceExtractor: 'family', discoveredAt: new Date(0) }], { concurrency: 1 }, new AbortController().signal);
-  expect(result).toMatchObject({ streams: [{ protocol: 'hls', validation: 'validated', delivery: 'relayed', headers: { referer: 'https://player.test/' } }], failures: [] });
+  const result = await new StreamSelector(services).validate([{ url: new URL('https://cdn.test/play'), protocol: 'http', delivery: 'relayed', headers: { referer: 'https://player.test/' }, audioLanguages: ['eng'], sourceId: 'source', sourceExtractor: 'family', discoveredAt: new Date(0) }], { concurrency: 1 }, new AbortController().signal);
+  expect(result).toMatchObject({ streams: [{ protocol: 'hls', validation: 'validated', delivery: 'relayed', headers: { referer: 'https://player.test/' }, audioLanguages: ['eng'] }], failures: [] });
   expect((services.request as jest.Mock).mock.calls.map(([request]) => [request.method ?? 'GET', request.url.pathname, request.headers])).toEqual([
     ['HEAD', '/play', { referer: 'https://player.test/' }],
     ['GET', '/play', { referer: 'https://player.test/' }],
@@ -31,8 +31,8 @@ test('inspects extensionless DASH manifests using their response media type', as
     const body = '<MPD><Period><AdaptationSet><Representation width="1920" height="1080" bandwidth="3000000" /></AdaptationSet></Period></MPD>';
     return { status: 200, headers: { 'content-type': 'application/dash+xml' }, finalUrl: request.url, redirectChain: [], body: Buffer.from(body), text: () => body, json: () => ({}), truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } };
   }) };
-  const result = await new StreamSelector(services).validate([{ url: new URL('https://cdn.test/play'), protocol: 'http', sourceId: 'source', sourceExtractor: 'family', discoveredAt: new Date(0) }], { concurrency: 1 }, new AbortController().signal);
-  expect(result).toMatchObject({ streams: [{ protocol: 'dash', validation: 'validated', resolution: { width: 1920, height: 1080 } }], failures: [] });
+  const result = await new StreamSelector(services).validate([{ url: new URL('https://cdn.test/play'), protocol: 'http', audioLanguages: ['eng', 'spa'], sourceId: 'source', sourceExtractor: 'family', discoveredAt: new Date(0) }], { concurrency: 1 }, new AbortController().signal);
+  expect(result).toMatchObject({ streams: [{ protocol: 'dash', validation: 'validated', resolution: { width: 1920, height: 1080 }, audioLanguages: ['eng', 'spa'] }], failures: [] });
   expect((services.request as jest.Mock).mock.calls.map(([request]) => request.method ?? 'GET')).toEqual(['HEAD', 'GET']);
 });
 
@@ -122,12 +122,12 @@ describe('separated HLS audio validation', () => {
     if (failedPath !== '/audio.m3u8') expect(requests.filter(request => request.url.hostname === 'audio.test').map(request => request.url.pathname)).toEqual(['/audio/key.bin', '/audio/init.mp4', '/audio/first.m4s', '/audio/middle.m4s', '/audio/last.m4s']);
   });
 
-  test('keeps the candidate language while recording the selected native audio language', async () => {
+  test('keeps the candidate language while preferring the selected native audio over declared audio languages', async () => {
     const services: RequestServices = { request: jest.fn(async (request): Promise<ExtractionResponse> => {
       const body = request.url.pathname === '/master.m3u8' ? master : video;
       return { status: 200, headers: {}, finalUrl: request.url, redirectChain: [], body: Buffer.from(body), text: () => body, json: () => ({}), truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } };
     }) };
-    const result = await new StreamSelector(services).validate([{ ...candidate, language: 'Japanese' }], { concurrency: 1 }, new AbortController().signal);
+    const result = await new StreamSelector(services).validate([{ ...candidate, language: 'Japanese', audioLanguages: ['eng', 'fra'] }], { concurrency: 1 }, new AbortController().signal);
     expect(result.streams).toMatchObject([{ language: 'Japanese', audioLanguages: ['ja'] }]);
   });
 
