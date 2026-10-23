@@ -70,9 +70,9 @@ export class VidsparkApiHostArchitecture implements VidsparkHostArchitecture {
           const url = new URL(variant.url, page.finalUrl);
           const proxied = url.searchParams.get('url');
           const declared = proxied ? url.searchParams.get('data') : null;
-          const headers = declared ? Object.fromEntries(Buffer.from(declared, 'base64').toString().split('|').map(header => [header.slice(0, header.indexOf('=')).toLowerCase(), header.slice(header.indexOf('=') + 1)])) : { referer: new URL('/', page.finalUrl).href };
+          const headers = declared ? Object.fromEntries(Buffer.from(declared, 'base64').toString().split('|').map(header => [header.slice(0, header.indexOf('=')).toLowerCase(), header.slice(header.indexOf('=') + 1)])) : proxied ? {} : { referer: new URL('/', page.finalUrl).href };
           const path = new URL(proxied ?? url.href).pathname;
-          streams.push({ url: proxied && declared ? new URL(proxied) : url, protocol: /\.m3u8$/i.test(path) ? 'hls' : /\.mpd$/i.test(path) ? 'dash' : 'http', delivery: 'relayed', headers, ...(variant.height && { declaredResolution: { width: Math.round(variant.height * 16 / 9), height: variant.height } }), ...(variant.height && { label: `${variant.height}p` }), ...(subtitles.length && { subtitles }), sourceId, sourceExtractor, hostExtractor: 'vidspark-api', discoveredAt: new Date() });
+          streams.push({ url: new URL(proxied ?? url.href), protocol: /\.m3u8$/i.test(path) ? 'hls' : /\.mpd$/i.test(path) ? 'dash' : 'http', delivery: 'relayed', headers, ...(variant.height && { declaredResolution: { width: Math.round(variant.height * 16 / 9), height: variant.height } }), ...(variant.height && { label: `${variant.height}p` }), ...(subtitles.length && { subtitles }), sourceId, sourceExtractor, hostExtractor: 'vidspark-api', discoveredAt: new Date() });
         }
         break;
       }

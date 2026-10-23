@@ -47,7 +47,7 @@ describe('VidSpark host architecture', () => {
     ]);
   });
 
-  test('moves through servers in the player order and keeps every native quality behind the player referrer', async () => {
+  test('moves through servers in the player order and keeps every native quality from a proxy without upstream headers', async () => {
     const requestServices = services((request) => {
       if (request.url.hostname === 'moviesapi.to') throw httpFailure('HTTP_NOT_FOUND');
       if (request.url.searchParams.get('source') === 'scrapify') throw httpFailure('HTTP_SERVER_ERROR');
@@ -55,8 +55,8 @@ describe('VidSpark host architecture', () => {
     });
     const result = await new VidsparkApiHostArchitecture().discover(laterEpisode, new URL('https://moviesapi.to/tv/1396-5-16?theme=F7BD46'), 'source', 'family', requestServices, new AbortController().signal);
     if (result.type !== 'streams') throw new Error('Expected VidSpark streams');
-    expect(result.streams.map(stream => [stream.protocol, stream.url.hostname, stream.declaredResolution?.height])).toEqual([['http', 'p2.mov2day.xyz', undefined], ['http', 'p2.mov2day.xyz', 1080], ['http', 'p2.mov2day.xyz', 720], ['http', 'p2.mov2day.xyz', 480], ['http', 'p2.mov2day.xyz', 360]]);
-    expect(result.streams.every(stream => stream.delivery === 'relayed' && stream.headers?.['referer'] === 'https://cdn.vidspark.to/')).toBe(true);
+    expect(result.streams.map(stream => [stream.protocol, stream.url.hostname, stream.declaredResolution?.height])).toEqual([['http', 'bcdn.hakunaymatata.com', undefined], ['http', 'bcdn.hakunaymatata.com', 1080], ['http', 'bcdn.hakunaymatata.com', 720], ['http', 'bcdn.hakunaymatata.com', 480], ['http', 'bcdn.hakunaymatata.com', 360]]);
+    expect(result.streams.every(stream => stream.delivery === 'relayed' && Object.keys(stream.headers ?? {}).length === 0)).toBe(true);
     expect(result.streams[0]?.subtitles?.map(track => track.label)).toEqual(['English', 'Spanish']);
     expect(apiRequests(requestServices).map(request => request.url.searchParams.get('source'))).toEqual([null, 'scrapify', 'oreon']);
   });
