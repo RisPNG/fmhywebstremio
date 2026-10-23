@@ -78,7 +78,7 @@ export class RuntimeStreamEngine implements StreamEngine {
       const preferredLanguages = options.preferredLanguages ?? request.preferredLanguages;
       const validation = await selector.validate(candidates, { concurrency: options.validationConcurrency ?? 8, ...(preferredLanguages && { preferredLanguages }), health: this.sources.health() }, controller.signal);
       failures.push(...validation.failures);
-      return { streams: validation.streams, failures, unverified: validation.unverified, deadline: { budgetMs, elapsedMs: Date.now() - started, exceeded: controller.signal.aborted, sourcesAttempted: attempted, sourcesCompleted: completed, sourcesCancelled: Math.max(cancelled, attempted - completed) } };
+      return { media, streams: validation.streams, failures, unverified: validation.unverified, deadline: { budgetMs, elapsedMs: Date.now() - started, exceeded: controller.signal.aborted, sourcesAttempted: attempted, sourcesCompleted: completed, sourcesCancelled: Math.max(cancelled, attempted - completed) } };
     } catch (error) {
       failures.push({ code: controller.signal.aborted ? 'TIMEOUT' : 'INTERNAL_ERROR', message: error instanceof Error ? error.message : String(error), stage: 'stage:engine', observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false } });
       return { streams: [], failures, unverified: candidates, deadline: { budgetMs, elapsedMs: Date.now() - started, exceeded: controller.signal.aborted, sourcesAttempted: attempted, sourcesCompleted: completed, sourcesCancelled: Math.max(cancelled, attempted - completed) } };

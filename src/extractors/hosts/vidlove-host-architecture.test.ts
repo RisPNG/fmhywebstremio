@@ -4,6 +4,7 @@ import { HlsRelay } from '../../addon/stremio-adapter/hls-relay';
 import { RuntimeStremioAdapter } from '../../addon/stremio-adapter/runtime-adapter';
 import type { ExtractionRequest, ExtractionResponse, MediaIdentity, RequestServices, StreamEngine } from '../../engine/core/models';
 import { StreamSelector } from '../../engine/protocols';
+import { SourceRegistry } from '../../engine/registry';
 import type { Context } from '../../types';
 import { VidloveApiHostArchitecture } from './vidlove-host-architecture';
 
@@ -41,7 +42,7 @@ describe('Vidlove host architecture', () => {
     expect(validated.streams).toHaveLength(result.streams.length);
     const relay = new HlsRelay();
     const engine: StreamEngine = { findStreams: jest.fn(async () => ({ streams: validated.streams, failures: [], unverified: [], deadline: { budgetMs: 1, elapsedMs: 1, exceeded: false, sourcesAttempted: 1, sourcesCompleted: 1, sourcesCancelled: 0 } })) };
-    const exposed = await new RuntimeStremioAdapter(engine, relay).findStreams({ config: {}, hostUrl: new URL('https://addon.test/') } as Context, media.type === 'movie' ? 'movie' : 'series', media.type === 'movie' ? 'tmdb:27205' : 'tmdb:1396:1:1');
+    const exposed = await new RuntimeStremioAdapter(engine, new SourceRegistry(), relay).findStreams({ config: {}, hostUrl: new URL('https://addon.test/') } as Context, media.type === 'movie' ? 'movie' : 'series', media.type === 'movie' ? 'tmdb:27205' : 'tmdb:1396:1:1');
     const relayUrl = new URL(exposed.streams[0]?.url as string);
     const parts = relayUrl.pathname.split('/');
     expect(relay.resolveTarget(parts.at(-3) as string, parts.at(-2) as string)).toEqual({ url: validated.streams[0]?.url, headers: { referer: 'https://player.vidlove.test/' }, resource: { kind: 'file' } });

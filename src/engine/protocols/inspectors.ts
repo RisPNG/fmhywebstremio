@@ -42,6 +42,7 @@ export class HlsInspector implements StreamInspector {
     }
     const codecs = best?.codecs?.split(',').map(codec => codec.trim()) ?? [];
     const language = candidate.language ?? audio?.language;
+    const audioLanguages = audio?.language ? [audio.language] : candidate.audioLanguages;
     const fingerprint = createHash('sha256').update(JSON.stringify({ variants: variants.map(({ resolution, bandwidth, codecs }) => ({ resolution, bandwidth, codecs })), ...(audio && { audio: { language: audio.language, channels: audio.channels } }) })).digest('hex');
     return {
       url: candidate.url, protocol: 'hls', validation: 'validated',
@@ -49,7 +50,7 @@ export class HlsInspector implements StreamInspector {
       ...(best?.bandwidth && { bitrate: best.bandwidth }),
       ...(codecs[0] && { videoCodec: codecs[0] }),
       ...(codecs[1] && { audioCodec: codecs[1] }),
-      ...(language && { language }), ...(audio?.language && { audioLanguages: [audio.language] }), ...(candidate.headers && { headers: candidate.headers }), ...(candidate.delivery && { delivery: candidate.delivery }), ...(candidate.subtitles && { subtitles: candidate.subtitles }),
+      ...(language && { language }), ...(audioLanguages && { audioLanguages }), ...(candidate.headers && { headers: candidate.headers }), ...(candidate.delivery && { delivery: candidate.delivery }), ...(candidate.subtitles && { subtitles: candidate.subtitles }),
       sourceId: candidate.sourceId, sourceExtractor: candidate.sourceExtractor, ...(candidate.hostExtractor && { hostExtractor: candidate.hostExtractor }), ...(candidate.providerContentId && { providerContentId: candidate.providerContentId }), structuralFingerprint: `hls:${fingerprint}`,
     };
   }
@@ -73,7 +74,7 @@ export class DashInspector implements StreamInspector {
     if (!/<MPD(?:\s|>)/i.test(manifest) || !/<(?:Representation|SegmentTemplate|SegmentList)(?:\s|>)/i.test(manifest)) throw new Error('MANIFEST_INVALID');
     const representations = [...manifest.matchAll(/<Representation\b([^>]*)>/gi)].map(match => ({ width: Number(match[1]?.match(/\bwidth="(\d+)"/)?.[1]), height: Number(match[1]?.match(/\bheight="(\d+)"/)?.[1]), bitrate: Number(match[1]?.match(/\bbandwidth="(\d+)"/)?.[1]), codec: match[1]?.match(/\bcodecs="([^"]+)"/)?.[1] })).sort((a, b) => b.height - a.height || b.bitrate - a.bitrate);
     const best = representations[0];
-    return { url: candidate.url, protocol: 'dash', validation: 'validated', ...(best?.width && best.height && { resolution: { width: best.width, height: best.height } }), ...(best?.bitrate && { bitrate: best.bitrate }), ...(best?.codec && { videoCodec: best.codec }), ...(candidate.language && { language: candidate.language }), ...(candidate.headers && { headers: candidate.headers }), ...(candidate.delivery && { delivery: candidate.delivery }), ...(candidate.subtitles && { subtitles: candidate.subtitles }), sourceId: candidate.sourceId, sourceExtractor: candidate.sourceExtractor, ...(candidate.hostExtractor && { hostExtractor: candidate.hostExtractor }), ...(candidate.providerContentId && { providerContentId: candidate.providerContentId }), structuralFingerprint: `dash:${createHash('sha256').update(JSON.stringify(representations)).digest('hex')}` };
+    return { url: candidate.url, protocol: 'dash', validation: 'validated', ...(best?.width && best.height && { resolution: { width: best.width, height: best.height } }), ...(best?.bitrate && { bitrate: best.bitrate }), ...(best?.codec && { videoCodec: best.codec }), ...(candidate.language && { language: candidate.language }), ...(candidate.audioLanguages && { audioLanguages: candidate.audioLanguages }), ...(candidate.headers && { headers: candidate.headers }), ...(candidate.delivery && { delivery: candidate.delivery }), ...(candidate.subtitles && { subtitles: candidate.subtitles }), sourceId: candidate.sourceId, sourceExtractor: candidate.sourceExtractor, ...(candidate.hostExtractor && { hostExtractor: candidate.hostExtractor }), ...(candidate.providerContentId && { providerContentId: candidate.providerContentId }), structuralFingerprint: `dash:${createHash('sha256').update(JSON.stringify(representations)).digest('hex')}` };
   }
 }
 
@@ -84,6 +85,6 @@ export class DirectMediaInspector implements StreamInspector {
     const contentType = response.headers['content-type']?.split(';')[0]?.trim().toLowerCase();
     if (contentType && ['application/vnd.apple.mpegurl', 'application/x-mpegurl', 'application/mpegurl', 'audio/x-mpegurl', 'audio/mpegurl'].includes(contentType)) return new HlsInspector().inspect(candidate, services, signal);
     if (contentType === 'application/dash+xml') return new DashInspector().inspect(candidate, services, signal);
-    return { url: candidate.url, protocol: 'http', validation: 'validated', ...(candidate.declaredResolution && { resolution: candidate.declaredResolution }), ...(candidate.language && { language: candidate.language }), sourceId: candidate.sourceId, sourceExtractor: candidate.sourceExtractor, ...(candidate.hostExtractor && { hostExtractor: candidate.hostExtractor }), ...(candidate.providerContentId && { providerContentId: candidate.providerContentId }), ...(candidate.headers && { headers: candidate.headers }), ...(candidate.delivery && { delivery: candidate.delivery }), ...(candidate.subtitles && { subtitles: candidate.subtitles }) };
+    return { url: candidate.url, protocol: 'http', validation: 'validated', ...(candidate.declaredResolution && { resolution: candidate.declaredResolution }), ...(candidate.language && { language: candidate.language }), ...(candidate.audioLanguages && { audioLanguages: candidate.audioLanguages }), sourceId: candidate.sourceId, sourceExtractor: candidate.sourceExtractor, ...(candidate.hostExtractor && { hostExtractor: candidate.hostExtractor }), ...(candidate.providerContentId && { providerContentId: candidate.providerContentId }), ...(candidate.headers && { headers: candidate.headers }), ...(candidate.delivery && { delivery: candidate.delivery }), ...(candidate.subtitles && { subtitles: candidate.subtitles }) };
   }
 }

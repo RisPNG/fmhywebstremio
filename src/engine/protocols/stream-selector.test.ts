@@ -144,11 +144,12 @@ describe('source-fair stream validation', () => {
       await new Promise<void>(resolve => setImmediate(resolve));
       return { status: 200, headers: { 'content-type': 'video/mp4' }, finalUrl: request.url, redirectChain: [], body: new Uint8Array(), text: () => '', json: () => ({}), truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } };
     }) };
-    const candidates = ['0-pending', '1-working', '2-unchecked'].map((name): StreamCandidate => ({ url: new URL(`https://source.test/${name}.mp4`), protocol: 'http', sourceId: 'source', sourceExtractor: 'fixture', discoveredAt: new Date(0) }));
+    const candidates = ['0-pending', '1-working', '2-unchecked'].map((name): StreamCandidate => ({ url: new URL(`https://source.test/${name}.mp4`), protocol: 'http', audioLanguages: ['eng'], sourceId: 'source', sourceExtractor: 'fixture', discoveredAt: new Date(0) }));
     const result = await new StreamSelector(services).validate(candidates, { concurrency: 2, goal: 'first-validated' }, controller.signal);
     expect(result.streams.filter(stream => stream.validation === 'validated').map(stream => stream.url.pathname)).toEqual(['/1-working.mp4']);
     expect(result.failures).toEqual([]);
     expect(result.unverified.map(stream => stream.url.pathname)).toEqual(['/0-pending.mp4', '/2-unchecked.mp4']);
+    expect(result.streams).toMatchObject([{ validation: 'validated', audioLanguages: ['eng'] }, { validation: 'unverified', audioLanguages: ['eng'] }, { validation: 'unverified', audioLanguages: ['eng'] }]);
     expect(pendingCancelled).toBe(true);
     expect(services.request).toHaveBeenCalledTimes(2);
     expect(controller.signal.aborted).toBe(false);

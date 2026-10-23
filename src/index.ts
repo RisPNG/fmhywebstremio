@@ -122,7 +122,7 @@ const runtimeResolver = new ExtractionResolver(new RegistryExtractorLookup(new M
 const runtimeHealth = new FamilyHealthRunner(runtimeResolver, new StreamSelector(runtimeTransport), runtimeTransport, runtimeSourceRegistry, 0.5, runtimeDependencies);
 const runtimeEngine = new RuntimeStreamEngine(new StremioMediaResolver(runtimeTransport, envGet('TMDB_ACCESS_TOKEN') ?? ''), runtimeSourceRegistry, runtimeFamilies, runtimeResolver, runtimeTransport, runtimeDependencies, runtimeDependencyStore);
 addon.use('/', (new HlsRelayController(runtimeRelay)).router);
-addon.use('/', (new StreamController(logger, new RuntimeStremioAdapter(runtimeEngine, runtimeRelay))).router);
+addon.use('/', (new StreamController(logger, new RuntimeStremioAdapter(runtimeEngine, runtimeSourceRegistry, runtimeRelay))).router);
 
 // error handler needs to stay at the end of the stack
 addon.use((err: Error, _req: Request, _res: Response, next: NextFunction) => {

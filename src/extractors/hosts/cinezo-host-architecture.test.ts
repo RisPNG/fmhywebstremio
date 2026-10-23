@@ -31,10 +31,10 @@ describe('Cinezo native player architecture', () => {
     }) };
     const signal = new AbortController().signal;
     const result = await new CinezoPlayerHostArchitecture().discover(media, player, 'source', 'family', services, signal);
-    expect(result).toMatchObject({ type: 'streams', streams: [{ protocol: 'http', delivery: 'relayed', declaredResolution: { width: 1920, height: 1080 }, headers: { referer: 'https://player.cinezo.test/' }, hostExtractor: 'cinezo-player' }] });
+    expect(result).toMatchObject({ type: 'streams', streams: [{ protocol: 'http', delivery: 'relayed', declaredResolution: { width: 1920, height: 1080 }, audioLanguages: ['eng'], headers: { referer: 'https://player.cinezo.test/' }, hostExtractor: 'cinezo-player' }] });
     if (result.type !== 'streams') throw new Error('Expected Cinezo streams');
     const validation = await new StreamSelector(services).validate(result.streams, { concurrency: 1 }, signal);
-    expect(validation.streams).toMatchObject([{ validation: 'validated', resolution: { width: 1920, height: 1080 } }]);
+    expect(validation.streams).toMatchObject([{ validation: 'validated', resolution: { width: 1920, height: 1080 }, audioLanguages: ['eng'] }]);
     expect(validation.failures).toEqual([]);
     const relay = new HlsRelay();
     const stream = result.streams[0];
@@ -44,11 +44,18 @@ describe('Cinezo native player architecture', () => {
     expect(relay.resolveTarget(parts.at(-3) as string, parts.at(-2) as string)).toEqual({ url: stream.url, headers: { referer: 'https://player.cinezo.test/' }, resource: { kind: 'file' } });
   });
 
-  test('uses the native HLS stream when the original container cannot play directly', async () => {
+  test('preserves native audio languages through HLS validation when the original container cannot play directly', async () => {
     const payload = JSON.parse(fixture('movie.json')) as { direct_playable: boolean };
     payload.direct_playable = false;
-    const services: RequestServices = { request: jest.fn(async request => response(request.url, request.url.pathname.startsWith('/embed/') ? fixture('player.html') : request.url.pathname.endsWith('.js') ? fixture('player-client.txt') : JSON.stringify(payload))) };
-    await expect(new CinezoPlayerHostArchitecture().discover(movie, new URL('https://player.cinezo.test/embed/movie/27205'), 'source', 'family', services, new AbortController().signal)).resolves.toMatchObject({ type: 'streams', streams: [{ url: new URL('https://native.cinezo.test/p/inception/master.m3u8'), protocol: 'hls' }] });
+    const services: RequestServices = { request: jest.fn(async (request) => {
+      const body = request.url.pathname.startsWith('/embed/') ? fixture('player.html') : request.url.pathname.endsWith('.js') ? fixture('player-client.txt') : request.url.pathname.endsWith('.json') ? JSON.stringify(payload) : request.url.pathname.endsWith('/master.m3u8') ? '#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=3000000,RESOLUTION=1920x1080\nmedia.m3u8' : '#EXTM3U\n#EXTINF:6,\nsegment.ts\n#EXT-X-ENDLIST';
+      return response(request.url, request.expectedContent === 'binary' ? 'media bytes' : body);
+    }) };
+    const signal = new AbortController().signal;
+    const result = await new CinezoPlayerHostArchitecture().discover(movie, new URL('https://player.cinezo.test/embed/movie/27205'), 'source', 'family', services, signal);
+    expect(result).toMatchObject({ type: 'streams', streams: [{ url: new URL('https://native.cinezo.test/p/inception/master.m3u8'), protocol: 'hls', audioLanguages: ['eng'] }] });
+    if (result.type !== 'streams') throw new Error('Expected Cinezo streams');
+    await expect(new StreamSelector(services).validate(result.streams, { concurrency: 1 }, signal)).resolves.toMatchObject({ streams: [{ validation: 'validated', audioLanguages: ['eng'] }], failures: [], unverified: [] });
   });
 
   test.each([{ media: movie, changes: { title: 'Interstellar' } }, { media: movie, changes: { year: 2009 } }, { media: episode, changes: { series: 'Better Call Saul' } }, { media: episode, changes: { season: 2 } }, { media: laterEpisode, changes: { episode: 15 } }])('rejects playback for a different movie or episode', async ({ media, changes }) => {

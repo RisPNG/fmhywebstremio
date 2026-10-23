@@ -12,6 +12,7 @@ interface CinezoPlaybackResponse {
   direct_playable?: boolean;
   stream?: { original?: string; remux?: string; hls?: string };
   quality?: { resolution?: string };
+  audio?: readonly { language?: string }[];
   subtitles?: readonly { url?: string; file?: string; label?: string; language?: string; format?: string }[];
 }
 
@@ -51,7 +52,8 @@ export class CinezoPlayerHostArchitecture implements CinezoHostArchitecture {
         return url ? [{ url: new URL(url, response.finalUrl), ...(track.label && { label: track.label }), ...(track.language && { language: track.language }), ...(track.format && { format: track.format }) }] : [];
       });
       const resolution = payload.quality?.resolution?.match(/^(\d+)x(\d+)$/);
-      return { type: 'streams', streams: [{ url: new URL(value), protocol: value === payload.stream.hls ? 'hls' : 'http', delivery: 'relayed', headers: { referer: new URL('/', page.finalUrl).href }, ...(resolution && { declaredResolution: { width: Number(resolution[1]), height: Number(resolution[2]) } }), ...(subtitles.length && { subtitles }), sourceId, sourceExtractor, hostExtractor: 'cinezo-player', label: 'Jennifer', discoveredAt: new Date() }] };
+      const audioLanguages = (payload.audio ?? []).flatMap(track => track.language ? [track.language] : []);
+      return { type: 'streams', streams: [{ url: new URL(value), protocol: value === payload.stream.hls ? 'hls' : 'http', delivery: 'relayed', headers: { referer: new URL('/', page.finalUrl).href }, ...(resolution && { declaredResolution: { width: Number(resolution[1]), height: Number(resolution[2]) } }), ...(audioLanguages.length && { audioLanguages }), ...(subtitles.length && { subtitles }), sourceId, sourceExtractor, hostExtractor: 'cinezo-player', label: 'Jennifer', discoveredAt: new Date() }] };
     }
     return { type: 'failure', failure: { code: 'PAGE_STRUCTURE_CHANGED', message: 'Cinezo player no longer declares its native playback endpoint', stage: 'stage:extraction', sourceId, extractorId: 'cinezo-player', targetHost: page.finalUrl.hostname, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'player-client' } } };
   }
