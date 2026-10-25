@@ -32,7 +32,7 @@ export class CinezoPlayerHostArchitecture implements CinezoHostArchitecture {
       const script = await services.request({ url: new URL(asset, page.finalUrl), expectedContent: 'text', referrer: page.finalUrl, stateScope: { kind: 'host', key: page.finalUrl.hostname } }, signal);
       const client = script.text();
       const endpoint = client.match(/`(https:\/\/[^`/]+)\/movie\/\$\{[\w$]+\}\.json`/)?.[1];
-      if (!endpoint || !/\{id:"jennifer",label:"Jennifer"/.test(client) || !/\/tv\/\$\{[\w$]+\}\/\$\{[\w$]+\}\/\$\{[\w$]+\}\.json`/.test(client)) continue;
+      if (!endpoint || !/\{id:"jennifer",label:"Jennifer[^"]*"/.test(client) || !/\/tv\/\$\{[\w$]+\}\/\$\{[\w$]+\}\/\$\{[\w$]+\}\.json`/.test(client)) continue;
       let response;
       try {
         response = await services.request({ url: new URL(`/${mediaPath}.json`, endpoint), expectedContent: 'json', referrer: page.finalUrl, stateScope: { kind: 'host', key: new URL(endpoint).hostname } }, signal);
