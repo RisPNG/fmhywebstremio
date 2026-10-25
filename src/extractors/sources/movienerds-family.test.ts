@@ -23,14 +23,14 @@ describe('MovieNerds source family', () => {
     const family = new MovieNerdsFamily();
     const movie = await family.discoverMedia({ canonicalId: 'tmdb:27205', type: 'movie', tmdbId: 27205, imdbId: 'tt1375666', title: 'Inception', year: 2010 }, source, services, signal);
     expect(movie).toMatchObject({ type: 'streams', streams: [
-      { protocol: 'hls', label: '720p HD', declaredResolution: { width: 1280, height: 720 }, subtitles: [{ url: new URL('https://api.movienerds.online/api/subtitles/vtt?url=https%3A%2F%2Fdl.opensubtitles.org%2Fen%2Fdownload%2Fsrc-api%2Fvrf-19c10c5b%2Ffile%2F1952382875.gz'), label: 'English', language: 'eng' }, { label: 'Spanish' }], sourceId: source.id, sourceExtractor: 'movienerds' },
+      { protocol: 'hls', delivery: 'relayed', label: '720p HD', declaredResolution: { width: 1280, height: 720 }, subtitles: [{ url: new URL('https://api.movienerds.online/api/subtitles/vtt?url=https%3A%2F%2Fdl.opensubtitles.org%2Fen%2Fdownload%2Fsrc-api%2Fvrf-19c10c5b%2Ffile%2F1952382875.gz'), label: 'English', language: 'eng' }, { label: 'Spanish' }], sourceId: source.id, sourceExtractor: 'movienerds' },
       { url: new URL('https://s5.phim1280.tv/20240911/qTL6xlyr/index.m3u8'), label: '1080p FHD', declaredResolution: { width: 1920, height: 1080 } },
     ] });
     const [, , streamRequest] = (services.request as jest.Mock).mock.calls.map(([request]: [ExtractionRequest]) => request);
     expect(streamRequest?.url.href).toBe('https://api.movienerds.online/api/stream?tmdbId=27205&type=movie&lang=en&title=Inception&year=2010&imdbId=tt1375666');
     expect(streamRequest?.headers).toEqual({ 'Accept': 'application/json', 'x-client-app': 'movienerds', 'x-app-key': 'mn_sec_2026_stream_auth' });
     const episode = await family.discoverMedia({ canonicalId: 'tmdb:1396:5:16', type: 'episode', tmdbId: 1396, title: 'Breaking Bad', year: 2008, season: 5, episode: 16 }, source, services, signal);
-    expect(episode).toMatchObject({ type: 'streams', streams: [{ protocol: 'hls', url: expect.objectContaining({ hostname: 'api.movienerds.online' }) }] });
+    expect(episode).toMatchObject({ type: 'streams', streams: [{ protocol: 'hls', delivery: 'relayed', url: expect.objectContaining({ hostname: 'api.movienerds.online' }) }] });
     expect((services.request as jest.Mock).mock.calls.at(-1)?.[0].url.searchParams.toString()).toBe('tmdbId=1396&type=tv&lang=en&title=Breaking+Bad&year=2008&season=5&episode=16');
   });
 
