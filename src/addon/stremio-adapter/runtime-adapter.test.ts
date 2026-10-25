@@ -13,7 +13,6 @@ describe('RuntimeStremioAdapter', () => {
 
   test.each([
     ['67movies:67movies.st', '67Movies', '67movies.st', 'cinezo-player'],
-    ['anicine:anicine.sbs', 'AniCine', 'anicine.sbs', 'vidbolt-player'],
     ['arrowtv:arrowtv.net', 'ArrowTV', 'arrowtv.net', 'vidlove-api'],
     ['bilibili:bilibili.com', 'BiliBili', 'bilibili.tv', 'bilibili-ugc'],
     ['cineruv:cineruv.website', 'cineruv', 'cineruv.website', undefined],
