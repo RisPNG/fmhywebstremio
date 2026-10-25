@@ -68,7 +68,7 @@ export class MovieNerdsFamily implements SourceFamily {
       });
       if (['apopheniaatlas.site', 'apophenia', 'lifestylefreedomlab.site', 'aoneroom.com/other', '/other/202', 'mb=1', 'b164fbfb4347792950bdfbfb563d39d9', 'dummy', 'teaser', 'trailer', 'promo', 'sample', 'staticreverie.site', 'staticreverie'].some(marker => candidates.some(value => value.includes(marker)))) return [];
       const height = Number(stream.quality?.match(/(\d{3,4})p/i)?.[1]);
-      return [{ url: new URL(stream.url), protocol: 'hls' as const, ...(stream.language && { language: stream.language }), ...(stream.quality && { label: stream.quality }), ...(height > 0 && { declaredResolution: { width: Math.round(height * 16 / 9), height } }), ...(subtitles.length && { subtitles }), sourceId: source.id, sourceExtractor: this.id, discoveredAt: new Date() }];
+      return [{ url: new URL(stream.url), protocol: 'hls' as const, delivery: 'relayed' as const, ...(stream.language && { language: stream.language }), ...(stream.quality && { label: stream.quality }), ...(height > 0 && { declaredResolution: { width: Math.round(height * 16 / 9), height } }), ...(subtitles.length && { subtitles }), sourceId: source.id, sourceExtractor: this.id, discoveredAt: new Date() }];
     });
     return streams.length ? { type: 'streams', streams } : { type: 'empty', reason: 'no-streams' };
   }
