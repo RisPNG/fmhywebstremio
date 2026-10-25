@@ -167,6 +167,43 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       },
     },
     {
+      id: 'greybox:greyboxtv.pages.dev',
+      canonicalDomain: 'greyboxtv.pages.dev',
+      aliases: [],
+      fmhy: {
+        name: 'GreyBox',
+        section: '▷ Stream Aggregators',
+        tags: [],
+        firstSeenAt: new Date(0),
+        lastSeenAt: new Date(0),
+      },
+      family: {
+        id: 'greybox',
+        confidence: 1,
+        evidence: [
+          {
+            type: 'script-signature',
+            fingerprint: 'greybox-brand',
+          },
+          {
+            type: 'dom-shape',
+            fingerprint: 'greybox-embedded-player',
+          },
+          {
+            type: 'asset-path',
+            value: 'greybox-source-registry',
+          },
+        ],
+        lastProbedAt: new Date(0),
+      },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://greyboxtv.pages.dev/home',
+      },
+      status: 'supported',
+    },
+    {
       id: 'milkbox:milkbox.zapto.org',
       canonicalDomain: 'milkbox.zapto.org',
       aliases: [],
@@ -309,6 +346,13 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       sourceId: 'cineruv:cineruv.website',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
+      recentFailures: 0,
+      observedAt: new Date(0),
+    },
+    {
+      sourceId: 'greybox:greyboxtv.pages.dev',
+      lastOutcome: 'healthy',
+      recentSuccesses: 7,
       recentFailures: 0,
       observedAt: new Date(0),
     },

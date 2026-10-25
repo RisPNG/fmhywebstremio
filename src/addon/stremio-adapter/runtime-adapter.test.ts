@@ -16,6 +16,7 @@ describe('RuntimeStremioAdapter', () => {
     ['arrowtv:arrowtv.net', 'ArrowTV', 'arrowtv.net', 'vidlove-api'],
     ['bilibili:bilibili.com', 'BiliBili', 'bilibili.tv', 'bilibili-ugc'],
     ['cineruv:cineruv.website', 'cineruv', 'cineruv.website', undefined],
+    ['greybox:greyboxtv.pages.dev', 'GreyBox', 'greyboxtv.pages.dev', 'vidora-player'],
     ['milkbox:milkbox.zapto.org', 'MilkBox', 'milkbox.zapto.org', 'vidspark-api'],
     ['movienerds:movienerds.site', 'MovieNerds', 'movienerds.site', undefined],
     ['pressplay:pressplayx.to', 'PressPlay', 'pressplayx.to', 'vidspark-api'],
