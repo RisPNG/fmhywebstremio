@@ -9,6 +9,7 @@ import { ExtractionResolver, StaticExtractorLookup } from '../../engine/resolver
 import { TransportFailure } from '../../engine/transport/transport-director';
 import type { CinezoHostArchitecture } from '../hosts/cinezo-host-architecture';
 import type { VidloveHostArchitecture } from '../hosts/vidlove-host-architecture';
+import type { VidsrcMeHostArchitecture } from '../hosts/vidsrcme-host-architecture';
 import { SixtySevenMoviesFamily } from './sixty-seven-movies-family';
 
 const fixture = (name: string) => readFileSync(resolve(__dirname, `../__fixtures__/sixty-seven-movies/${name}`), 'utf8');
@@ -81,6 +82,21 @@ describe('67Movies source family with its configured player architectures', () =
     const path = media.type === 'movie' ? 'movie/27205' : `tv/1396/${media.season}/${media.episode}`;
     expect(cinezo.discover).toHaveBeenCalledWith(media, new URL(`https://api.cinezo.test/${path}`), source.id, 'sixty-seven-movies', services, expect.any(AbortSignal));
     expect(vidlove.discover).toHaveBeenCalledTimes(1);
+  });
+
+  test.each([
+    { canonicalId: 'tmdb:27205', type: 'movie' as const, tmdbId: 27205, title: 'Inception', year: 2010 },
+    { canonicalId: 'tmdb:1396:1:1', type: 'episode' as const, tmdbId: 1396, title: 'Breaking Bad', year: 2008, season: 1, episode: 1 },
+  ])('uses the advertised VsEmbed player when Vidlove and Cinezo have no streams for $canonicalId', async (media) => {
+    const vidlove: VidloveHostArchitecture = { discover: jest.fn(async (): Promise<ExtractionResult> => ({ type: 'empty', reason: 'no-streams' })) };
+    const cinezo: CinezoHostArchitecture = { discover: jest.fn(async (): Promise<ExtractionResult> => ({ type: 'empty', reason: 'no-streams' })) };
+    const vsembed: VidsrcMeHostArchitecture = { discover: jest.fn(async (_media, _player, sourceId, sourceExtractor): Promise<ExtractionResult> => ({ type: 'streams', streams: [{ url: new URL('https://native.test/master.m3u8'), protocol: 'hls', sourceId, sourceExtractor, hostExtractor: 'vidsrcme-api', discoveredAt: new Date(0) }] })) };
+    const services: RequestServices = { request: jest.fn(async request => response(request.url.href, request.url.pathname === '/api/semantic-search' ? fixture(media.type === 'movie' ? 'search-inception.json' : 'search-breaking-bad.json') : request.url.pathname.startsWith('/watch/') ? fixture('watch.html') : request.url.hostname === 'api.themoviedb.org' ? JSON.stringify({ season_number: media.season, episodes: [{ episode_number: media.episode }] }) : fixture('watch-client-vsembed.txt'))) };
+    await expect(new SixtySevenMoviesFamily(vidlove, cinezo, vsembed).discoverMedia(media, source, services, new AbortController().signal)).resolves.toMatchObject({ type: 'streams', streams: [{ hostExtractor: 'vidsrcme-api' }] });
+    const path = media.type === 'movie' ? 'movie/27205' : `tv/1396/${media.season}/${media.episode}`;
+    expect(vsembed.discover).toHaveBeenCalledWith(media, new URL(`https://vsembed.test/embed/${path}`), source.id, 'sixty-seven-movies', services, expect.any(AbortSignal));
+    expect(vidlove.discover).toHaveBeenCalledTimes(1);
+    expect(cinezo.discover).toHaveBeenCalledTimes(1);
   });
 
   test('does not delegate absent catalog entries to either supported player', async () => {
