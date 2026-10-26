@@ -1,0 +1,23 @@
+{
+  "page": 1,
+  "results": [
+    {
+      "id": 27205,
+      "media_type": "movie",
+      "title": "Inception",
+      "release_date": "2010-07-15"
+    },
+    {
+      "id": 64956,
+      "media_type": "movie",
+      "title": "Inception: The Cobol Job",
+      "release_date": "2010-12-07"
+    },
+    {
+      "id": 1,
+      "media_type": "tv",
+      "name": "Inception",
+      "first_air_date": "1999-01-01"
+    }
+  ]
+}

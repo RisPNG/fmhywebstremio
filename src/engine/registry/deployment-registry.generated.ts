@@ -126,6 +126,43 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       },
     },
     {
+      id: 'flyflix:flyflix.cc',
+      canonicalDomain: 'flyflix.cc',
+      aliases: [],
+      fmhy: {
+        name: 'Flyflix',
+        section: '▷ Multi-Server',
+        tags: [],
+        firstSeenAt: new Date(0),
+        lastSeenAt: new Date(0),
+      },
+      family: {
+        id: 'flyflix',
+        confidence: 1,
+        evidence: [
+          {
+            type: 'script-signature',
+            fingerprint: 'flyflix-brand',
+          },
+          {
+            type: 'dom-shape',
+            fingerprint: 'flyflix-catalog-identity',
+          },
+          {
+            type: 'asset-path',
+            value: 'flyflix-vite-client',
+          },
+        ],
+        lastProbedAt: new Date(0),
+      },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://flyflix.cc/',
+      },
+      status: 'supported',
+    },
+    {
       id: 'greybox:greyboxtv.pages.dev',
       canonicalDomain: 'greyboxtv.pages.dev',
       aliases: [],
@@ -296,6 +333,13 @@ export const deploymentSourceRegistry: SourceRegistryState = {
     },
     {
       sourceId: 'cineruv:cineruv.website',
+      lastOutcome: 'healthy',
+      recentSuccesses: 3,
+      recentFailures: 0,
+      observedAt: new Date(0),
+    },
+    {
+      sourceId: 'flyflix:flyflix.cc',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
       recentFailures: 0,
