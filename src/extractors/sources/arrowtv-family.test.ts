@@ -8,6 +8,7 @@ import { SourceRegistry } from '../../engine/registry';
 import { ExtractionResolver, StaticExtractorLookup } from '../../engine/resolver';
 import { TransportFailure } from '../../engine/transport/transport-director';
 import type { CinezoHostArchitecture } from '../hosts/cinezo-host-architecture';
+import type { VidBoltHostArchitecture } from '../hosts/vidbolt-host-architecture';
 import type { VidloveHostArchitecture } from '../hosts/vidlove-host-architecture';
 import { ArrowTvFamily } from './arrowtv-family';
 
@@ -134,6 +135,31 @@ describe('ArrowTV source family with its configured player architectures', () =>
     await expect(new ArrowTvFamily(vidlove, cinezo).discoverMedia(media, source, services, new AbortController().signal)).resolves.toMatchObject({ type: 'streams', streams: [{ hostExtractor: 'cinezo-player' }] });
     expect(cinezo.discover).toHaveBeenCalledWith(media, new URL(`https://current-native.test/embed/${path}`), source.id, 'arrowtv', services, expect.any(AbortSignal));
     expect(vidlove.discover).toHaveBeenCalledTimes(1);
+  });
+
+  test.each([
+    { canonicalId: 'tmdb:27205', type: 'movie' as const, tmdbId: 27205, title: 'Inception', year: 2010 },
+    { canonicalId: 'tmdb:1396:1:1', type: 'episode' as const, tmdbId: 1396, title: 'Breaking Bad', year: 2008, season: 1, episode: 1 },
+  ])('uses the mirror declared VidBolt option when Vidlove and Cinezo are empty for $canonicalId', async (media) => {
+    const vidlove: VidloveHostArchitecture = { discover: jest.fn(async (): Promise<ExtractionResult> => ({ type: 'empty', reason: 'no-streams' })) };
+    const cinezo: CinezoHostArchitecture = { discover: jest.fn(async (): Promise<ExtractionResult> => ({ type: 'empty', reason: 'no-streams' })) };
+    const vidbolt: VidBoltHostArchitecture = { discover: jest.fn(async (_media, _player, sourceId, sourceExtractor): Promise<ExtractionResult> => ({ type: 'streams', streams: [{ url: new URL('https://native.test/master.m3u8'), protocol: 'hls', sourceId, sourceExtractor, hostExtractor: 'vidbolt-player', discoveredAt: new Date(0) }] })) };
+    const path = media.type === 'movie' ? 'movie/27205' : `tv/1396/${media.season}/${media.episode}`;
+    const services: RequestServices = { request: jest.fn(async (request) => {
+      if (request.url.hostname === 'arrowtv.net') return forbidden(request.url.href);
+      const body = request.url.pathname === '/search'
+        ? fixture(media.type === 'movie' ? 'search-inception.html' : 'search-breaking-bad.html')
+        : request.url.pathname.startsWith('/watch/')
+          ? fixture('watch-pstream-mirror.html').replace('player.cinezo.live/embed/movie/27205', `player.cinezo.test/embed/${path}`)
+          : request.url.hostname === 'api.themoviedb.org'
+            ? JSON.stringify({ season_number: media.season, episodes: [{ episode_number: media.episode }] })
+            : fixture('watch-client-vidbolt.txt');
+      return response(request.url.href, body);
+    }) };
+    await expect(new ArrowTvFamily(vidlove, cinezo, vidbolt).discoverMedia(media, source, services, new AbortController().signal)).resolves.toMatchObject({ type: 'streams', streams: [{ hostExtractor: 'vidbolt-player' }] });
+    expect(vidbolt.discover).toHaveBeenCalledWith(media, new URL(`https://vidbolt.test/${media.type === 'movie' ? 'movie/27205' : 'tv/1396/1/1'}`), source.id, 'arrowtv', services, expect.any(AbortSignal));
+    expect(vidlove.discover).toHaveBeenCalledWith(media, new URL(`https://player.vidlove.test/embed/${path}`), source.id, 'arrowtv', services, expect.any(AbortSignal));
+    expect(cinezo.discover).toHaveBeenCalledTimes(1);
   });
 
   test('continues to the next native mirror when the known player has no streams', async () => {
