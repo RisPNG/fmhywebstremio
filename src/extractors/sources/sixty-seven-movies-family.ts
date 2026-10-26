@@ -4,6 +4,7 @@ import type { FamilyMatch, SourceFamily, SourceProbeSnapshot } from '../../engin
 import { TransportFailure } from '../../engine/transport/transport-director';
 import { type CinezoHostArchitecture, CinezoPlayerHostArchitecture } from '../hosts/cinezo-host-architecture';
 import { VidloveApiHostArchitecture, type VidloveHostArchitecture } from '../hosts/vidlove-host-architecture';
+import { VidsrcMeApiHostArchitecture, type VidsrcMeHostArchitecture } from '../hosts/vidsrcme-host-architecture';
 
 interface SixtySevenMoviesSearchResponse {
   results?: readonly { id?: number; media_type?: string; title?: string; name?: string; release_date?: string; first_air_date?: string }[];
@@ -12,7 +13,7 @@ interface SixtySevenMoviesSearchResponse {
 export class SixtySevenMoviesFamily implements SourceFamily {
   public readonly id = 'sixty-seven-movies';
 
-  public constructor(private readonly host: VidloveHostArchitecture = new VidloveApiHostArchitecture(), private readonly cinezo: CinezoHostArchitecture = new CinezoPlayerHostArchitecture()) {}
+  public constructor(private readonly vidlove: VidloveHostArchitecture = new VidloveApiHostArchitecture(), private readonly cinezo: CinezoHostArchitecture = new CinezoPlayerHostArchitecture(), private readonly vsembed: VidsrcMeHostArchitecture = new VidsrcMeApiHostArchitecture()) {}
 
   public classify(_source: SourceRecord, snapshot: SourceProbeSnapshot): FamilyMatch | null {
     const evidence: FamilyEvidence[] = [];
@@ -43,11 +44,11 @@ export class SixtySevenMoviesFamily implements SourceFamily {
     for (const asset of assets) {
       const script = await services.request({ url: new URL(asset, watch.finalUrl), expectedContent: 'text', referrer: watch.finalUrl, stateScope: { kind: 'source', key: source.id } }, signal);
       const client = script.text();
-      const players = [...client.matchAll(/\{key:"(vidlove|cinezo)",label:"[^"\n]+"/g)].flatMap((server) => {
-        const paths = server[1] === 'vidlove'
-          ? client.match(/case"vidlove":default:return"tv"===[^?]+\?"(https:\/\/[^"/]+\/embed\/tv\/)"[^;]+?:"(https:\/\/[^"/]+\/embed\/movie\/)"/)
-          : client.match(/case"cinezo":return"tv"===[^?]+\?"(https:\/\/[^"/]+\/tv\/)"[^;]+?:"(https:\/\/[^"/]+\/movie\/)"/);
-        return paths ? [{ host: server[1] === 'vidlove' ? this.host : this.cinezo, url: new URL(`${media.tmdbId}${media.type === 'episode' ? `/${media.season}/${media.episode}` : ''}`, paths[media.type === 'movie' ? 2 : 1]) }] : [];
+      const hosts = { vidlove: this.vidlove, cinezo: this.cinezo, vsembed: this.vsembed };
+      const players = [...client.matchAll(/\{key:"(vidlove|cinezo|vsembed)",label:"[^"\n]+"/g)].flatMap((server) => {
+        const key = server[1] as keyof typeof hosts;
+        const paths = client.match(new RegExp(`case"${key}":(?:default:)?return"tv"===[^?]+\\?"(https://[^"/]+/(?:embed/)?tv/)"[^;]+?:"(https://[^"/]+/(?:embed/)?movie/)"`));
+        return paths ? [{ host: hosts[key], url: new URL(`${media.tmdbId}${media.type === 'episode' ? `/${media.season}/${media.episode}` : ''}`, paths[media.type === 'movie' ? 2 : 1]) }] : [];
       });
       if (!players.length) continue;
       if (media.type === 'episode') {
