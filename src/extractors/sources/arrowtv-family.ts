@@ -3,12 +3,13 @@ import type { ExtractionResult, FamilyEvidence, MediaIdentity, RequestServices, 
 import type { FamilyMatch, SourceFamily, SourceProbeSnapshot } from '../../engine/health';
 import { TransportFailure } from '../../engine/transport/transport-director';
 import { type CinezoHostArchitecture, CinezoPlayerHostArchitecture } from '../hosts/cinezo-host-architecture';
+import { type VidBoltHostArchitecture, VidBoltPlayerHostArchitecture } from '../hosts/vidbolt-host-architecture';
 import { VidloveApiHostArchitecture, type VidloveHostArchitecture } from '../hosts/vidlove-host-architecture';
 
 export class ArrowTvFamily implements SourceFamily {
   public readonly id = 'arrowtv';
 
-  public constructor(private readonly host: VidloveHostArchitecture = new VidloveApiHostArchitecture(), private readonly cinezo: CinezoHostArchitecture = new CinezoPlayerHostArchitecture()) {}
+  public constructor(private readonly vidlove: VidloveHostArchitecture = new VidloveApiHostArchitecture(), private readonly cinezo: CinezoHostArchitecture = new CinezoPlayerHostArchitecture(), private readonly vidbolt: VidBoltHostArchitecture = new VidBoltPlayerHostArchitecture()) {}
 
   public classify(_source: SourceRecord, snapshot: SourceProbeSnapshot): FamilyMatch | null {
     const html = snapshot.htmlSample ?? '';
@@ -52,16 +53,20 @@ export class ArrowTvFamily implements SourceFamily {
         }
         const watchResponse = await services.request({ url: watch, expectedContent: 'html', stateScope: { kind: 'source', key: source.id } }, signal);
         const watchPage = cheerio.load(watchResponse.text());
-        const players = new Map(watchPage('iframe[src]').map((_index, element) => watchPage(element).attr('src')).get().map(value => new URL(value, watchResponse.finalUrl)).filter(url => url.pathname === expectedEmbedPath).map(url => [url.href, { url, host: url.hostname.startsWith('player.cinezo.') ? this.cinezo : this.host }]));
+        const hosts = { vidlove: this.vidlove, cinezo: this.cinezo, vidbolt: this.vidbolt };
+        const players = new Map(watchPage('iframe[src]').map((_index, element) => watchPage(element).attr('src')).get().map(value => new URL(value, watchResponse.finalUrl)).filter(url => url.pathname === expectedEmbedPath).map(url => [url.href, { url, host: url.hostname.startsWith('player.cinezo.') ? hosts.cinezo : hosts.vidlove }]));
         let token: string | undefined;
         const assets = watchPage('script[src]').map((_index, element) => watchPage(element).attr('src')).get().reverse();
         for (const asset of assets) {
           const script = await services.request({ url: new URL(asset, watchResponse.finalUrl), expectedContent: 'text', referrer: watchResponse.finalUrl, stateScope: { kind: 'source', key: source.id } }, signal);
           const client = script.text();
-          const configured = [...client.matchAll(new RegExp('\\{key:"(vidlove|cinezo)",label:"[^"]+",url:[^=]+=>`(https://[^`]+/embed/' + (media.type === 'movie' ? 'movie' : 'tv') + '/)\\$\\{', 'g'))];
+          const configured = [
+            ...[...client.matchAll(new RegExp('\\{key:"(vidlove|cinezo|vidbolt)",label:"[^"]+",url:[^=]+=>`(https://[^`]+/' + (media.type === 'movie' ? 'movie' : 'tv') + '/)\\$\\{', 'g'))].map(server => ({ key: server[1] as keyof typeof hosts, prefix: server[2] as string })),
+            ...[...client.matchAll(/"(vidlove|cinezo|vidbolt)"===[\w$]+\?[\w$]+\?"(https:\/\/[^"]+\/tv\/)"\.concat\([^:]*:"(https:\/\/[^"]+\/movie\/)"/g)].map(server => ({ key: server[1] as keyof typeof hosts, prefix: server[media.type === 'movie' ? 3 : 2] as string })),
+          ];
           for (const server of configured) {
-            const url = new URL(`${media.tmdbId}${media.type === 'episode' ? `/${media.season}/${media.episode}` : ''}`, server[2]);
-            players.set(url.href, { url, host: server[1] === 'cinezo' ? this.cinezo : this.host });
+            const url = new URL(`${media.tmdbId}${media.type === 'episode' ? `/${media.season}/${media.episode}` : ''}`, server.prefix);
+            players.set(url.href, { url, host: hosts[server.key] });
           }
           if (client.includes('api.themoviedb.org/3/')) token = client.match(/"(eyJhbGciOi[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)"/)?.[1] ?? token;
           if (configured.length && (media.type === 'movie' || token)) break;
