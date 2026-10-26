@@ -72,7 +72,7 @@ export class SixtySevenMoviesFamily implements SourceFamily {
       if (streams.length) return { type: 'streams', streams };
       const failure = results.find(result => result.status === 'fulfilled' && result.value.type === 'failure');
       if (failure?.status === 'fulfilled') return failure.value;
-      const rejected = results.findLast(result => result.status === 'rejected');
+      const rejected = results.find(result => result.status === 'rejected');
       if (rejected?.status === 'rejected') throw rejected.reason;
       return { type: 'empty', reason: 'no-streams' };
     }
