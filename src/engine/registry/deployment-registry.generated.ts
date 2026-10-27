@@ -3,47 +3,6 @@ import type { SourceRegistryState } from './source-registry';
 export const deploymentSourceRegistry: SourceRegistryState = {
   records: [
     {
-      id: 'arrowtv:arrowtv.net',
-      canonicalDomain: 'arrowtv.net',
-      aliases: [
-        'neonflix.st',
-        'cinezo.st',
-        'flikhub.net',
-      ],
-      fmhy: {
-        name: 'ArrowTV',
-        section: '▷ Stream Aggregators',
-        tags: [],
-        firstSeenAt: new Date(0),
-        lastSeenAt: new Date(0),
-      },
-      family: {
-        id: 'arrowtv',
-        confidence: 1,
-        evidence: [
-          {
-            type: 'script-signature',
-            fingerprint: 'arrowtv-catalog-description',
-          },
-          {
-            type: 'route-shape',
-            value: 'arrowtv-tmdb-watch-routes',
-          },
-          {
-            type: 'route-shape',
-            value: 'arrowtv-catalog-nav',
-          },
-        ],
-        lastProbedAt: new Date(0),
-      },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://arrowtv.net/',
-      },
-      status: 'supported',
-    },
-    {
       id: 'bilibili:bilibili.com',
       canonicalDomain: 'bilibili.tv',
       aliases: [
@@ -317,13 +276,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
     },
   ],
   health: [
-    {
-      sourceId: 'arrowtv:arrowtv.net',
-      lastOutcome: 'healthy',
-      recentSuccesses: 3,
-      recentFailures: 0,
-      observedAt: new Date(0),
-    },
     {
       sourceId: 'bilibili:bilibili.com',
       lastOutcome: 'healthy',
