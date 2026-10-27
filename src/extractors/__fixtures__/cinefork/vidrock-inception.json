@@ -1,0 +1,15 @@
+{
+  "tmdbId": "27205",
+  "type": "movie",
+  "totalServers": 9,
+  "availableSources": 1,
+  "sources": [
+    {
+      "name": "Orion",
+      "url": "https://proxy.cinextream.cc/ck/v1.YdKSc1Nw0OUH0GDV.c7OmLcANuezt6mHU5yzZmvY-7vvDnk_S28bYc8i_x0UtxAVafT4EvirS2n83Haz5KzymtytD3w7d7PzxmxBnxo6VvBRuwqWI80AwsqaMrlOWN0iTh4uWAA9p0RifcNudhLIwKkCbR2PxdyPn_QUuYE0AFCrstcwlSpN_1GBnmw",
+      "language": "English",
+      "flag": "us",
+      "type": "hls"
+    }
+  ]
+}

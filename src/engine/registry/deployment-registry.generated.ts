@@ -48,6 +48,43 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       status: 'supported',
     },
     {
+      id: 'cinefork:cinefork.net',
+      canonicalDomain: 'cinefork.net',
+      aliases: [],
+      fmhy: {
+        name: 'Cinefork',
+        section: '▷ P-Stream Forks',
+        tags: [],
+        firstSeenAt: new Date(0),
+        lastSeenAt: new Date(0),
+      },
+      status: 'supported',
+      family: {
+        id: 'cinefork',
+        confidence: 1,
+        evidence: [
+          {
+            type: 'script-signature',
+            fingerprint: 'cinefork-brand',
+          },
+          {
+            type: 'dom-shape',
+            fingerprint: 'cinefork-runtime-config',
+          },
+          {
+            type: 'asset-path',
+            value: 'cinefork-vite-client',
+          },
+        ],
+        lastProbedAt: new Date(0),
+      },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://cinefork.net/',
+      },
+    },
+    {
       id: 'cineruv:cineruv.website',
       canonicalDomain: 'cineruv.website',
       aliases: [],
@@ -241,6 +278,13 @@ export const deploymentSourceRegistry: SourceRegistryState = {
   health: [
     {
       sourceId: 'bilibili:bilibili.com',
+      lastOutcome: 'healthy',
+      recentSuccesses: 3,
+      recentFailures: 0,
+      observedAt: new Date(0),
+    },
+    {
+      sourceId: 'cinefork:cinefork.net',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
       recentFailures: 0,

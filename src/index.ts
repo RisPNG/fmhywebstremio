@@ -18,6 +18,7 @@ import { AnicineFamily } from './extractors/sources/anicine-family';
 import { ArrowTvFamily } from './extractors/sources/arrowtv-family';
 import { BiliBiliFamily } from './extractors/sources/bilibili-family';
 import { BingeBangFamily } from './extractors/sources/bingebang-family';
+import { CineforkFamily } from './extractors/sources/cinefork-family';
 import { CinegoFamily } from './extractors/sources/cinego-family';
 import { CinemaOsFamily } from './extractors/sources/cinemaos-family';
 import { CineruvFamily } from './extractors/sources/cineruv-family';
@@ -110,7 +111,7 @@ const runtimeSourceRegistry = new SourceRegistry();
 const runtimeDependencies = new DependencyGraph();
 const startupValidation = new Map<string, unknown>();
 const runtimeDependencyStore = new JsonDependencyStore(`${envGet('EXTRACTABILITY_DATA_DIR') ?? '.data/extractability'}/dependencies.json`);
-const runtimeFamilies = new Map<string, SourceFamily>([['anicine', new AnicineFamily()], ['arrowtv', new ArrowTvFamily()], ['bilibili', new BiliBiliFamily()], ['bingebang', new BingeBangFamily()], ['cinemaos', new CinemaOsFamily()], ['cineruv', new CineruvFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['flyflix', new FlyflixFamily()], ['greybox', new GreyBoxFamily()], ['kkphim', new KkPhimFamily()], ['milkbox', new MilkBoxFamily()], ['movienerds', new MovieNerdsFamily()], ['pressplayx', new PressPlayXFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()], ['soaper', new SoaperFamily()], ['tmdb-embed-catalog', new TmdbEmbedCatalogFamily()]]);
+const runtimeFamilies = new Map<string, SourceFamily>([['anicine', new AnicineFamily()], ['arrowtv', new ArrowTvFamily()], ['bilibili', new BiliBiliFamily()], ['bingebang', new BingeBangFamily()], ['cinemaos', new CinemaOsFamily()], ['cineruv', new CineruvFamily()], ['cinefork', new CineforkFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['flyflix', new FlyflixFamily()], ['greybox', new GreyBoxFamily()], ['kkphim', new KkPhimFamily()], ['milkbox', new MilkBoxFamily()], ['movienerds', new MovieNerdsFamily()], ['pressplayx', new PressPlayXFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()], ['soaper', new SoaperFamily()], ['tmdb-embed-catalog', new TmdbEmbedCatalogFamily()]]);
 
 addon.use('/', (new ConfigureController(runtimeSourceRegistry)).router);
 addon.use('/', (new ManifestController(runtimeSourceRegistry)).router);

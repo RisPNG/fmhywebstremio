@@ -1,0 +1,30 @@
+{
+  "mode": "single",
+  "tmdb_id": 27205,
+  "positionKey": "2_27205_0_0",
+  "selectedServer": "TIK 1",
+  "responseTimeMs": 1287,
+  "servers": [
+    {
+      "name": "TIK 1",
+      "url": "https://play.xpass.top/mdata/FhSRJyc1bW9UFomkT1gzTq/1/playlist.json"
+    },
+    {
+      "name": "VIP 1",
+      "url": "https://play.xpass.top/vip/fClFHYaU_SyR24gq9BvFCjniooM183qEsYrT2ixoBYZU8dkrUo8zIRf0NtQ16r6gfLL5-Q/1/playlist.json"
+    }
+  ],
+  "sources": [
+    {
+      "file": "https://proxy.cinextream.cc/nass/v1.k0r_r-aUDHVY-Sem.C88zO4aDJ44yzCqByFs-KtX37XQrJQIeqlPIZMXyXUXY1rcl1Mh6IijqnvlUVNtp5zCW1M91kRXl36CtPNib5VEkh27kUFgezMGTqwBqVpTqABrPp8AKNj1z52ZzJU0mXP59RNk6rYz9oop5VKZdcHzsVfEmGlJOoq3Dt3-rv_ti",
+      "type": "hls",
+      "label": "TIK 2",
+      "server": "TIK 1",
+      "id": "FhSRJyc1bW9UFomkT1gzTq"
+    }
+  ],
+  "subtitles": "https://sub.1x2.space/api/movie/27205",
+  "cache": "HIT",
+  "cacheAgeSeconds": 261,
+  "cacheExpiresInSeconds": 1539
+}

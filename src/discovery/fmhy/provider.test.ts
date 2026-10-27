@@ -60,4 +60,10 @@ describe('FMHY video and non-English directory acquisition', () => {
     expect(update).toMatchObject({ ok: true, snapshot: { entries: [{ name: 'Shared', section: 'Main Streaming' }] } });
     expect(update.snapshot?.entries).toHaveLength(1);
   });
+
+  test('names an entry without the invisible formatting characters that precede its link text', async () => {
+    const services: RequestServices = { request: async request => response(request.url, request.url.pathname.endsWith('/video.md') ? '# Movies / TV\n## Main Streaming\n- [\u2060Invisible](https://invisible.test/)\n' : '# Other Languages\n## Regional Streaming\n- [Visible](https://visible.test/)\n') };
+    const update = await new FmhyDirectoryProvider(services).fetchSnapshot(new AbortController().signal);
+    expect(update.snapshot?.entries.map(entry => entry.name)).toEqual(['Invisible', 'Visible']);
+  });
 });

@@ -13,6 +13,7 @@ describe('RuntimeStremioAdapter', () => {
 
   test.each([
     ['bilibili:bilibili.com', 'BiliBili', 'bilibili.tv', 'bilibili-ugc'],
+    ['cinefork:cinefork.net', 'Cinefork', 'cinefork.net', 'vidfast-api'],
     ['cineruv:cineruv.website', 'cineruv', 'cineruv.website', undefined],
     ['greybox:greyboxtv.pages.dev', 'GreyBox', 'greyboxtv.pages.dev', 'vidora-player'],
     ['milkbox:milkbox.zapto.org', 'MilkBox', 'milkbox.zapto.org', 'vidspark-api'],

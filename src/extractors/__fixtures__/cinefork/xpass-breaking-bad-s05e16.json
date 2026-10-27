@@ -1,0 +1,31 @@
+{
+  "mode": "single",
+  "tv_id": 1396,
+  "season": 5,
+  "episode": 16,
+  "positionKey": "1_1396_5_16",
+  "selectedServer": "TIK 1",
+  "responseTimeMs": 586,
+  "servers": [
+    {
+      "name": "TIK 1",
+      "url": "https://play.xpass.top/mdata/X3iRvLPzRVvz2pppbAtDQG/1/playlist.json"
+    },
+    {
+      "name": "VIP 1",
+      "url": "https://play.xpass.top/vip/eykXQ9eWrnOR298qoxvFVzvhotgy8yeEtYiF0Xw4VIUFq9wrHGCKaxouGiXomlIV9WV-Tw/1/playlist.json"
+    }
+  ],
+  "sources": [
+    {
+      "file": "https://proxy.cinextream.cc/nass/v1.3u9lV6kvLE-xXA-f.53oDKr65N_tcXxF2Ckt2wFke-APENfxYZt0YF4xqdm9toPTqvN37G-UC96hzSguUH_lzB75WvFzOEUHywHQt0i9YOCPL1a-O83P63my1QisWmgreYt4jATrl2FSMk3qTM-7KIWj_KV5pkdawI5VeAJNZxZXn9z3o2_962yTE4UxR",
+      "type": "hls",
+      "label": "TIK 2",
+      "server": "TIK 1",
+      "id": "X3iRvLPzRVvz2pppbAtDQG"
+    }
+  ],
+  "subtitles": "https://sub.1x2.space/api/tv/1396/5/16",
+  "cache": "MISS",
+  "cacheAgeSeconds": 0
+}
