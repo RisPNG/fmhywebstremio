@@ -1,0 +1,41 @@
+{
+  "success": true,
+  "type": "movie",
+  "id": "27205",
+  "title": "Inception",
+  "poster": "https://image.tmdb.org/t/p/w500/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w500/8ZTVqvKDQ8emSGUEMjsS4yHAwrp.jpg",
+  "selectedBy": "requested",
+  "server": {
+    "index": 1,
+    "name": "vRapid",
+    "description": "Original audio, 4K?",
+    "streamMs": 0,
+    "probeMs": 37,
+    "totalMs": 37
+  },
+  "originalUrl": "https://moon.goldenkite.top/vd/czN4MEdZVFNJbldWTmlURTVPcmZmZzpRY0Q3OHVOMWl4NlBTVnc4bDFuWEhB/master.m3u8",
+  "url": "https://proxy.cinextream.cc/va/v1.YfwO7RZ1yWzCOfQ8.vl97QijawVqMucgqqpPv23xt_iwRqRj0zHU63X0QOPkk4j1MR4Sc4k-3KWEZCaL2-dJms2ZsSUrFxzszhzmtx4q5rfCSFceJiE_Z7ns_WLfCSm3IrFMjrwwAsogOL2wCMwX6yUJSkDj7cnsZz-uXynmUPsR1oqk",
+  "worker": true,
+  "encrypted": true,
+  "stream": {
+    "noReferrer": false,
+    "url": "https://moon.goldenkite.top/vd/czN4MEdZVFNJbldWTmlURTVPcmZmZzpRY0Q3OHVOMWl4NlBTVnc4bDFuWEhB/master.m3u8",
+    "tmdbId": 27205,
+    "title": "Inception",
+    "poster": "/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg",
+    "backdrop": "/8ZTVqvKDQ8emSGUEMjsS4yHAwrp.jpg",
+    "tracks": [
+      {
+        "file": "https://moon.goldenkite.top/vd/czN4MEdZVFNJbldWTmlURTVPcmZmZzpRY0Q3OHVOMWl4NlBTVnc4bDFuWEhB/subs/eng.vtt",
+        "label": "English"
+      }
+    ],
+    "englishTrackIndex": 0,
+    "mp4": false,
+    "4kAvailable": false
+  },
+  "cached": true,
+  "elapsedMs": 37,
+  "fetchedAt": "2026-10-27T04:50:39.605Z"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "1396",
+  "type": "tv",
+  "season": 5,
+  "episode": 16,
+  "totalServers": 9,
+  "availableSources": 1,
+  "sources": [
+    {
+      "name": "Orion",
+      "url": "https://proxy.cinextream.cc/ck/v1.W-KyO0vYtOCzlMri.Vx37icmJHbC1wHQA4zdDJEx7F6ZdKEkPiB_uD9AMowQaCHZZl69HTUoubYVqwMvpYilgxapii5WIqj9UKwVTulMOgDksdu_Lp3cyVVLxRGKdU_Nr1WaHkZtQTV_dR1nXkp6It6UTXwAppl5UGJ5MwE7tjIZbzTrDsTCAW0ai5Q",
+      "language": "English",
+      "flag": "us",
+      "type": "hls"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "success": true,
+  "kind": "series",
+  "tmdbId": "1396",
+  "season": "5",
+  "episode": "16",
+  "server": "Nebula",
+  "4k": false,
+  "stream": [
+    {
+      "type": "hls",
+      "id": "primary",
+      "playlist": "https://proxy.cinextream.cc/vy/v1.vQs29CzfkM2U3ArW.0hf0aUVoGMTRwwc2h80RVSLL0vLY8jDmdMXzQVIPgWnjGfAIxX6eHXjyaWsuld9BXz1eWNSIFjxsriVqZBIN7MayRkQaf6p1nF96KTVt490KnS9hq9JztiwXMW669GdPWOHH",
+      "captions": []
+    }
+  ],
+  "playlist": "https://proxy.cinextream.cc/vy/v1.vQs29CzfkM2U3ArW.0hf0aUVoGMTRwwc2h80RVSLL0vLY8jDmdMXzQVIPgWnjGfAIxX6eHXjyaWsuld9BXz1eWNSIFjxsriVqZBIN7MayRkQaf6p1nF96KTVt490KnS9hq9JztiwXMW669GdPWOHH",
+  "captions": [],
+  "meta": {
+    "cached": true,
+    "cacheAgeMs": 4338,
+    "cacheTtlMs": 1795662,
+    "resolvedMs": 0,
+    "encrypted": true
+  }
+}

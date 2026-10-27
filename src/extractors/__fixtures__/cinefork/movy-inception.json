@@ -1,0 +1,33 @@
+{
+  "sources": [
+    {
+      "quality": "1080p",
+      "url": "https://icy-art-1d5b-movy.ntb7nmytsd.workers.dev/https://moon.goldenkite.top/vd/czN4MEdZVFNJbldWTmlURTVPcmZmZzpRY0Q3OHVOMWl4NlBTVnc4bDFuWEhB/index-s1080p-v1-a1.m3u8"
+    },
+    {
+      "quality": "720p",
+      "url": "https://icy-art-1d5b-movy.ntb7nmytsd.workers.dev/https://moon.goldenkite.top/vd/czN4MEdZVFNJbldWTmlURTVPcmZmZzpRY0Q3OHVOMWl4NlBTVnc4bDFuWEhB/index-s720p-v1-a1.m3u8"
+    },
+    {
+      "quality": "480p",
+      "url": "https://icy-art-1d5b-movy.ntb7nmytsd.workers.dev/https://moon.goldenkite.top/vd/czN4MEdZVFNJbldWTmlURTVPcmZmZzpRY0Q3OHVOMWl4NlBTVnc4bDFuWEhB/index-s480p-v1-a1.m3u8"
+    },
+    {
+      "quality": "2160p",
+      "url": "https://icy-art-1d5b-movy.ntb7nmytsd.workers.dev/https://moon.goldenkite.top/vd/czN4MEdZVFNJbldWTmlURTVPcmZmZzpRY0Q3OHVOMWl4NlBTVnc4bDFuWEhB/index-s2160p-v1-a1.m3u8"
+    }
+  ],
+  "subtitles": [
+    {
+      "lang": "eng",
+      "language": "eng",
+      "url": "https://icy-art-1d5b-movy.ntb7nmytsd.workers.dev/https://moon.goldenkite.top/vd/czN4MEdZVFNJbldWTmlURTVPcmZmZzpRY0Q3OHVOMWl4NlBTVnc4bDFuWEhB/subs/eng.vtt"
+    }
+  ],
+  "thumbnail": "https://icy-art-1d5b-movy.ntb7nmytsd.workers.dev/https://moon.goldenkite.top/vd/czN4MEdZVFNJbldWTmlURTVPcmZmZzpRY0Q3OHVOMWl4NlBTVnc4bDFuWEhB/thumbs/thumbs.vtt",
+  "playlist": "https://icy-art-1d5b-movy.ntb7nmytsd.workers.dev/https://moon.goldenkite.top/vd/czN4MEdZVFNJbldWTmlURTVPcmZmZzpRY0Q3OHVOMWl4NlBTVnc4bDFuWEhB/master.m3u8",
+  "server": "miami",
+  "worker": true,
+  "cached": true,
+  "cacheExpiresAt": "2026-10-27T05:16:49.162Z"
+}

@@ -30,7 +30,7 @@ export function parseFmhyDirectory(input: string, fetchedAt = new Date()): Direc
     const urls = found.map(match => normalizeDirectoryUrl(match[2] as string)).filter((url): url is URL => url !== null);
     invalidLinks += found.length - urls.length;
     if (!urls.length) continue;
-    const name = String(found[0]?.[1] || urls[0]?.hostname).replace(/^(?:⭐|🌐|↪️|\s)+/u, '').trim();
+    const name = String(found[0]?.[1] || urls[0]?.hostname).replace(/^(?:⭐|🌐|↪️|[\s\p{Cf}])+/u, '').trim();
     const unique = [...new Map(urls.map(url => [url.hostname, url])).values()];
     const tags = [...new Set([...(line.includes('⭐') ? ['recommended'] : []), ...(line.includes('🌐') ? ['index'] : []), ...(line.match(/`([^`]+)`/g) ?? []).map(tag => tag.replace(/`/g, ''))])].sort();
     entries.push({ name, urls: unique, section, tags, mirrors: unique.slice(1), apiHint: /\bapi\b/i.test(line) });

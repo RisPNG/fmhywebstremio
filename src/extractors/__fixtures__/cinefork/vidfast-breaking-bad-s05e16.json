@@ -1,0 +1,38 @@
+{
+  "success": true,
+  "type": "tv",
+  "id": "1396",
+  "season": 5,
+  "episode": 16,
+  "title": "Breaking Bad",
+  "poster": "https://image.tmdb.org/t/p/w500/anFx9aTOOYqgS3v7x3R84Kz67ly.jpg",
+  "backdrop": "https://image.tmdb.org/t/p/w500/tsRy63Mu5cu8etL1X7ZLyf7UP1M.jpg",
+  "selectedBy": "requested",
+  "server": {
+    "index": 1,
+    "name": "vRapid",
+    "description": "Original audio, 4K?",
+    "streamMs": 145,
+    "probeMs": 23,
+    "totalMs": 168
+  },
+  "originalUrl": "https://moon.goldenkite.top/vd/dXhfU3NuQlZlS2VNd2xJRGVTdERnUTplemFpZExKR19fY0M3NTdCS3plVjRSektfbWZ3VWtYZ2J3RG83Y2V6aFl3/master.m3u8",
+  "url": "https://proxy.cinextream.cc/va/v1.5QroUvdVtmehqvlL.sQKBk9m_EU96EmO6U0PZZaaT-bMC0qeM_rheMKAsh2dPQPiV5ODnYd1kc0J3z8bzHbHTRESuk_bMConVyuQ89jwNpC4mkMwqSW3QJUMN-hq-7o8VtR_sylosXMBXX0MJUix9xR7mUVERhOQ2TfH8Wm3woGog_b1bpSA3HDrm0KkcpYGdLwUlfbiIgAA15WhQqUzV",
+  "worker": true,
+  "encrypted": true,
+  "stream": {
+    "noReferrer": false,
+    "url": "https://moon.goldenkite.top/vd/dXhfU3NuQlZlS2VNd2xJRGVTdERnUTplemFpZExKR19fY0M3NTdCS3plVjRSektfbWZ3VWtYZ2J3RG83Y2V6aFl3/master.m3u8",
+    "tmdbId": 1396,
+    "title": "Breaking Bad",
+    "poster": "/anFx9aTOOYqgS3v7x3R84Kz67ly.jpg",
+    "backdrop": "/tsRy63Mu5cu8etL1X7ZLyf7UP1M.jpg",
+    "tracks": [],
+    "englishTrackIndex": 0,
+    "mp4": false,
+    "4kAvailable": false
+  },
+  "cached": false,
+  "elapsedMs": 893,
+  "fetchedAt": "2026-10-27T04:50:46.949Z"
+}

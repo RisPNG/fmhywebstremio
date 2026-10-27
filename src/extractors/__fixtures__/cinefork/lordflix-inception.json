@@ -1,0 +1,24 @@
+{
+  "success": true,
+  "kind": "movie",
+  "tmdbId": "27205",
+  "server": "Nebula",
+  "4k": false,
+  "stream": [
+    {
+      "type": "hls",
+      "id": "primary",
+      "playlist": "https://proxy.cinextream.cc/vy/v1.xBjIiNLf438iqn0u.b7iHIZkfS97R4vQBXnSxxp67Fc9uhSEKFCwwHk0x1SdTgTlEfgqr4-T3YmzXg1RbxgewZjuDPHTzl6pUkG0XvF7Ht0vnHxVpl_VWLCIWsjESF4Ar282eIWc5NuKg9xmOqO11",
+      "captions": []
+    }
+  ],
+  "playlist": "https://proxy.cinextream.cc/vy/v1.xBjIiNLf438iqn0u.b7iHIZkfS97R4vQBXnSxxp67Fc9uhSEKFCwwHk0x1SdTgTlEfgqr4-T3YmzXg1RbxgewZjuDPHTzl6pUkG0XvF7Ht0vnHxVpl_VWLCIWsjESF4Ar282eIWc5NuKg9xmOqO11",
+  "captions": [],
+  "meta": {
+    "cached": true,
+    "cacheAgeMs": 228161,
+    "cacheTtlMs": 1571839,
+    "resolvedMs": 1,
+    "encrypted": true
+  }
+}
