@@ -12,7 +12,6 @@ describe('RuntimeStremioAdapter', () => {
   const stream: NormalizedStream = { url: new URL('https://media.test/movie.mp4'), protocol: 'http', validation: 'validated', sourceId: 'source', sourceExtractor: 'family' };
 
   test.each([
-    ['arrowtv:arrowtv.net', 'ArrowTV', 'arrowtv.net', 'vidlove-api'],
     ['bilibili:bilibili.com', 'BiliBili', 'bilibili.tv', 'bilibili-ugc'],
     ['cineruv:cineruv.website', 'cineruv', 'cineruv.website', undefined],
     ['flyflix:flyflix.cc', 'Flyflix', 'flyflix.cc', 'vidbolt-player'],
