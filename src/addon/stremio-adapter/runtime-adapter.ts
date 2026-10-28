@@ -26,7 +26,7 @@ export function normalizedStreamToStremio(stream: NormalizedStream, source?: Sou
   const language = [...new Set(languages.flatMap((value) => {
     const label = value.replace(/\s+/g, ' ').trim();
     if (!label || ['auto', 'und'].includes(label.toLowerCase())) return [];
-    const name = /^[a-z]{2,3}$/i.test(label) ? languageNames.of(label) : label;
+    const name = /^[a-z]{2,3}$/i.test(label) ? languageNames.of(label) : label.replace(/^./, first => first.toUpperCase());
     return name ? [name] : [];
   }))].join(', ') || 'N/A';
   const resolution = stream.resolution?.height ? `${stream.resolution.height}p` : 'N/A';
