@@ -284,6 +284,13 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       observedAt: new Date(0),
     },
     {
+      sourceId: 'bingebang:bingebang.st',
+      lastOutcome: 'healthy',
+      recentSuccesses: 7,
+      recentFailures: 0,
+      observedAt: new Date(0),
+    },
+    {
       sourceId: 'cinefork:cinefork.net',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
@@ -294,13 +301,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       sourceId: 'cineruv:cineruv.website',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
-      recentFailures: 0,
-      observedAt: new Date(0),
-    },
-    {
-      sourceId: 'greybox:greyboxtv.pages.dev',
-      lastOutcome: 'healthy',
-      recentSuccesses: 7,
       recentFailures: 0,
       observedAt: new Date(0),
     },
