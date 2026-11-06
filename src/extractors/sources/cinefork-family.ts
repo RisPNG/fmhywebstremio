@@ -1,3 +1,4 @@
+import { createDecipheriv } from 'node:crypto';
 import * as cheerio from 'cheerio';
 import type { ExtractionResponse, ExtractionResult, FamilyEvidence, MediaIdentity, RequestServices, SourceRecord, StreamCandidate } from '../../engine/core/models';
 import type { FamilyMatch, SourceFamily, SourceProbeSnapshot } from '../../engine/health';
@@ -19,6 +20,41 @@ interface CineforkPlayback {
 }
 
 const supportedResponseTypes = ['vidfast', 'xpass', 'sources', 'lordflix'];
+const envelopeVersion = 1;
+const envelopeNonceBytes = 12;
+
+function readEnvelopeKey(wasm: Uint8Array): Buffer {
+  const module = Buffer.from(wasm);
+  const readLeb = (offset: number): [number, number] => {
+    let value = 0;
+    let shift = 0;
+    let byte: number;
+    do {
+      byte = module[offset++] as number;
+      value |= (byte & 0x7f) << shift;
+      shift += 7;
+    } while (byte & 0x80);
+    return [value, offset];
+  };
+  let offset = 8;
+  while (offset < module.length) {
+    const sectionId = module[offset++];
+    const [size, bodyStart] = readLeb(offset);
+    if (sectionId === 0) {
+      const [nameLength, nameStart] = readLeb(bodyStart);
+      if (module.subarray(nameStart, nameStart + nameLength).toString() === 'cinekey') return module.subarray(nameStart + nameLength, bodyStart + size);
+    }
+    offset = bodyStart + size;
+  }
+  throw new Error('Cinefork crypto module no longer declares its envelope key');
+}
+
+function readPlayback(response: ExtractionResponse, key: Buffer): CineforkPlayback {
+  if (response.body[0] !== envelopeVersion) return response.json() as CineforkPlayback;
+  const envelope = Buffer.from(response.body);
+  const decipher = createDecipheriv('chacha20', key, Buffer.concat([Buffer.from([1, 0, 0, 0]), envelope.subarray(1, 1 + envelopeNonceBytes)]));
+  return JSON.parse(Buffer.concat([decipher.update(envelope.subarray(1 + envelopeNonceBytes)), decipher.final()]).toString('utf8')) as CineforkPlayback;
+}
 
 export class CineforkFamily implements SourceFamily {
   public readonly id = 'cinefork';
@@ -37,6 +73,7 @@ export class CineforkFamily implements SourceFamily {
     const home = await services.request({ url: new URL(`https://${source.canonicalDomain}/`), expectedContent: 'html', stateScope: { kind: 'source', key: source.id } }, signal);
     const client = cheerio.load(home.text())('script[type="module"][src]').attr('src');
     const asset = client ? await services.request({ url: new URL(client, home.finalUrl), expectedContent: 'text', referrer: home.finalUrl, maxBytes: 2 * 1024 * 1024, stateScope: { kind: 'source', key: source.id } }, signal) : undefined;
+    const envelopeKey = readEnvelopeKey((await services.request({ url: new URL('/wasm/crypto.wasm', home.finalUrl), expectedContent: 'binary', referrer: home.finalUrl, maxBytes: 2 * 1024 * 1024, stateScope: { kind: 'source', key: source.id } }, signal)).body);
     const servers = [...(asset?.text() ?? '').matchAll(/\{name:"[^"]+",base:"(\/api\/ext\/[^"]+)",path:"([^"]+)",tvPath:"([^"]+)",responseType:"([^"]+)"[^{}]*?mediaTypes:\[([^\]]*)\]\}/g)]
       .filter(server => supportedResponseTypes.includes(server[4] as string) && (server[5] as string).includes(media.type === 'movie' ? '"movie"' : '"show"'));
     if (!servers.length) return { type: 'failure', failure: { code: 'PAGE_STRUCTURE_CHANGED', message: 'Cinefork application no longer declares its playback servers', stage: 'stage:discovery', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', status: home.status, bodyCaptured: false, parserPath: 'client-servers' } } };
@@ -46,12 +83,12 @@ export class CineforkFamily implements SourceFamily {
       const playbackUrl = new URL(((media.type === 'movie' ? server[2] : server[3]) as string).replace('{id}', String(media.tmdbId)).replace('{season}', String(media.season)).replace('{episode}', String(media.episode)), home.finalUrl);
       let response: ExtractionResponse;
       try {
-        response = await services.request({ url: playbackUrl, expectedContent: 'json', headers, referrer: home.finalUrl, timeoutMs: 15000, stateScope: { kind: 'source', key: source.id } }, signal);
+        response = await services.request({ url: playbackUrl, expectedContent: 'binary', headers, referrer: home.finalUrl, timeoutMs: 15000, stateScope: { kind: 'source', key: source.id } }, signal);
       } catch (error) {
         if (error instanceof TransportFailure && error.failure.code === 'HTTP_NOT_FOUND') return { type: 'empty', reason: 'not-found' };
         throw error;
       }
-      const payload = response.json() as CineforkPlayback;
+      const payload = readPlayback(response, envelopeKey);
       if (payload.success === false || payload.error) return { type: 'empty', reason: 'no-streams' };
       if (Number(payload.tmdbId ?? payload.tmdb_id ?? payload.tv_id ?? payload.id) !== media.tmdbId
         || (payload.title !== undefined && payload.title.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim() !== expectedTitle)

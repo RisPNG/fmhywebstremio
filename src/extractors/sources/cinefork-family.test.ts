@@ -1,3 +1,4 @@
+import { createCipheriv } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { ExtractionRequest, ExtractionResponse, MediaIdentity, RequestServices, SourceRecord } from '../../engine/core/models';
@@ -7,6 +8,14 @@ import { CineforkFamily } from './cinefork-family';
 
 const fixture = (name: string) => readFileSync(resolve(__dirname, `../__fixtures__/cinefork/${name}`), 'utf8');
 const response = (url: URL, body: string): ExtractionResponse => ({ status: 200, headers: {}, finalUrl: url, redirectChain: [], body: Buffer.from(body), text: () => body, json: () => JSON.parse(body) as unknown, truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } });
+const envelopeKey = Buffer.alloc(32, 7);
+const wasm = Buffer.concat([Buffer.from([0, 0x61, 0x73, 0x6d, 1, 0, 0, 0, 0, 1 + 7 + 32, 7]), Buffer.from('cinekey'), envelopeKey]);
+const binaryResponse = (url: URL, body: Buffer): ExtractionResponse => ({ ...response(url, ''), body, text: () => body.toString('latin1'), json: () => JSON.parse(body.toString('utf8')) as unknown });
+const encrypted = (body: string) => {
+  const nonce = Buffer.alloc(12, 3);
+  const cipher = createCipheriv('chacha20', envelopeKey, Buffer.concat([Buffer.from([1, 0, 0, 0]), nonce]));
+  return Buffer.concat([Buffer.from([1]), nonce, cipher.update(body, 'utf8'), cipher.final()]);
+};
 const failure = (code: 'HTTP_NOT_FOUND' | 'HTTP_SERVER_ERROR', url: URL) => new TransportFailure({ code, message: code, stage: 'stage:transport', observedAt: new Date(0), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, finalUrl: url.href } });
 
 describe('Cinefork source family', () => {
@@ -17,6 +26,7 @@ describe('Cinefork source family', () => {
   const servicesFor = (overrides: Readonly<Record<string, string | TransportFailure>> = {}): RequestServices => ({ request: jest.fn(async (request: ExtractionRequest) => {
     const path = request.url.pathname;
     if (path === '/') return response(request.url, fixture('home.html'));
+    if (path === '/wasm/crypto.wasm') return binaryResponse(request.url, wasm);
     if (path.startsWith('/assets/')) return response(request.url, overrides['client.txt'] as string ?? fixture('client.txt'));
     const provider = path.split('/')[3] as string;
     const name = `${provider}-${path.includes('/movie/') ? 'inception' : 'breaking-bad-s05e16'}.json`;
@@ -43,8 +53,8 @@ describe('Cinefork source family', () => {
     expect(result.streams[0]?.headers).toEqual({ origin: 'https://cinefork.net', referer: 'https://cinefork.net/' });
     expect(result.streams.find(stream => stream.hostExtractor === 'vidrock-api')?.language).toBe('English');
     expect(result.streams.find(stream => stream.hostExtractor === 'xpass-api')?.language).toBeUndefined();
-    expect(requested(services).map(url => url.pathname + url.search).slice(0, 2)).toEqual(['/', '/assets/index-DPMIW4m5.js']);
-    expect(requested(services).slice(2).map(url => url.pathname + url.search).sort()).toEqual([
+    expect(requested(services).map(url => url.pathname + url.search).slice(0, 3)).toEqual(['/', '/assets/index-DPMIW4m5.js', '/wasm/crypto.wasm']);
+    expect(requested(services).slice(3).map(url => url.pathname + url.search).sort()).toEqual([
       '/api/ext/lordflix/api/movie/27205?server=Lisbon&worker=1&data=en',
       '/api/ext/lordflix/api/movie/27205?server=Scout&worker=1&data=en',
       '/api/ext/lordflix/api/movie/27205?server=nebula&worker=1&data=en',
@@ -54,6 +64,18 @@ describe('Cinefork source family', () => {
       '/api/ext/vidrock/api/movie/27205?server=orion&worker=1&data=en',
       '/api/ext/xpass/movie/27205?server=1&worker=1&data=en',
     ]);
+  });
+
+  test('decrypts enveloped provider responses with the key declared by the crypto module', async () => {
+    const services = servicesFor();
+    const plain = services.request;
+    const enveloped: RequestServices = { request: jest.fn(async (request: ExtractionRequest) => {
+      const result = await plain(request, signal);
+      return request.url.pathname.startsWith('/api/ext/lordflix/') ? binaryResponse(request.url, encrypted(result.text())) : result;
+    }) };
+    const result = await new CineforkFamily().discoverMedia(movie, source, enveloped, signal);
+    if (result.type !== 'streams') throw new Error('Expected Cinefork streams');
+    expect(result.streams.filter(stream => stream.hostExtractor === 'lordflix-api')).toHaveLength(3);
   });
 
   test('requests the exact season and episode and keeps only responses that echo them', async () => {
