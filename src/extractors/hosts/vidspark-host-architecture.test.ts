@@ -36,9 +36,9 @@ describe('VidSpark host architecture', () => {
       }
       throw httpFailure('HTTP_SERVER_ERROR');
     });
-    const result = await new VidsparkApiHostArchitecture().discover(movie, new URL('https://moviesapi.to/movie/27205?theme=F7BD46'), 'pressplayx:pressplayx.to', 'pressplayx', requestServices, new AbortController().signal);
+    const result = await new VidsparkApiHostArchitecture().discover(movie, new URL('https://moviesapi.to/movie/27205?theme=F7BD46'), 'pressplayx:pressplayz.top', 'pressplayx', requestServices, new AbortController().signal);
     if (result.type !== 'streams') throw new Error('Expected VidSpark streams');
-    expect(result.streams).toEqual([expect.objectContaining({ protocol: 'hls', delivery: 'relayed', headers: { origin: 'https://netoda.tech', referer: 'https://netoda.tech/' }, sourceId: 'pressplayx:pressplayx.to', sourceExtractor: 'pressplayx', hostExtractor: 'vidspark-api' })]);
+    expect(result.streams).toEqual([expect.objectContaining({ protocol: 'hls', delivery: 'relayed', headers: { origin: 'https://netoda.tech', referer: 'https://netoda.tech/' }, sourceId: 'pressplayx:pressplayz.top', sourceExtractor: 'pressplayx', hostExtractor: 'vidspark-api' })]);
     expect(result.streams[0]?.url.hostname).toBe('netoda.tech');
     expect(result.streams[0]?.url.pathname).toMatch(/^\/hls\/[a-f0-9-]+\/master\.m3u8$/);
     expect(apiRequests(requestServices).slice(0, 2).map(request => [request.url.href, request.headers, request.referrer?.href])).toEqual([

@@ -236,8 +236,8 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       status: 'supported',
     },
     {
-      id: 'pressplay:pressplayx.to',
-      canonicalDomain: 'pressplayx.to',
+      id: 'pressplay:pressplayz.top',
+      canonicalDomain: 'pressplayz.top',
       aliases: [],
       fmhy: {
         name: 'PressPlay',
@@ -270,7 +270,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       probe: {
         outcome: 'matched',
         observedAt: new Date(0),
-        finalUrl: 'https://pressplayx.to/',
+        finalUrl: 'https://pressplayz.top/',
       },
       status: 'supported',
     },
@@ -319,7 +319,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       observedAt: new Date(0),
     },
     {
-      sourceId: 'pressplay:pressplayx.to',
+      sourceId: 'pressplay:pressplayz.top',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
       recentFailures: 0,

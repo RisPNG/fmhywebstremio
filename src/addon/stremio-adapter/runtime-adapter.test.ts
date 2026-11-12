@@ -17,7 +17,7 @@ describe('RuntimeStremioAdapter', () => {
     ['cineruv:cineruv.website', 'cineruv', 'cineruv.website', undefined],
     ['milkbox:milkbox.zapto.org', 'MilkBox', 'milkbox.zapto.org', 'vidspark-api'],
     ['movienerds:movienerds.site', 'MovieNerds', 'movienerds.site', undefined],
-    ['pressplay:pressplayx.to', 'PressPlay', 'pressplayx.to', 'vidspark-api'],
+    ['pressplay:pressplayz.top', 'PressPlay', 'pressplayz.top', 'vidspark-api'],
   ])('formats the two label lines and description for deployed source %s', (id, brand, domain, hostExtractor) => {
     const source = deploymentSourceRegistry.records.find(record => record.id === id);
     expect(source).toBeDefined();

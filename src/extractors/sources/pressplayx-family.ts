@@ -11,7 +11,7 @@ export class PressPlayXFamily implements SourceFamily {
   public classify(_source: SourceRecord, snapshot: SourceProbeSnapshot): FamilyMatch | null {
     const $ = cheerio.load(snapshot.htmlSample ?? '');
     const evidence: FamilyEvidence[] = [];
-    if (/^PressPlayX\s*\|/.test($('title').text())) evidence.push({ type: 'script-signature', fingerprint: 'pressplayx-brand' });
+    if (/^PressPlayZ\s*\|/.test($('title').text())) evidence.push({ type: 'script-signature', fingerprint: 'pressplayx-brand' });
     if (/^Astro\b/.test($('meta[name="generator"]').attr('content') ?? '') && $('script[type="module"][src^="/_astro/"]').length) evidence.push({ type: 'generator-meta', value: 'pressplayx-astro' });
     if ($('a[href^="/watch/"]').toArray().some(element => /^\/watch\/(?:movie|tv)-[a-z0-9-]+-[a-z0-9]{5}$/.test($(element).attr('href') ?? ''))) evidence.push({ type: 'route-shape', value: 'pressplayx-watch-slug' });
     return evidence.length === 3 ? { familyId: this.id, confidence: 1, evidence } : null;

@@ -13,7 +13,7 @@ const fixture = (name: string) => readFileSync(resolve(__dirname, `../__fixtures
 const response = (url: string, body: string, contentType = 'text/html'): ExtractionResponse => ({ status: 200, headers: { 'content-type': contentType }, finalUrl: new URL(url), redirectChain: [], body: Buffer.from(body), text: () => body, json: () => JSON.parse(body) as unknown, truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } });
 
 describe('PressPlayX source family with its VidSpark player', () => {
-  const source: SourceRecord = { id: 'pressplayx:pressplayx.to', canonicalDomain: 'pressplayx.to', aliases: [], fmhy: { section: 'Dedicated-Server', tags: ['recommended'], firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'pressplayx', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'unknown' };
+  const source: SourceRecord = { id: 'pressplayx:pressplayz.top', canonicalDomain: 'pressplayz.top', aliases: [], fmhy: { section: 'Dedicated-Server', tags: ['recommended'], firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'pressplayx', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'unknown' };
   const site = (request: ExtractionRequest) => {
     if (request.url.pathname === '/explore') return response(request.url.href, fixture(request.url.searchParams.get('q') === 'Inception' ? 'explore-inception.html' : request.url.searchParams.get('q') === 'Breaking Bad' ? 'explore-breaking-bad.html' : 'explore-absent.html'));
     if (request.url.pathname === '/watch/movie-inception-lbx9i') return response(request.url.href, fixture('watch-unavailable.html'));
@@ -22,10 +22,10 @@ describe('PressPlayX source family with its VidSpark player', () => {
     throw new Error(`Unexpected request ${request.url.href}`);
   };
 
-  test('recognizes the PressPlayX catalog client', () => {
+  test('recognizes the PressPlayZ catalog client', () => {
     const html = fixture('home.html');
     const $ = cheerio.load(html);
-    const snapshot: SourceProbeSnapshot = { finalUrl: new URL('https://pressplayx.to/'), status: 200, headers: {}, htmlSample: html, assetPaths: $('script[src]').map((_index, element) => $(element).attr('src')).get(), scriptSignatures: [], routeHints: [] };
+    const snapshot: SourceProbeSnapshot = { finalUrl: new URL('https://pressplayz.top/'), status: 200, headers: {}, htmlSample: html, assetPaths: $('script[src]').map((_index, element) => $(element).attr('src')).get(), scriptSignatures: [], routeHints: [] };
     expect(new PressPlayXFamily().classify(source, snapshot)).toMatchObject({ familyId: 'pressplayx', confidence: 1, evidence: [{ fingerprint: 'pressplayx-brand' }, { value: 'pressplayx-astro' }, { value: 'pressplayx-watch-slug' }] });
   });
 
