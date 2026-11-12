@@ -15,7 +15,7 @@ describe('RuntimeStremioAdapter', () => {
     ['bilibili:bilibili.com', 'BiliBili', 'bilibili.tv', 'bilibili-ugc'],
     ['cinefork:cinefork.net', 'Cinefork', 'cinefork.net', 'vidfast-api'],
     ['cineruv:cineruv.website', 'cineruv', 'cineruv.website', undefined],
-    ['milkbox:milkbox.zapto.org', 'MilkBox', 'milkbox.zapto.org', 'vidspark-api'],
+    ['milkbox:milkbox.fyi', 'MilkBox', 'milkbox.fyi', 'vidspark-api'],
     ['movienerds:movienerds.site', 'MovieNerds', 'movienerds.site', undefined],
     ['pressplay:pressplayz.top', 'PressPlay', 'pressplayz.top', 'vidspark-api'],
   ])('formats the two label lines and description for deployed source %s', (id, brand, domain, hostExtractor) => {

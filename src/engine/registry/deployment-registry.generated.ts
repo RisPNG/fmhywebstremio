@@ -159,8 +159,8 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       },
     },
     {
-      id: 'milkbox:milkbox.zapto.org',
-      canonicalDomain: 'milkbox.zapto.org',
+      id: 'milkbox:milkbox.fyi',
+      canonicalDomain: 'milkbox.fyi',
       aliases: [],
       fmhy: {
         name: 'MilkBox',
@@ -191,7 +191,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       probe: {
         outcome: 'matched',
         observedAt: new Date(0),
-        finalUrl: 'https://milkbox.zapto.org/',
+        finalUrl: 'https://milkbox.fyi/',
       },
       status: 'supported',
     },
@@ -305,7 +305,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       observedAt: new Date(0),
     },
     {
-      sourceId: 'milkbox:milkbox.zapto.org',
+      sourceId: 'milkbox:milkbox.fyi',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
       recentFailures: 0,

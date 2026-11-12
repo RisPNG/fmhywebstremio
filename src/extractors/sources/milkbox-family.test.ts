@@ -14,7 +14,7 @@ const fixture = (name: string) => readFileSync(resolve(__dirname, `../__fixtures
 const response = (url: string, body: string, contentType = 'text/html'): ExtractionResponse => ({ status: 200, headers: { 'content-type': contentType }, finalUrl: new URL(url), redirectChain: [], body: Buffer.from(body), text: () => body, json: () => JSON.parse(body) as unknown, truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } });
 
 describe('MilkBox source family with its configured VidSpark player', () => {
-  const source: SourceRecord = { id: 'milkbox:milkbox.zapto.org', canonicalDomain: 'milkbox.zapto.org', aliases: [], fmhy: { section: 'Multi-Server', tags: [], firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'milkbox', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'unknown' };
+  const source: SourceRecord = { id: 'milkbox:milkbox.fyi', canonicalDomain: 'milkbox.fyi', aliases: [], fmhy: { section: 'Multi-Server', tags: [], firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'milkbox', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'unknown' };
   const movie = { canonicalId: 'tmdb:27205', type: 'movie' as const, tmdbId: 27205, title: 'Inception', year: 2010 };
   const episode = { canonicalId: 'tmdb:1396:5:16', type: 'episode' as const, tmdbId: 1396, title: 'Breaking Bad', year: 2008, season: 5, episode: 16 };
   const site = (request: ExtractionRequest) => {
@@ -29,7 +29,7 @@ describe('MilkBox source family with its configured VidSpark player', () => {
   test('recognizes the catalog, server selector, and current application asset together', () => {
     const html = fixture('home.html');
     const $ = cheerio.load(html);
-    const snapshot: SourceProbeSnapshot = { finalUrl: new URL('https://milkbox.zapto.org/'), status: 200, headers: {}, htmlSample: html, assetPaths: $('script[src]').map((_index, element) => $(element).attr('src')).get(), scriptSignatures: [], routeHints: [] };
+    const snapshot: SourceProbeSnapshot = { finalUrl: new URL('https://milkbox.fyi/'), status: 200, headers: {}, htmlSample: html, assetPaths: $('script[src]').map((_index, element) => $(element).attr('src')).get(), scriptSignatures: [], routeHints: [] };
     expect(new MilkBoxFamily().classify(source, snapshot)).toMatchObject({ familyId: 'milkbox', confidence: 1 });
     expect(new MilkBoxFamily().classify(source, { ...snapshot, htmlSample: html.replace('value="vidspark"', 'value="other"') })).toBeNull();
   });
