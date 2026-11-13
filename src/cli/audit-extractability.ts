@@ -9,6 +9,7 @@ import { TransportDirector } from '../engine/transport';
 import { extractorRegistry } from '../extractors/registry.generated';
 import { AnicineFamily } from '../extractors/sources/anicine-family';
 import { ArrowTvFamily } from '../extractors/sources/arrowtv-family';
+import { AtlanticFamily } from '../extractors/sources/atlantic-family';
 import { BiliBiliFamily } from '../extractors/sources/bilibili-family';
 import { BingeBangFamily } from '../extractors/sources/bingebang-family';
 import { CineforkFamily } from '../extractors/sources/cinefork-family';
@@ -34,7 +35,7 @@ const dataDirectory = resolve(process.env['EXTRACTABILITY_DATA_DIR'] ?? '.data/e
 const transport = new TransportDirector({ globalConcurrency: 24, perHostConcurrency: 3, maxRetries: 1 });
 const registry = new SourceRegistry();
 const registryStore = new JsonSourceRegistryStore(resolve(dataDirectory, 'sources.json'));
-const families = new Map<string, SourceFamily>([['anicine', new AnicineFamily()], ['arrowtv', new ArrowTvFamily()], ['bilibili', new BiliBiliFamily()], ['bingebang', new BingeBangFamily()], ['cinemaos', new CinemaOsFamily()], ['cineruv', new CineruvFamily()], ['cinefork', new CineforkFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['flyflix', new FlyflixFamily()], ['greybox', new GreyBoxFamily()], ['kkphim', new KkPhimFamily()], ['milkbox', new MilkBoxFamily()], ['movienerds', new MovieNerdsFamily()], ['movy', new MovyFamily()], ['pressplayx', new PressPlayXFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()], ['soaper', new SoaperFamily()], ['tmdb-embed-catalog', new TmdbEmbedCatalogFamily()]]);
+const families = new Map<string, SourceFamily>([['anicine', new AnicineFamily()], ['arrowtv', new ArrowTvFamily()], ['atlantic', new AtlanticFamily()], ['bilibili', new BiliBiliFamily()], ['bingebang', new BingeBangFamily()], ['cinemaos', new CinemaOsFamily()], ['cineruv', new CineruvFamily()], ['cinefork', new CineforkFamily()], ['cinego', new CinegoFamily()], ['cinetaro', new CinetaroFamily()], ['cinrift', new CinriftFamily()], ['dooplay', new DooplayFamily()], ['flyflix', new FlyflixFamily()], ['greybox', new GreyBoxFamily()], ['kkphim', new KkPhimFamily()], ['milkbox', new MilkBoxFamily()], ['movienerds', new MovieNerdsFamily()], ['movy', new MovyFamily()], ['pressplayx', new PressPlayXFamily()], ['pstream', new PStreamFamily()], ['sixty-seven-movies', new SixtySevenMoviesFamily()], ['soaper', new SoaperFamily()], ['tmdb-embed-catalog', new TmdbEmbedCatalogFamily()]]);
 const watch = process.argv.includes('--watch');
 const controller = new AbortController();
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => controller.abort(new Error(signal)));

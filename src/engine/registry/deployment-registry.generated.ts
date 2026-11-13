@@ -3,6 +3,45 @@ import type { SourceRegistryState } from './source-registry';
 export const deploymentSourceRegistry: SourceRegistryState = {
   records: [
     {
+      id: 'atlantic:atlantic.bz',
+      canonicalDomain: 'atlantic.bz',
+      aliases: [
+        'fprime.at',
+      ],
+      fmhy: {
+        name: 'Atlantic',
+        section: '▷ Stream Aggregators',
+        tags: [],
+        firstSeenAt: new Date(0),
+        lastSeenAt: new Date(0),
+      },
+      family: {
+        id: 'atlantic',
+        confidence: 1,
+        evidence: [
+          {
+            type: 'script-signature',
+            fingerprint: 'atlantic-brand',
+          },
+          {
+            type: 'dom-shape',
+            fingerprint: 'atlantic-title',
+          },
+          {
+            type: 'asset-path',
+            value: 'atlantic-vite-client',
+          },
+        ],
+        lastProbedAt: new Date(0),
+      },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://atlantic.bz/',
+      },
+      status: 'supported',
+    },
+    {
       id: 'bilibili:bilibili.com',
       canonicalDomain: 'bilibili.tv',
       aliases: [
@@ -313,6 +352,13 @@ export const deploymentSourceRegistry: SourceRegistryState = {
     },
   ],
   health: [
+    {
+      sourceId: 'atlantic:atlantic.bz',
+      lastOutcome: 'healthy',
+      recentSuccesses: 3,
+      recentFailures: 0,
+      observedAt: new Date(0),
+    },
     {
       sourceId: 'bilibili:bilibili.com',
       lastOutcome: 'healthy',
