@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { appendFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import express, { NextFunction, Request, Response } from 'express';
 // eslint-disable-next-line import/no-named-as-default
 import rateLimit from 'express-rate-limit';
@@ -53,11 +55,13 @@ const logger = winston.createLogger({
   ],
 });
 
+const crashLogPath = join(tmpdir(), 'fmhy-webstream-crash.log');
+
 process.on('uncaughtException', (error: Error) => {
   const msg = `Uncaught exception caught: ${error}, cause: ${error.cause}, stack: ${error.stack}`;
   console.error(msg);
   logger.error(msg);
-  appendFileSync('/tmp/fmhy-webstream-crash.log', `${new Date().toISOString()} ${msg}\n`);
+  appendFileSync(crashLogPath, `${new Date().toISOString()} ${msg}\n`);
   process.exit(1);
 });
 
@@ -65,20 +69,20 @@ process.on('unhandledRejection', (error: Error) => {
   const msg = `Unhandled rejection: ${error}, cause: ${error.cause}, stack: ${error.stack}`;
   console.error(msg);
   logger.error(msg);
-  appendFileSync('/tmp/fmhy-webstream-crash.log', `${new Date().toISOString()} ${msg}\n`);
+  appendFileSync(crashLogPath, `${new Date().toISOString()} ${msg}\n`);
 });
 
 process.on('SIGTERM', () => {
   const msg = 'SIGTERM received';
   console.error(msg);
-  appendFileSync('/tmp/fmhy-webstream-crash.log', `${new Date().toISOString()} ${msg}\n`);
+  appendFileSync(crashLogPath, `${new Date().toISOString()} ${msg}\n`);
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
   const msg = 'SIGINT received';
   console.error(msg);
-  appendFileSync('/tmp/fmhy-webstream-crash.log', `${new Date().toISOString()} ${msg}\n`);
+  appendFileSync(crashLogPath, `${new Date().toISOString()} ${msg}\n`);
   process.exit(0);
 });
 
