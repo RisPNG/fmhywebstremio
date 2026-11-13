@@ -17,6 +17,7 @@ describe('RuntimeStremioAdapter', () => {
     ['cineruv:cineruv.website', 'cineruv', 'cineruv.website', undefined],
     ['milkbox:milkbox.fyi', 'MilkBox', 'milkbox.fyi', 'vidspark-api'],
     ['movienerds:movienerds.site', 'MovieNerds', 'movienerds.site', undefined],
+    ['movy:www.movy.sx', 'Movy', 'www.movy.sx', 'miami-api'],
     ['pressplay:pressplayz.top', 'PressPlay', 'pressplayz.top', 'vidspark-api'],
   ])('formats the two label lines and description for deployed source %s', (id, brand, domain, hostExtractor) => {
     const source = deploymentSourceRegistry.records.find(record => record.id === id);
