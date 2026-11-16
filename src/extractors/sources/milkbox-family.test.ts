@@ -32,6 +32,7 @@ describe('MilkBox source family with its configured VidSpark player', () => {
     const snapshot: SourceProbeSnapshot = { finalUrl: new URL('https://milkbox.fyi/'), status: 200, headers: {}, htmlSample: html, assetPaths: $('script[src]').map((_index, element) => $(element).attr('src')).get(), scriptSignatures: [], routeHints: [] };
     expect(new MilkBoxFamily().classify(source, snapshot)).toMatchObject({ familyId: 'milkbox', confidence: 1 });
     expect(new MilkBoxFamily().classify(source, { ...snapshot, htmlSample: html.replace('value="vidspark"', 'value="other"') })).toBeNull();
+    expect(new MilkBoxFamily().classify(source, { ...snapshot, htmlSample: html.replace('src="/app.js', 'src="app.js') })).toMatchObject({ familyId: 'milkbox', confidence: 1 });
   });
 
   test('validates its movie, premiere, later-season, and absent health corpus through the source catalog', async () => {

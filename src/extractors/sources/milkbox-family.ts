@@ -20,7 +20,7 @@ export class MilkBoxFamily implements SourceFamily {
     const evidence: FamilyEvidence[] = [];
     if (/^MILKBOX$/i.test($('title').text().trim())) evidence.push({ type: 'script-signature', fingerprint: 'milkbox-brand' });
     if ($('#searchInput').length && $('#playerModal').length && $('#serverSelect option[value="vidspark"]').length) evidence.push({ type: 'dom-shape', fingerprint: 'milkbox-catalog-player' });
-    if ($('script[src]').toArray().some(element => /^\/app\.js(?:\?|$)/.test($(element).attr('src') ?? ''))) evidence.push({ type: 'asset-path', value: 'milkbox-app-client' });
+    if ($('script[src]').toArray().some(element => /^\/?app\.js(?:\?|$)/.test($(element).attr('src') ?? ''))) evidence.push({ type: 'asset-path', value: 'milkbox-app-client' });
     return evidence.length === 3 ? { familyId: this.id, confidence: 1, evidence } : null;
   }
 
@@ -28,7 +28,7 @@ export class MilkBoxFamily implements SourceFamily {
     if (!media.title || !media.tmdbId || (media.type === 'episode' && (!media.season || !media.episode))) return { type: 'empty', reason: 'not-found' };
     const page = await services.request({ url: new URL(`https://${source.canonicalDomain}/`), expectedContent: 'html', stateScope: { kind: 'source', key: source.id } }, signal);
     const $ = cheerio.load(page.text());
-    const asset = $('script[src]').toArray().map(element => $(element).attr('src')).find(path => /^\/app\.js(?:\?|$)/.test(path ?? ''));
+    const asset = $('script[src]').toArray().map(element => $(element).attr('src')).find(path => /^\/?app\.js(?:\?|$)/.test(path ?? ''));
     if (!asset || !$('#serverSelect option[value="vidspark"]').length) return { type: 'failure', failure: { code: 'PAGE_STRUCTURE_CHANGED', message: 'MilkBox no longer exposes its catalog client and VidSpark server', stage: 'stage:discovery', sourceId: source.id, familyId: this.id, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'catalog-client' } } };
     const script = await services.request({ url: new URL(asset, page.finalUrl), expectedContent: 'text', referrer: page.finalUrl, stateScope: { kind: 'source', key: source.id } }, signal);
     const client = script.text();
