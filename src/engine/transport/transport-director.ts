@@ -149,7 +149,7 @@ export class TransportDirector implements RequestServices {
 
   private assertContentType(request: ExtractionRequest, contentType: string | undefined, url: URL): void {
     if (!request.expectedContent || request.expectedContent === 'binary' || !contentType) return;
-    const accepted: Record<Exclude<ExtractionRequest['expectedContent'], undefined | 'binary'>, RegExp> = { html: /html|xhtml/i, json: /json/i, text: /text|json|xml|javascript/i, manifest: /mpegurl|dash\+xml|text|octet-stream/i };
+    const accepted: Record<Exclude<ExtractionRequest['expectedContent'], undefined | 'binary'>, RegExp> = { html: /html|xhtml/i, json: /json/i, text: /text|json|xml|javascript/i, manifest: /mpegurl|dash\+xml|text|javascript|octet-stream/i };
     if (!accepted[request.expectedContent].test(contentType)) throw this.error('UNEXPECTED_CONTENT_TYPE', `Expected ${request.expectedContent}, received ${contentType}`, url);
   }
 

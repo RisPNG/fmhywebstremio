@@ -67,6 +67,16 @@ describe('blueprint contracts', () => {
     await expect(new TransportDirector({ blockedCidrs: ['203.0.113.0/24'] }).request({ url: new URL('http://203.0.113.10/') }, new AbortController().signal)).rejects.toBeInstanceOf(TransportFailure);
   });
 
+  test('transport accepts an HLS playlist that a CDN serves as JavaScript', async () => {
+    const fetch = jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response('#EXTM3U\n', { status: 200, headers: { 'content-type': 'application/javascript' } }));
+    try {
+      const response = await new TransportDirector().request({ url: new URL('https://203.0.113.13/cdn/master.js'), expectedContent: 'manifest' }, new AbortController().signal);
+      expect(response.text()).toBe('#EXTM3U\n');
+    } finally {
+      fetch.mockRestore();
+    }
+  });
+
   test('diagnostics identify a failing CDN request after redirects without exposing media URLs or bodies', async () => {
     const requested = new URL('https://203.0.113.11/private-media/master.m3u8?token=request-secret');
     const final = new URL('https://203.0.113.12/private-media/leaf.m3u8?token=final-secret');
