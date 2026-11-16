@@ -87,8 +87,8 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       status: 'supported',
     },
     {
-      id: 'bingebang:bingebang.st',
-      canonicalDomain: 'bingebang.st',
+      id: 'bingebang:bingebang.sx',
+      canonicalDomain: 'bingebang.sx',
       aliases: [],
       fmhy: {
         name: 'BingeBang',
@@ -120,7 +120,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       probe: {
         outcome: 'matched',
         observedAt: new Date(0),
-        finalUrl: 'https://bingebang.st/',
+        finalUrl: 'https://bingebang.sx/',
       },
     },
     {
@@ -367,7 +367,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       observedAt: new Date(0),
     },
     {
-      sourceId: 'bingebang:bingebang.st',
+      sourceId: 'bingebang:bingebang.sx',
       lastOutcome: 'healthy',
       recentSuccesses: 7,
       recentFailures: 0,
