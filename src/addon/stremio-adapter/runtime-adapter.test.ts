@@ -12,6 +12,7 @@ describe('RuntimeStremioAdapter', () => {
   const stream: NormalizedStream = { url: new URL('https://media.test/movie.mp4'), protocol: 'http', validation: 'validated', sourceId: 'source', sourceExtractor: 'family' };
 
   test.each([
+    ['anicine:anicine.sbs', 'AniCine', 'anicine.sbs', 'xpass-player'],
     ['atlantic:atlantic.bz', 'Atlantic', 'atlantic.bz', 'vidbox-api'],
     ['bilibili:bilibili.com', 'BiliBili', 'bilibili.tv', 'bilibili-ugc'],
     ['cinefork:cinefork.net', 'Cinefork', 'cinefork.net', 'vidfast-api'],
