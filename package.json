@@ -5,7 +5,7 @@
   "type": "commonjs",
   "scripts": {
     "analyse": "tsc --noEmit --project ./tsconfig.dev.json",
-    "build": "rm -rf ./dist && tsc",
+    "build": "node -e \"require('node:fs').rmSync('dist', {recursive: true, force: true})\" && tsc",
     "dev": "nodemon src/index.ts",
     "generate:registry": "ts-node scripts/generate-registry.ts",
     "lint": "eslint",
