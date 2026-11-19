@@ -104,6 +104,20 @@ describe('VidSpark host architecture', () => {
     await expect(new VidsparkApiHostArchitecture().discover(movie, new URL('https://moviesapi.to/movie/27205'), 'source', 'family', movieServices, new AbortController().signal)).resolves.toMatchObject({ type: 'failure', failure: { code: 'RESULT_MAPPING_FAILED' } });
   });
 
+  test('reads the API path from a player that serves it under the stream path and keeps the default server unnamed', async () => {
+    const requestServices: RequestServices = { request: jest.fn(async (request: ExtractionRequest) => {
+      if (request.url.pathname.startsWith('/api/stream/')) return response(request.url, request.url.searchParams.get('source') === 'q7mv' ? fixture('vidnest-movie.json').replace('"source": "vidora"', '"source": "q7mv"') : fixture('vidnest-movie.json'));
+      if (request.url.pathname === '/assets/index-Cj-ZWf0B.js') return response(request.url, fixture('vidnest-client.txt'));
+      return response(request.url, fixture('vidnest-player.html'));
+    }) };
+    const result = await new VidsparkApiHostArchitecture().discover(movie, new URL('https://vidnest.pro/movie/27205?theme=F7BD46'), 'source', 'family', requestServices, new AbortController().signal);
+    if (result.type !== 'streams') throw new Error('Expected VidSpark streams');
+    expect(result.streams.map(stream => [stream.protocol, stream.url.hostname])).toEqual([['hls', 'paretocdn.site']]);
+    expect((requestServices.request as jest.Mock).mock.calls.map(([request]: [ExtractionRequest]) => request).filter(request => request.url.pathname.startsWith('/api/')).map(request => [request.url.href, request.headers])).toEqual([
+      ['https://vidnest.pro/api/stream/v1/movie/27205', { 'x-player-key': '3a67e8866ae1d2bb9e81fe7f73315a56eb3bdf5e3e755c7554c8be6910aa6b13' }],
+    ]);
+  });
+
   test('reports a changed player when it no longer declares the Vidora API', async () => {
     const requestServices: RequestServices = { request: jest.fn(async request => response(request.url, request.url.pathname.startsWith('/assets/') ? 'export const fixture=1;' : fixture('moviesapi-player.html'))) };
     await expect(new VidsparkApiHostArchitecture().discover(movie, new URL('https://moviesapi.to/movie/27205'), 'source', 'family', requestServices, new AbortController().signal)).resolves.toMatchObject({ type: 'failure', failure: { code: 'PAGE_STRUCTURE_CHANGED' } });

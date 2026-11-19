@@ -29,14 +29,14 @@ export class VidsparkApiHostArchitecture implements VidsparkHostArchitecture {
     let client: string | undefined;
     for (const asset of $('script[type="module"][src]').map((_index, element) => $(element).attr('src')).get()) {
       const script = await services.request({ url: new URL(asset, page.finalUrl), expectedContent: 'text', referrer: page.finalUrl, maxBytes: 4 * 1024 * 1024, stateScope: { kind: 'host', key: page.finalUrl.hostname } }, signal);
-      if (script.text().includes('fetch(`/api/vidora${')) {
+      if (/fetch\(`\/api\/(?:vidora|stream)\$\{/.test(script.text())) {
         client = script.text();
         break;
       }
     }
-    const keyName = client?.match(/fetch\(`\/api\/vidora\$\{[\w$]+\}`,\{headers:\{"x-player-key":([\w$]+)\}\}\)/)?.[1];
+    const [, apiBase, keyName] = client?.match(/fetch\(`(\/api\/(?:vidora|stream))\$\{[\w$]+\}(?:\$\{[\w$]+\})?`,\{headers:\{"x-player-key":([\w$]+)\}\}\)/) ?? [];
     const key = keyName && client?.match(new RegExp(`(?:^|[^\\w$])${keyName.replaceAll('$', '\\$')}=\`([a-f0-9]{64})\``))?.[1];
-    const serverRoute = client !== undefined && /`\/v1\/movie\/\$\{[\w$.]+\}\?source=\$\{[\w$]+\}`/.test(client);
+    const serverRoute = client !== undefined && /\?source=\$\{/.test(client);
     const servers = serverRoute ? [...(client as string).matchAll(/\{key:`([\w-]+)`,label:`[^`]*`/g)].map(match => match[1]) : [undefined];
     if (!client || !key || !(serverRoute ? servers.length : /`\/v1\/movie\/\$\{[\w$.]+\}`/.test(client))) return { type: 'failure', failure: { code: 'PAGE_STRUCTURE_CHANGED', message: 'VidSpark player no longer declares its Vidora API', stage: 'stage:extraction', sourceId, extractorId: 'vidspark-api', targetHost: page.finalUrl.hostname, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'player-client' } } };
     if (page.finalUrl.pathname !== `/${route}`) return { type: 'failure', failure: { code: 'RESULT_MAPPING_FAILED', message: 'VidSpark player does not match the requested media', stage: 'stage:extraction', sourceId, extractorId: 'vidspark-api', targetHost: page.finalUrl.hostname, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'player-route' } } };
@@ -48,8 +48,8 @@ export class VidsparkApiHostArchitecture implements VidsparkHostArchitecture {
     let transportError: unknown;
     try {
       for (const server of servers) {
-        const endpoint = new URL(`/api/vidora/v1/${route}`, page.finalUrl);
-        if (server) endpoint.searchParams.set('source', server);
+        const endpoint = new URL(`${apiBase}/v1/${route}`, page.finalUrl);
+        if (server && server !== 'vidora') endpoint.searchParams.set('source', server);
         let payload: VidsparkPayload;
         try {
           payload = (await services.request({ url: endpoint, expectedContent: 'json', headers: { 'x-player-key': key }, referrer: page.finalUrl, stateScope: { kind: 'host', key: endpoint.hostname } }, signal)).json() as VidsparkPayload;

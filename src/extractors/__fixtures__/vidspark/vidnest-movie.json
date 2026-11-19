@@ -1,0 +1,18 @@
+{
+  "result": true,
+  "type": "movie",
+  "title": "Inception",
+  "tmdb_id": "27205",
+  "imdb_id": "tt1375666",
+  "year": 2010,
+  "view_type": "movie",
+  "view_id": 7295,
+  "sources": [
+    {
+      "file_code": "jla42r9lrii1",
+      "url": "https://paretocdn.site/hls2/03/00003/jla42r9lrii1_o/master.m3u8?t=WbMZSDTvY72153cN-OpEjmisC3f9VKHQ-Pmls6HOc08&s=1795126560&e=43200&v=&srv=s2&i=0.3&sp=0",
+      "source": "vidora",
+      "tracks": []
+    }
+  ]
+}
