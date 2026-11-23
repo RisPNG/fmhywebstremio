@@ -3,7 +3,7 @@ import { FmhyDirectoryProvider, FmhyMaintenanceService, JsonDirectorySnapshotSto
 import type { SourceFamily } from '../engine/health';
 import { defaultFamilyHealthCorpora, DependencyGraph, ExtractabilityAuditRunner, FamilyHealthRunner, JsonDependencyStore, JsonExtractabilityReportStore, SourceFamilyProbeRunner } from '../engine/health';
 import { StreamSelector } from '../engine/protocols';
-import { JsonSourceRegistryStore, MatcherRegistry, RegistryExtractorLookup, SourceRegistry, writeDeploymentSourceRegistry } from '../engine/registry';
+import { JsonSourceRegistryStore, keptSourceIds, MatcherRegistry, RegistryExtractorLookup, SourceRegistry, writeDeploymentSourceRegistry } from '../engine/registry';
 import { ExtractionResolver } from '../engine/resolver';
 import { TransportDirector } from '../engine/transport';
 import { extractorRegistry } from '../extractors/registry.generated';
@@ -62,7 +62,7 @@ async function runExtractabilityAudit(): Promise<void> {
     await registryStore.save(registry.snapshot());
     await dependencyStore.save(dependencies.list());
     await reportStore.save(report);
-    if (!watch) await writeDeploymentSourceRegistry(registry, resolve('src/engine/registry/deployment-registry.generated.ts'));
+    if (!watch) await writeDeploymentSourceRegistry(registry, resolve('src/engine/registry/deployment-registry.generated.ts'), keptSourceIds);
 
     process.stdout.write(`${JSON.stringify({ directory: update.ok ? { ok: true, entries: update.snapshot.entries.length, changes: update.diff.length } : { ok: false, code: update.failure.code, message: update.failure.message, usedLastKnownGood: Boolean(update.snapshot) }, reportPath: resolve(dataDirectory, 'report.json'), generatedAt: report.generatedAt, ok: report.ok, totals: report.totals, rootCauses: report.rootCauses }, null, 2)}\n`);
     if (!watch) {

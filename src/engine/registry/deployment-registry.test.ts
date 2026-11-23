@@ -5,7 +5,7 @@ import { writeDeploymentSourceRegistry } from './deployment-registry';
 import { SourceRegistry } from './source-registry';
 
 describe('writeDeploymentSourceRegistry', () => {
-  test('deterministically ships only runtime-eligible sources', async () => {
+  test('deterministically ships only kept runtime-eligible sources', async () => {
     const registry = new SourceRegistry();
     registry.set({ id: 'healthy:healthy.test', canonicalDomain: 'healthy.test', aliases: [], fmhy: { section: 'Streaming', tags: ['Movies'], firstSeenAt: new Date('2026-01-01'), lastSeenAt: new Date('2026-01-02') }, family: { id: 'family', confidence: 1, evidence: [], lastProbedAt: new Date('2026-01-02') }, status: 'supported' });
     registry.set({ id: 'degraded:degraded.test', canonicalDomain: 'degraded.test', aliases: [], fmhy: { section: 'Streaming', tags: [], firstSeenAt: new Date('2026-01-01'), lastSeenAt: new Date('2026-01-02') }, status: 'degraded' });
@@ -15,7 +15,7 @@ describe('writeDeploymentSourceRegistry', () => {
     registry.recordHealth({ sourceId: 'failed:failed.test', lastOutcome: 'failed', recentSuccesses: 0, recentFailures: 2, observedAt: new Date('2026-01-02') });
     const path = join(await mkdtemp(join(tmpdir(), 'deployment-registry-')), 'registry.ts');
 
-    await writeDeploymentSourceRegistry(registry, path);
+    await writeDeploymentSourceRegistry(registry, path, new Set(['healthy:healthy.test', 'degraded:degraded.test']));
 
     const generated = await readFile(path, 'utf8');
     expect(generated).toContain('healthy:healthy.test');

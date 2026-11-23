@@ -3,91 +3,14 @@ import type { SourceRegistryState } from './source-registry';
 export const deploymentSourceRegistry: SourceRegistryState = {
   records: [
     {
-      id: 'anicine:anicine.sbs',
-      canonicalDomain: 'anicine.sbs',
-      aliases: [],
-      fmhy: {
-        name: 'AniCine',
-        section: '▷ Multi-Server',
-        tags: [
-          'recommended',
-        ],
-        firstSeenAt: new Date(0),
-        lastSeenAt: new Date(0),
-      },
-      family: {
-        id: 'anicine',
-        confidence: 1,
-        evidence: [
-          {
-            type: 'script-signature',
-            fingerprint: 'anicine-catalog-brand',
-          },
-          {
-            type: 'route-shape',
-            value: 'anicine-catalog-navigation',
-          },
-          {
-            type: 'dom-shape',
-            fingerprint: 'anicine-watch-catalog',
-          },
-        ],
-        lastProbedAt: new Date(0),
-      },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://anicine.sbs/',
-      },
-      status: 'supported',
-    },
-    {
-      id: 'atlantic:atlantic.bz',
-      canonicalDomain: 'atlantic.bz',
-      aliases: [
-        'fprime.at',
-      ],
-      fmhy: {
-        name: 'Atlantic',
-        section: '▷ Stream Aggregators',
-        tags: [],
-        firstSeenAt: new Date(0),
-        lastSeenAt: new Date(0),
-      },
-      family: {
-        id: 'atlantic',
-        confidence: 1,
-        evidence: [
-          {
-            type: 'script-signature',
-            fingerprint: 'atlantic-brand',
-          },
-          {
-            type: 'dom-shape',
-            fingerprint: 'atlantic-title',
-          },
-          {
-            type: 'asset-path',
-            value: 'atlantic-vite-client',
-          },
-        ],
-        lastProbedAt: new Date(0),
-      },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://atlantic.bz/',
-      },
-      status: 'supported',
-    },
-    {
       id: 'bilibili:bilibili.com',
       canonicalDomain: 'bilibili.tv',
       aliases: [
         'bilibili.com',
+        'mikuinv.apicalshark.dedyn.io',
+        'github.com',
         'watch.typetype.video',
         'typetype.video',
-        'github.com',
         'reddit.com',
       ],
       fmhy: {
@@ -126,43 +49,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       status: 'supported',
     },
     {
-      id: 'bingebang:bingebang.sx',
-      canonicalDomain: 'bingebang.sx',
-      aliases: [],
-      fmhy: {
-        name: 'BingeBang',
-        section: '▷ Stream Aggregators',
-        tags: [],
-        firstSeenAt: new Date(0),
-        lastSeenAt: new Date(0),
-      },
-      status: 'supported',
-      family: {
-        id: 'bingebang',
-        confidence: 1,
-        evidence: [
-          {
-            type: 'script-signature',
-            fingerprint: 'bingebang-client',
-          },
-          {
-            type: 'api-shape',
-            fingerprint: 'bingebang-explore-search',
-          },
-          {
-            type: 'route-shape',
-            value: '/movie|tv/watch/{slug}',
-          },
-        ],
-        lastProbedAt: new Date(0),
-      },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://bingebang.sx/',
-      },
-    },
-    {
       id: 'cinefork:cinefork.net',
       canonicalDomain: 'cinefork.net',
       aliases: [],
@@ -173,7 +59,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         firstSeenAt: new Date(0),
         lastSeenAt: new Date(0),
       },
-      status: 'supported',
       family: {
         id: 'cinefork',
         confidence: 1,
@@ -198,6 +83,7 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         observedAt: new Date(0),
         finalUrl: 'https://cinefork.net/',
       },
+      status: 'supported',
     },
     {
       id: 'cineruv:cineruv.website',
@@ -210,7 +96,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         firstSeenAt: new Date(0),
         lastSeenAt: new Date(0),
       },
-      status: 'supported',
       family: {
         id: 'cineruv',
         confidence: 1,
@@ -235,6 +120,44 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         observedAt: new Date(0),
         finalUrl: 'https://cineruv.website/',
       },
+      status: 'supported',
+    },
+    {
+      id: 'kkphim:kkphim.com',
+      canonicalDomain: 'kkphim.com',
+      aliases: [],
+      fmhy: {
+        name: 'kkphim',
+        section: '▷ Streaming / Phát trực tuyến',
+        tags: [],
+        firstSeenAt: new Date(0),
+        lastSeenAt: new Date(0),
+      },
+      family: {
+        id: 'kkphim',
+        confidence: 1,
+        evidence: [
+          {
+            type: 'script-signature',
+            fingerprint: 'kkphim-brand',
+          },
+          {
+            type: 'route-shape',
+            value: 'kkphim-api-catalog',
+          },
+          {
+            type: 'asset-path',
+            value: 'kkphim-main-client',
+          },
+        ],
+        lastProbedAt: new Date(0),
+      },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://kkphim.com/',
+      },
+      status: 'supported',
     },
     {
       id: 'milkbox:milkbox.fyi',
@@ -273,149 +196,12 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       },
       status: 'supported',
     },
-    {
-      id: 'movienerds:movienerds.site',
-      canonicalDomain: 'movienerds.site',
-      aliases: [
-        'vidflix.live',
-        'movieplex.online',
-      ],
-      fmhy: {
-        name: 'MovieNerds',
-        section: '▷ Stream Aggregators',
-        tags: [],
-        firstSeenAt: new Date(0),
-        lastSeenAt: new Date(0),
-      },
-      family: {
-        id: 'movienerds',
-        confidence: 1,
-        evidence: [
-          {
-            type: 'script-signature',
-            fingerprint: 'movienerds-brand',
-          },
-          {
-            type: 'script-signature',
-            fingerprint: 'movienerds-canonical-host',
-          },
-          {
-            type: 'dom-shape',
-            fingerprint: 'movienerds-vite-client',
-          },
-        ],
-        lastProbedAt: new Date(0),
-      },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://movienerds.site/',
-      },
-      status: 'supported',
-    },
-    {
-      id: 'movy:www.movy.sx',
-      canonicalDomain: 'www.movy.sx',
-      aliases: [],
-      fmhy: {
-        name: 'Movy',
-        section: '▷ Stream Aggregators',
-        tags: [],
-        firstSeenAt: new Date(0),
-        lastSeenAt: new Date(0),
-      },
-      family: {
-        id: 'movy',
-        confidence: 1,
-        evidence: [
-          {
-            type: 'script-signature',
-            fingerprint: 'movy-brand',
-          },
-          {
-            type: 'dom-shape',
-            fingerprint: 'movy-next-catalog',
-          },
-          {
-            type: 'asset-path',
-            value: 'movy-next-client',
-          },
-        ],
-        lastProbedAt: new Date(0),
-      },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://www.movy.sx/',
-      },
-      status: 'supported',
-    },
-    {
-      id: 'pressplay:pressplayz.top',
-      canonicalDomain: 'pressplayz.top',
-      aliases: [],
-      fmhy: {
-        name: 'PressPlay',
-        section: '▷ Dedicated-Server',
-        tags: [
-          'recommended',
-        ],
-        firstSeenAt: new Date(0),
-        lastSeenAt: new Date(0),
-      },
-      family: {
-        id: 'pressplayx',
-        confidence: 1,
-        evidence: [
-          {
-            type: 'script-signature',
-            fingerprint: 'pressplayx-brand',
-          },
-          {
-            type: 'generator-meta',
-            value: 'pressplayx-astro',
-          },
-          {
-            type: 'route-shape',
-            value: 'pressplayx-watch-slug',
-          },
-        ],
-        lastProbedAt: new Date(0),
-      },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://pressplayz.top/',
-      },
-      status: 'supported',
-    },
   ],
   health: [
-    {
-      sourceId: 'anicine:anicine.sbs',
-      lastOutcome: 'healthy',
-      recentSuccesses: 3,
-      recentFailures: 0,
-      observedAt: new Date(0),
-    },
-    {
-      sourceId: 'atlantic:atlantic.bz',
-      lastOutcome: 'healthy',
-      recentSuccesses: 3,
-      recentFailures: 0,
-      observedAt: new Date(0),
-    },
     {
       sourceId: 'bilibili:bilibili.com',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
-      recentFailures: 0,
-      observedAt: new Date(0),
-    },
-    {
-      sourceId: 'bingebang:bingebang.sx',
-      lastOutcome: 'healthy',
-      recentSuccesses: 7,
       recentFailures: 0,
       observedAt: new Date(0),
     },
@@ -434,28 +220,14 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       observedAt: new Date(0),
     },
     {
+      sourceId: 'kkphim:kkphim.com',
+      lastOutcome: 'healthy',
+      recentSuccesses: 4,
+      recentFailures: 0,
+      observedAt: new Date(0),
+    },
+    {
       sourceId: 'milkbox:milkbox.fyi',
-      lastOutcome: 'healthy',
-      recentSuccesses: 3,
-      recentFailures: 0,
-      observedAt: new Date(0),
-    },
-    {
-      sourceId: 'movienerds:movienerds.site',
-      lastOutcome: 'healthy',
-      recentSuccesses: 3,
-      recentFailures: 0,
-      observedAt: new Date(0),
-    },
-    {
-      sourceId: 'movy:www.movy.sx',
-      lastOutcome: 'healthy',
-      recentSuccesses: 3,
-      recentFailures: 0,
-      observedAt: new Date(0),
-    },
-    {
-      sourceId: 'pressplay:pressplayz.top',
       lastOutcome: 'healthy',
       recentSuccesses: 3,
       recentFailures: 0,

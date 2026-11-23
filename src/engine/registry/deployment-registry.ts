@@ -3,6 +3,8 @@ import { dirname } from 'node:path';
 import type { SourceHealthHistory } from '../core/models';
 import { SourceRegistry } from './source-registry';
 
+export const keptSourceIds: ReadonlySet<string> = new Set(['bilibili:bilibili.com', 'cinefork:cinefork.net', 'cineruv:cineruv.website', 'kkphim:kkphim.com', 'milkbox:milkbox.fyi']);
+
 function serializeRegistryValue(value: unknown, indentation = 0): string {
   if (value instanceof Date) return 'new Date(0)';
   if (typeof value === 'string') return `'${value.replaceAll('\\', '\\\\').replaceAll('\'', '\\\'').replaceAll('\n', '\\n').replaceAll('\r', '\\r')}'`;
@@ -19,8 +21,8 @@ function serializeRegistryValue(value: unknown, indentation = 0): string {
   return `{\n${entries.map(([key, item]) => `${padding}  ${key}: ${serializeRegistryValue(item, indentation + 1)},`).join('\n')}\n${padding}}`;
 }
 
-export async function writeDeploymentSourceRegistry(registry: SourceRegistry, path: string): Promise<void> {
-  const records = registry.runtimeEligible().map(record => ({
+export async function writeDeploymentSourceRegistry(registry: SourceRegistry, path: string, kept: ReadonlySet<string>): Promise<void> {
+  const records = registry.runtimeEligible().filter(source => kept.has(source.id)).map(record => ({
     ...record,
     fmhy: { ...record.fmhy, firstSeenAt: new Date(0), lastSeenAt: new Date(0) },
     ...(record.family && { family: { ...record.family, lastProbedAt: new Date(0) } }),
