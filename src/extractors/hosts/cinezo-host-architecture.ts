@@ -16,6 +16,9 @@ interface CinezoPlaybackResponse {
   subtitles?: readonly { url?: string; file?: string; label?: string; language?: string; format?: string }[];
 }
 
+// The player and its playback endpoint answer 403 to Node's default user agent.
+const browserHeaders = { 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36' };
+
 export interface CinezoHostArchitecture {
   discover(media: MediaIdentity, player: URL, sourceId: string, sourceExtractor: string, services: RequestServices, signal: AbortSignal): Promise<ExtractionResult>;
 }
@@ -23,19 +26,19 @@ export interface CinezoHostArchitecture {
 export class CinezoPlayerHostArchitecture implements CinezoHostArchitecture {
   public async discover(media: MediaIdentity, player: URL, sourceId: string, sourceExtractor: string, services: RequestServices, signal: AbortSignal): Promise<ExtractionResult> {
     if (!media.tmdbId || (media.type === 'episode' && (!media.season || !media.episode))) return { type: 'empty', reason: 'not-found' };
-    const page = await services.request({ url: player, expectedContent: 'html', stateScope: { kind: 'host', key: player.hostname } }, signal);
+    const page = await services.request({ url: player, expectedContent: 'html', headers: browserHeaders, stateScope: { kind: 'host', key: player.hostname } }, signal);
     const mediaPath = media.type === 'movie' ? `movie/${media.tmdbId}` : `tv/${media.tmdbId}/${media.season}/${media.episode}`;
     if (page.finalUrl.pathname !== `/embed/${mediaPath}`) return { type: 'failure', failure: { code: 'RESULT_MAPPING_FAILED', message: 'Cinezo player does not match the requested media', stage: 'stage:extraction', sourceId, extractorId: 'cinezo-player', targetHost: page.finalUrl.hostname, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'player-route' } } };
     const $ = cheerio.load(page.text());
     const assets = $('script[type="module"][src]').map((_index, element) => $(element).attr('src')).get();
     for (const asset of assets) {
-      const script = await services.request({ url: new URL(asset, page.finalUrl), expectedContent: 'text', referrer: page.finalUrl, stateScope: { kind: 'host', key: page.finalUrl.hostname } }, signal);
+      const script = await services.request({ url: new URL(asset, page.finalUrl), expectedContent: 'text', headers: browserHeaders, referrer: page.finalUrl, stateScope: { kind: 'host', key: page.finalUrl.hostname } }, signal);
       const client = script.text();
       const endpoint = client.match(/`(https:\/\/[^`/]+)\/movie\/\$\{[\w$]+\}\.json`/)?.[1];
       if (!endpoint || !/\{id:"jennifer",label:"Jennifer[^"]*"/.test(client) || !/\/tv\/\$\{[\w$]+\}\/\$\{[\w$]+\}\/\$\{[\w$]+\}\.json`/.test(client)) continue;
       let response;
       try {
-        response = await services.request({ url: new URL(`/${mediaPath}.json`, endpoint), expectedContent: 'json', referrer: page.finalUrl, stateScope: { kind: 'host', key: new URL(endpoint).hostname } }, signal);
+        response = await services.request({ url: new URL(`/${mediaPath}.json`, endpoint), expectedContent: 'json', headers: browserHeaders, referrer: page.finalUrl, stateScope: { kind: 'host', key: new URL(endpoint).hostname } }, signal);
       } catch (error) {
         if (error instanceof TransportFailure && error.failure.code === 'HTTP_NOT_FOUND') return { type: 'empty', reason: 'not-found' };
         throw error;
@@ -53,7 +56,7 @@ export class CinezoPlayerHostArchitecture implements CinezoHostArchitecture {
       });
       const resolution = payload.quality?.resolution?.match(/^(\d+)x(\d+)$/);
       const audioLanguages = (payload.audio ?? []).flatMap(track => track.language ? [track.language] : []);
-      return { type: 'streams', streams: [{ url: new URL(value), protocol: value === payload.stream.hls ? 'hls' : 'http', delivery: 'relayed', headers: { referer: new URL('/', page.finalUrl).href }, ...(resolution && { declaredResolution: { width: Number(resolution[1]), height: Number(resolution[2]) } }), ...(audioLanguages.length && { audioLanguages }), ...(subtitles.length && { subtitles }), sourceId, sourceExtractor, hostExtractor: 'cinezo-player', label: 'Jennifer', discoveredAt: new Date() }] };
+      return { type: 'streams', streams: [{ url: new URL(value), protocol: value === payload.stream.hls ? 'hls' : 'http', delivery: 'relayed', headers: { ...browserHeaders, referer: new URL('/', page.finalUrl).href }, ...(resolution && { declaredResolution: { width: Number(resolution[1]), height: Number(resolution[2]) } }), ...(audioLanguages.length && { audioLanguages }), ...(subtitles.length && { subtitles }), sourceId, sourceExtractor, hostExtractor: 'cinezo-player', label: 'Jennifer', discoveredAt: new Date() }] };
     }
     return { type: 'failure', failure: { code: 'PAGE_STRUCTURE_CHANGED', message: 'Cinezo player no longer declares its native playback endpoint', stage: 'stage:extraction', sourceId, extractorId: 'cinezo-player', targetHost: page.finalUrl.hostname, observedAt: new Date(), diagnostic: { sensitivity: 'privileged', bodyCaptured: false, parserPath: 'player-client' } } };
   }

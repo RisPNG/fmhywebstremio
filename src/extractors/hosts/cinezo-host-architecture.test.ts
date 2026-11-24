@@ -26,7 +26,7 @@ describe('Cinezo native player architecture', () => {
         return response(request.url, fixture(name));
       }
       expect(request.method).toBe('HEAD');
-      expect(request.headers).toEqual({ referer: 'https://player.cinezo.test/' });
+      expect(request.headers).toEqual({ 'user-agent': expect.stringContaining('Mozilla/5.0'), referer: 'https://player.cinezo.test/' });
       return { ...response(request.url, ''), headers: { 'content-type': 'video/quicktime', 'accept-ranges': 'bytes' } };
     }) };
     const signal = new AbortController().signal;
@@ -41,7 +41,7 @@ describe('Cinezo native player architecture', () => {
     if (!stream) throw new Error('Expected Cinezo stream');
     const url = relay.createUrl(new URL('https://addon.test/'), { url: stream.url, ...(stream.headers && { headers: stream.headers }), resource: { kind: 'file' } });
     const parts = url.pathname.split('/');
-    expect(relay.resolveTarget(parts.at(-3) as string, parts.at(-2) as string)).toEqual({ url: stream.url, headers: { referer: 'https://player.cinezo.test/' }, resource: { kind: 'file' } });
+    expect(relay.resolveTarget(parts.at(-3) as string, parts.at(-2) as string)).toEqual({ url: stream.url, headers: { 'user-agent': expect.stringContaining('Mozilla/5.0'), referer: 'https://player.cinezo.test/' }, resource: { kind: 'file' } });
   });
 
   test('preserves native audio languages through HLS validation when the original container cannot play directly', async () => {
