@@ -11,15 +11,19 @@ interface CatalogEntry {
 }
 
 interface ProviderResponse {
-  sources?: { Vidbox?: { url?: string; type?: string } };
+  found?: boolean;
+  url?: string;
+  sources?: { [Server in 'Vidbox' | 'Vixsrc' | 'Dizipal']?: { url?: string; type?: string } };
   releases?: readonly { master?: string }[];
 }
 
-const catalogApi = 'https://db.wecollege.net/3';
-const streamApi = 'https://stream.hls.lol';
+const catalogApi = 'https://db.hls.lol/3';
 const providers = [
-  { id: 'vidbox-api', path: '/vidbox', playlist: (payload: ProviderResponse) => payload.sources?.Vidbox?.type === 'hls' ? payload.sources.Vidbox.url : undefined },
-  { id: 'q62-api', path: '/q62', playlist: (payload: ProviderResponse) => payload.releases?.[0]?.master },
+  { id: 'vidbox-api', url: (_media: MediaIdentity, query: URLSearchParams) => new URL(`https://stream.hls.lol/vidbox?${query}`), playlist: (payload: ProviderResponse) => payload.sources?.Vidbox?.type === 'hls' ? payload.sources.Vidbox.url : undefined },
+  { id: 'q62-api', url: (_media: MediaIdentity, query: URLSearchParams) => new URL(`https://stream.hls.lol/q62?${query}`), playlist: (payload: ProviderResponse) => payload.releases?.[0]?.master },
+  { id: 'shegu-api', url: (media: MediaIdentity) => new URL(media.type === 'movie' ? `/resolve/movie/${media.tmdbId}` : `/resolve/tv/${media.season}/${media.episode}/${media.tmdbId}`, 'https://shegu.hls.lol'), playlist: (payload: ProviderResponse) => payload.found ? payload.url : undefined },
+  { id: 'vixsrc-api', url: (_media: MediaIdentity, query: URLSearchParams) => new URL(`https://it.hls.lol/resolve?${query}`), playlist: (payload: ProviderResponse) => payload.sources?.Vixsrc?.type === 'hls' ? payload.sources.Vixsrc.url : undefined },
+  { id: 'dizipal-api', url: (media: MediaIdentity, query: URLSearchParams) => new URL(`https://pal.hls.lol/resolve?${query}&${new URLSearchParams({ title: media.title ?? '', ...(media.year !== undefined && { year: String(media.year) }) })}`), playlist: (payload: ProviderResponse) => payload.sources?.Dizipal?.type === 'hls' ? payload.sources.Dizipal.url : undefined },
 ] as const;
 
 export class AtlanticFamily implements SourceFamily {
@@ -51,17 +55,11 @@ export class AtlanticFamily implements SourceFamily {
     const entry = await catalog(`/${media.type === 'movie' ? 'movie' : 'tv'}/${media.tmdbId}`);
     if (normalize(entry?.title ?? entry?.name) !== normalize(media.title) || (media.type === 'movie' && media.year !== undefined && entry?.release_date?.slice(0, 4) !== String(media.year))) return { type: 'empty', reason: 'not-found' };
     if (media.type === 'episode' && !(await catalog(`/tv/${media.tmdbId}/season/${media.season}`))?.episodes?.some(episode => episode.episode_number === media.episode)) return { type: 'empty', reason: 'not-found' };
+    const query = new URLSearchParams({ tmdbId: String(media.tmdbId), type: media.type === 'movie' ? 'movie' : 'tv', ...(media.type === 'episode' && { seasonId: String(media.season), episodeId: String(media.episode) }) });
     const results = await Promise.allSettled(providers.map(async (provider): Promise<ExtractionResult> => {
-      const url = new URL(provider.path, streamApi);
-      url.searchParams.set('tmdbId', String(media.tmdbId));
-      url.searchParams.set('type', media.type === 'movie' ? 'movie' : 'tv');
-      if (media.type === 'episode') {
-        url.searchParams.set('seasonId', String(media.season));
-        url.searchParams.set('episodeId', String(media.episode));
-      }
       let payload: ProviderResponse;
       try {
-        payload = (await services.request({ url, expectedContent: 'json', headers, referrer: origin, timeoutMs: 15000, stateScope }, signal)).json() as ProviderResponse;
+        payload = (await services.request({ url: provider.url(media, query), expectedContent: 'json', headers, referrer: origin, timeoutMs: 15000, stateScope }, signal)).json() as ProviderResponse;
       } catch (error) {
         if (error instanceof TransportFailure && (error.failure.code === 'HTTP_NOT_FOUND' || error.failure.code === 'HTTP_SERVER_ERROR')) return { type: 'empty', reason: 'no-streams' };
         throw error;

@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 import type { SourceHealthHistory } from '../core/models';
 import { SourceRegistry } from './source-registry';
 
-export const keptSourceIds: ReadonlySet<string> = new Set(['bilibili:bilibili.com', 'cinefork:cinefork.net', 'cineruv:cineruv.website', 'kkphim:kkphim.com', 'milkbox:milkbox.fyi', 'sweetfox:67movies.st']);
+export const keptSourceIds: ReadonlySet<string> = new Set(['atlantic:atlantic.bz', 'bilibili:bilibili.com', 'cinefork:cinefork.net', 'cineruv:cineruv.website', 'kkphim:kkphim.com', 'milkbox:milkbox.fyi', 'sweetfox:67movies.st']);
 
 function serializeRegistryValue(value: unknown, indentation = 0): string {
   if (value instanceof Date) return 'new Date(0)';
