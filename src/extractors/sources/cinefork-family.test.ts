@@ -28,7 +28,8 @@ describe('Cinefork source family', () => {
     if (path === '/') return response(request.url, fixture('home.html'));
     if (path === '/wasm/crypto.wasm') return binaryResponse(request.url, wasm);
     if (path.startsWith('/assets/')) return response(request.url, overrides['client.txt'] as string ?? fixture('client.txt'));
-    const provider = path.split('/')[3] as string;
+    const server = path.split('/')[3] as string;
+    const provider = ({ zeus: 'vidfast', triton: 'vidfast', ares: 'lordflix', helios: 'xpass', talos: 'vidrock' } as Readonly<Record<string, string>>)[server] ?? server;
     const name = `${provider}-${path.includes('/movie/') ? 'inception' : 'breaking-bad-s05e16'}.json`;
     const body = overrides[provider] ?? (existsSync(resolve(__dirname, `../__fixtures__/cinefork/${name}`)) ? fixture(name) : failure('HTTP_SERVER_ERROR', request.url));
     if (body instanceof TransportFailure) throw body;
@@ -48,21 +49,20 @@ describe('Cinefork source family', () => {
     const services = servicesFor();
     const result = await new CineforkFamily().discoverMedia(movie, source, services, signal);
     if (result.type !== 'streams') throw new Error('Expected Cinefork streams');
-    expect(result.streams.map(stream => stream.hostExtractor)).toEqual(['vidfast-api', 'vidfast-api', 'xpass-api', 'vidrock-api', 'lordflix-api', 'lordflix-api', 'lordflix-api']);
-    expect(result.streams.every(stream => stream.protocol === 'hls' && stream.delivery === 'relayed' && stream.url.hostname === 'proxy.cinextream.cc' && stream.sourceId === source.id && stream.sourceExtractor === 'cinefork')).toBe(true);
+    expect(result.streams.map(stream => stream.hostExtractor)).toEqual(['zeus-api', 'ares-api', 'chimera-api', 'chimera-api', 'triton-api', 'helios-api', 'talos-api']);
+    expect(result.streams.every(stream => stream.protocol === 'hls' && stream.delivery === 'relayed' && stream.sourceId === source.id && stream.sourceExtractor === 'cinefork')).toBe(true);
+    expect(result.streams.map(stream => stream.url.hostname)).toEqual(['proxy.cinextream.cc', 'proxy.cinextream.cc', 'noisy-feather-adb6.ryklcd0086.workers.dev', 'noisy-feather-adb6.ryklcd0086.workers.dev', 'proxy.cinextream.cc', 'proxy.cinextream.cc', 'proxy.cinextream.cc']);
     expect(result.streams[0]?.headers).toEqual({ origin: 'https://cinefork.net', referer: 'https://cinefork.net/' });
-    expect(result.streams.find(stream => stream.hostExtractor === 'vidrock-api')?.language).toBe('English');
-    expect(result.streams.find(stream => stream.hostExtractor === 'xpass-api')?.language).toBeUndefined();
+    expect(result.streams.find(stream => stream.hostExtractor === 'talos-api')?.language).toBe('English');
+    expect(result.streams.find(stream => stream.hostExtractor === 'helios-api')?.language).toBeUndefined();
     expect(requested(services).map(url => url.pathname + url.search).slice(0, 3)).toEqual(['/', '/assets/index-DPMIW4m5.js', '/wasm/crypto.wasm']);
     expect(requested(services).slice(3).map(url => url.pathname + url.search).sort()).toEqual([
-      '/api/ext/lordflix/api/movie/27205?server=Lisbon&worker=1&data=en',
-      '/api/ext/lordflix/api/movie/27205?server=Scout&worker=1&data=en',
-      '/api/ext/lordflix/api/movie/27205?server=nebula&worker=1&data=en',
-      '/api/ext/movy/api/movie/27205?server=miami&worker=1&data=en',
-      '/api/ext/vidfast/api/movie/27205?server=1&worker=1&data=en',
-      '/api/ext/vidfast/api/movie/27205?server=2&worker=1&data=en',
-      '/api/ext/vidrock/api/movie/27205?server=orion&worker=1&data=en',
-      '/api/ext/xpass/movie/27205?server=1&worker=1&data=en',
+      '/api/ext/ares/api/movie/27205?server=miami&worker=1&data=en',
+      '/api/ext/chimera/api/movie/27205?worker=1&data=en',
+      '/api/ext/helios/movie/27205?server=1&worker=1&data=en',
+      '/api/ext/talos/api/movie/27205?server=orion&worker=1&data=en',
+      '/api/ext/triton/api/movie/27205?server=2&worker=1&data=en',
+      '/api/ext/zeus/api/movie/27205?server=1&worker=1&data=en',
     ]);
   });
 
@@ -71,44 +71,44 @@ describe('Cinefork source family', () => {
     const plain = services.request;
     const enveloped: RequestServices = { request: jest.fn(async (request: ExtractionRequest) => {
       const result = await plain(request, signal);
-      return request.url.pathname.startsWith('/api/ext/lordflix/') ? binaryResponse(request.url, encrypted(result.text())) : result;
+      return request.url.pathname.startsWith('/api/ext/ares/') ? binaryResponse(request.url, encrypted(result.text())) : result;
     }) };
     const result = await new CineforkFamily().discoverMedia(movie, source, enveloped, signal);
     if (result.type !== 'streams') throw new Error('Expected Cinefork streams');
-    expect(result.streams.filter(stream => stream.hostExtractor === 'lordflix-api')).toHaveLength(3);
+    expect(result.streams.filter(stream => stream.hostExtractor === 'ares-api')).toHaveLength(1);
   });
 
   test('requests the exact season and episode and keeps only responses that echo them', async () => {
     const services = servicesFor();
     const result = await new CineforkFamily().discoverMedia(episode, source, services, signal);
     if (result.type !== 'streams') throw new Error('Expected Cinefork streams');
-    expect(new Set(result.streams.map(stream => stream.hostExtractor))).toEqual(new Set(['vidfast-api', 'xpass-api', 'vidrock-api', 'lordflix-api']));
-    expect(requested(services).map(url => url.pathname)).toContain('/api/ext/xpass/tv/1396/5/16');
-    expect(requested(services).map(url => url.pathname)).toContain('/api/ext/vidfast/api/tv/1396/5/16');
+    expect(new Set(result.streams.map(stream => stream.hostExtractor))).toEqual(new Set(['zeus-api', 'ares-api', 'chimera-api', 'triton-api', 'helios-api', 'talos-api']));
+    expect(requested(services).map(url => url.pathname)).toContain('/api/ext/helios/tv/1396/5/16');
+    expect(requested(services).map(url => url.pathname)).toContain('/api/ext/chimera/api/tv/1396/5/16');
     const original = JSON.parse(fixture('vidfast-breaking-bad-s05e16.json')) as object;
     for (const change of [{ season: 1 }, { episode: 1 }, { title: 'Another Series' }, { id: '1' }]) {
       const mismatched = servicesFor({ vidfast: JSON.stringify({ ...original, ...change }) });
       const outcome = await new CineforkFamily().discoverMedia(episode, source, mismatched, signal);
       if (outcome.type !== 'streams') throw new Error('Expected the other providers to remain');
-      expect(outcome.streams.some(stream => stream.hostExtractor === 'vidfast-api')).toBe(false);
+      expect(outcome.streams.some(stream => stream.hostExtractor === 'zeus-api' || stream.hostExtractor === 'triton-api')).toBe(false);
     }
   });
 
   test('ignores a movie response that does not identify the requested media', async () => {
-    const result = await new CineforkFamily().discoverMedia(movie, source, servicesFor(Object.fromEntries(['lordflix', 'vidfast', 'vidrock', 'xpass'].map(provider => [provider, fixture('movy-inception.json')]))), signal);
+    const result = await new CineforkFamily().discoverMedia(movie, source, servicesFor({ ...Object.fromEntries(['lordflix', 'vidfast', 'vidrock', 'xpass'].map(provider => [provider, fixture('movy-inception.json')])), chimera: '{"servers":[]}' }), signal);
     expect(result).toEqual({ type: 'empty', reason: 'no-streams' });
     const anotherTitle = await new CineforkFamily().discoverMedia({ ...movie, title: 'Another Title' }, source, servicesFor(), signal);
     if (anotherTitle.type !== 'streams') throw new Error('Expected providers that do not declare a title to remain');
-    expect(anotherTitle.streams.some(stream => stream.hostExtractor === 'vidfast-api')).toBe(false);
+    expect(anotherTitle.streams.some(stream => stream.hostExtractor === 'zeus-api')).toBe(false);
   });
 
   test('keeps unavailable media absent and reports a source whose providers all fail', async () => {
     const family = new CineforkFamily();
-    const unavailable = Object.fromEntries(['lordflix', 'movy', 'vidfast', 'vidrock', 'xpass'].map(provider => [provider, JSON.stringify({ success: false })]));
+    const unavailable = Object.fromEntries(['chimera', 'lordflix', 'vidfast', 'vidrock', 'xpass'].map(provider => [provider, JSON.stringify({ success: false })]));
     await expect(family.discoverMedia(movie, source, servicesFor(unavailable), signal)).resolves.toEqual({ type: 'empty', reason: 'no-streams' });
-    const missing = Object.fromEntries(['lordflix', 'movy', 'vidfast', 'vidrock', 'xpass'].map(provider => [provider, failure('HTTP_NOT_FOUND', new URL('https://cinefork.net/'))]));
+    const missing = Object.fromEntries(['chimera', 'lordflix', 'vidfast', 'vidrock', 'xpass'].map(provider => [provider, failure('HTTP_NOT_FOUND', new URL('https://cinefork.net/'))]));
     await expect(family.discoverMedia(movie, source, servicesFor(missing), signal)).resolves.toEqual({ type: 'empty', reason: 'no-streams' });
-    const broken = Object.fromEntries(['lordflix', 'movy', 'vidfast', 'vidrock', 'xpass'].map(provider => [provider, failure('HTTP_SERVER_ERROR', new URL('https://cinefork.net/'))]));
+    const broken = Object.fromEntries(['chimera', 'lordflix', 'vidfast', 'vidrock', 'xpass'].map(provider => [provider, failure('HTTP_SERVER_ERROR', new URL('https://cinefork.net/'))]));
     await expect(family.discoverMedia(movie, source, servicesFor(broken), signal)).rejects.toBeInstanceOf(TransportFailure);
     await expect(family.discoverMedia({ ...movie, tmdbId: 0 }, source, servicesFor(), signal)).resolves.toEqual({ type: 'empty', reason: 'not-found' });
   });

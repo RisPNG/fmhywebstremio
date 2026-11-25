@@ -1,0 +1,152 @@
+{
+  "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.PMLEPBQioqUAHEVe.8piVWbjauKE6bULj5Dsv8rDyr-PlTk5d6fcD-QBflIuzYdN5RkrJCTXrwxqvQCwZXUfbzZi-FG6pDRL57GqJAYtC2llc8bQsx7l5nfJHKvPlArLw9gzc5Y98Wsv23f4tNuqQ8ov9SL3kd4xXz80dWXDiVxi6kOOT2mizgqWSjIh7ZGozl8z3bgAnQOAvJuJQWHKWVFLytoP5qZcw2PqTWjXO1DEQGs3xjFwg3ssMbzW7bLOf",
+  "source": "bigbang",
+  "servers": [
+    {
+      "name": "BigBang",
+      "type": "hls",
+      "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.PMLEPBQioqUAHEVe.8piVWbjauKE6bULj5Dsv8rDyr-PlTk5d6fcD-QBflIuzYdN5RkrJCTXrwxqvQCwZXUfbzZi-FG6pDRL57GqJAYtC2llc8bQsx7l5nfJHKvPlArLw9gzc5Y98Wsv23f4tNuqQ8ov9SL3kd4xXz80dWXDiVxi6kOOT2mizgqWSjIh7ZGozl8z3bgAnQOAvJuJQWHKWVFLytoP5qZcw2PqTWjXO1DEQGs3xjFwg3ssMbzW7bLOf",
+      "direct": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.PMLEPBQioqUAHEVe.8piVWbjauKE6bULj5Dsv8rDyr-PlTk5d6fcD-QBflIuzYdN5RkrJCTXrwxqvQCwZXUfbzZi-FG6pDRL57GqJAYtC2llc8bQsx7l5nfJHKvPlArLw9gzc5Y98Wsv23f4tNuqQ8ov9SL3kd4xXz80dWXDiVxi6kOOT2mizgqWSjIh7ZGozl8z3bgAnQOAvJuJQWHKWVFLytoP5qZcw2PqTWjXO1DEQGs3xjFwg3ssMbzW7bLOf",
+      "proxy": false,
+      "referer": null,
+      "provider": "bigbang",
+      "expiresAt": 1795818600000,
+      "subtitles": [
+        {
+          "code": "bb-es",
+          "lang": "es",
+          "label": "Spanish · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.bDXhUlFZHwQjKVDp.XgCn_s-b5fFDjhgICLAdXzhm5SGGETOChtse0SATJsk2AYic40DEpjaE4katgMn-3yJ9vzSoZTGj-5TxhEGXOdBALzpxJVuoK55nl8qBCymeMTkRAfF7znd63O7qxubNKPJE0bJnoqFdx1FighdQzeyV32s-jETFPVEs9R7kLo5n56ZkBxgSrxKCVSlL-W7QWhSN1ZkPIgMdyTaFmxCwdiJ38-S3KEtMtFQOwO62pMcsTRNpvD0IR-pHMZHgRhi8AFY1kHTRbXZsuDXPmJk"
+        },
+        {
+          "code": "bb-fa",
+          "lang": "fa",
+          "label": "Persian · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.iTY44wdOWMZrXP5e.a3CXiAWt9mbVUputr_aa8sZ-LGLDwrtyFgFeoQCz1gE2B3hHqcf_WWs6il9s9iesIcSiTOcoHzydTAbO2Pq8WCXkNkdPJYMJBJ3ACo5uNxmouKAdXHSAtuNF1bhK-UXZZWF3qh1r6j0FGdz36pB-TPYp42Ek9Gvoz2F2XIPvMy8Dk4UpodK0lE8g44Vjfxi5-hmvmSGF3xdsW1lXaZvVGXEdqz9EYztCvYja2aryKmBJWkKlWxv3eOe7ZqfG4x7ao9NWiTLhcHAOzM9h1s8"
+        },
+        {
+          "code": "bb-ms",
+          "lang": "ms",
+          "label": "Malay · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.Lk7jt6x3EFINAiQh.AnJkdjMN8VWTk8fGcAcNTbCmZc63H5VYZmHHG64UdPKSuAR-yseIbG34ehltOpflZ3OBCE-uGIlYU6xhPS5f-jvxfGAi6cWCCfNZ89pHr4N9dPuo-kRH5O1devefFO91jl2zBvhi1MmzH1iuU74AgH6KJqov502I42L8Ls9gDm18wNbMNM4qhvLM_4y8krij_wlA8qT5Sa6wELVp454nLLoZ-i5DrQfXOf8oTQnRdjEwSfJk9K6aqrYyABvtSPj0fagc8JOd4nk1H9TosXU"
+        },
+        {
+          "code": "bb-th",
+          "lang": "th",
+          "label": "Thai · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.jR_Y9l0WQrQ75PIC.q-UWidnzDZg7PPWx5YCan9g2AkSxPVZd5HJveNggHNX8YShRbHTIjelFgdvDTSxlOC9CIcPqXBql7ezkQKcYa6oWTQZPax4XKmTkq3Zwq9DBUZ-_abuvqy0VgTUZGL_55gDLAKZA4s2EeURP1OJveqaadcHRjFYQhkfWJiCbL_RkCIlvPZlw57hoF2bKun5nefuXbBKXKiq3Thcma7m880WZZ4-lg9iiRVqreGC9X4F5RRrR3_DmVWeAESbN4OQubOPkerSxqlvW9dbZwV4"
+        },
+        {
+          "code": "bb-vi",
+          "lang": "vi",
+          "label": "Vietnamese · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.nsLfMEprAxv39VS5.pFzSzLvWLg3CyZH96i5kYVRgSDjo1SOJNgKxwdP8OjRrWgzAjhZqu5x23LeQPvd4lVOHgY6pWwIExiSB5rS2HQISWGymA5e-nXi-_Zj131W52ISzvjtsSwAof_40Tb_4iGGF-osz9OK229Rtvv8o5vHwpysg0qoczhYj6cyMcUz7kjKZ_ffWduNFtsm0TzhPvxkmHK66xNFFS8QSUk8z8AR6GZqTmTlMaRqIeC_wGVSbWYFN1TCAU15H9jYfxXPpLovYMcvxJIGdQ8j4_gY"
+        },
+        {
+          "code": "bb-ar",
+          "lang": "ar",
+          "label": "Arabic · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.bucVUiHV8memKYZf.nlBKfZ9ShP2TYOZaMJi9o4czeo6IKIM_zIl051d9hT8MyaGUvH17VzYhrvT2OrmIziWdiwMyJeCAFHFBZG3AqKQkh2NhsidhLgT9SwmIP9n9n_dUnY2dUx-MN2KtRlaiNLqw2TvjI_Gf0Q1-eOOm6bTXgtce3hI8aCYiOP0JTYZavZaEiDKTZQrtYQFxzxzCtD21GsWwZeCWbMYbpBvULrWB2oGu_msdtMUT6rpLo5vlRpnBUz3T-QQiNEAo8Q"
+        },
+        {
+          "code": "bb-bn",
+          "lang": "bn",
+          "label": "Bangla · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.QnPpSbjTWrxGOAbI.vVzaQSmihglERR5DQyUIoq4qjowLyfxEsLy5BKa8_RSPNdt9g-_ii2vT1vZ7JQkbrMdZfoiSnalsOLZ-t9Up4Kzs-61jyXVTCqGXTfnc3b1gtFwBwASaYXpf93QbtSj_xQyXW5ry7KbArxyevZbry4HmztNCrWwIxNWK0gKgSJAV6zOrsySo_8aTteMDxBjxWEEHBl13t_J8BtKjZNw2n7Un1J5Z9oLQ6jgC0nmRTVh5f4yfZAvWO8I577iM1g"
+        },
+        {
+          "code": "bb-en",
+          "lang": "en",
+          "label": "English · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.Jb8_THr-3w5vfmjx.iWFlO78_HuvnJgkMYhjK7M2pUQoAwLcWFBN-ECoJIGKTMkrm94u8-2r-FUXq7hyIY_ssRCfs-8cPy2TtQJQp_3zliQh-2Lmq1gfAFH11zFw-8zsKLTlT_jmBT2ajkQfl6rnXJbPLCXuic2ylJZDGO8WMhSnueAOBm23o5wL6lySB4wna94tSkyHNPwW-XfNPNneSSTGVg9ZifJ0DFBjjwdvikX8KTD1076IGTRFoy5GMK4xonMOqYVO1MCdM1Q"
+        },
+        {
+          "code": "bb-fil",
+          "lang": "fil",
+          "label": "Filipino · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.k985uH1AUvSriHKn.thU-QaRAPBD0IIRJER8uLx_Az5p6KVVDAyCRnatV9lHm05E1KHNSLpunl3k0PzweGvjaCzLFnynzl3Upi6oREYwB3iTsb-Cqjr6oGjfIq0dpeUdkJ8G-qd-_swfLe9vwvalj04-RrDQLDM7r8YPN3NldvwmDOaBRL2IkUm4t_QJirQqro7vJF71X4gQrs8lKXGvzHRCFXb2ao11Si3FS8TBHkDv9NYqvFPOtUZd05LQRAhjRZQqS3U_L2ipyhnU"
+        },
+        {
+          "code": "bb-fr",
+          "lang": "fr",
+          "label": "French · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.TQPFkgBq82foduDm.LfKLLHDCIvqXLOr8_GMe0PpCUMWJ3uoVr2lU6F2aR6L-MsQbX0fE5Pcnmnm7GW1lxf-2P48LLW5FKBI0CdreRzaHzBhEIvRf4nGC53WvQE3jOOYvfFhVH8wQTsV9P65ruVR8O8ilTqyeOm4yX_ugPVwp8YGPBo1ZWXltP9w3hCsvMHCKv7DrfCPMmaiD1sYVy9hh-wOCORmV_opSK-aJYBKLaPAcwJtSnhldj2k4CjS329eQAAkKuPQqmV_32Q"
+        },
+        {
+          "code": "bb-in_id",
+          "lang": "in_id",
+          "label": "Indonesian · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.Y4QWYQqo2yimqEGX.wmDpboW53lcDVLzE0PyvO8KTCwoSJbSjei9tS9Ioci4X8nSK__gOsucEen-E5JnmU7u18g7zXIs3HIS3n6-2SZiF_D0_vfpJA4JAazQOEtbAXwKI1pP_ZmT-V0d0QXWY97OAqZkGs0IP_jwvBWILatne-6qrrw25YjK_GxJz6nQCW9nz7kW34juNOA_8PFIBWeaVPgWDi0eqb-mhQQZW29xN9whN6rBkrrA-7RZlN-9YQsnqY6BJBoiNBlnc26NkvA"
+        },
+        {
+          "code": "bb-pa",
+          "lang": "pa",
+          "label": "Punjabi · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.O2X8Gqmcf9vKzi_P.q9SstRSJzYglBjVyDxwtjwvvbe_qO6Ybs2PMvEq6f6PMJ9D_OQpd0Y3o582ropHjQpoeIy4-KZZdT2yvtd0QwfmhwoS9jGYPe8uQfXNY5kcxIC8Ddk1os9ni2abSir3208RjlD7TwXb2_zfI07JPEhtRin8kntZ036XuE2TSst2LDFRq8oi0raiyBgxH_wBhPK2XS9rdbGMhLyMj3ID8VJEJOcPsaKgLcrmT8kgtK7UQyZKcZclvpV6oL3zFrQ"
+        },
+        {
+          "code": "bb-pt",
+          "lang": "pt",
+          "label": "Portuguese · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.RIYOexvnaEQvOxYi.YO7pr_I_RXSDajmWlaWdcTLWuuVNwmU9ZDxkhfaUHsICHJPq4kqh9x8lXvhXVkKXcW1mW685TtC7epfjjZYFuHpfp2jd-hLxeM9DVokQQxB-SCVjUspA5yOZUdWWATHS3nT7iubSamlZDlV9DiLTGSJRbiEj68k0jlutqIwViy3H6r9x3Myjp5R2dN9uLHRG8SYbyHhOtWoT7WwAmjnB4oU1hvtTWM20mXIO2v96xQzB6SwwPNvZ-CH0AHEGvQ"
+        },
+        {
+          "code": "bb-ru",
+          "lang": "ru",
+          "label": "Russian · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.qwptVqp_Fjk5Ef5M.Yi4q9rI4_YTNRhTkoPHK5-bWnJ1d-lSsmB-uv2k4oU8jP9Vb6X9pIrZUWidOeD5LcveHv4qKVWq64y_3a_xtRDYdcplzUTl21cUCaqTC_NHJbobbk7qAzHVN09v6sjgCmnzQquqaXmRjTYMFatJvPTRAEcQK_tFu-8IS9mQsRvJbExXrH3eTwswiMMTLr2-ukzcMtnHS4juVslV0oJKjjSY7aiDfItqw7X_0ZWdG0aXmZ71sL7OI7rM1Wtjvsg"
+        },
+        {
+          "code": "bb-ur",
+          "lang": "ur",
+          "label": "Urdu · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.VUmwZaokx1qylIz7.eksrVg_uWnhX1wGZYM4qq6pFEzfiqMDirbZxeW7bXUXDhMTwS6Lw-YP_aZFl31ejPE62TQas_1u2QOHe6Ypkl38klgdMv2X9Q_0FsZ0BcWs2BbdO62nTfn-lxKe1r2QFAZq2Sqtgtn5ikulN07ODlExKP-9avyGOQpOAyp9olm0WpIHf6pgarwmTSzX-2Oo0Uth67NmQxDdp7QgBq0Og6dibuxiHIu1ADl9H3I1j_SFxG5bau-ItgnGRIX2YZg"
+        },
+        {
+          "code": "bb-zh",
+          "lang": "zh",
+          "label": "Chinese · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.2YDkp8YfKbAEJ4F9.4dkJQ2VUZWk5xp7ICR4ynDRp8DobLvq-Ls4Yg8s39R-86ZrAxipfVoFqq4lt3GjXoxXn7om5vyAwvIr4WaA0XTwW3-TMk4OdzIZCE7CTAO1xJ7WA-vLeNY4NYTj1Z0a2eEzMSEds8Gnr1xSlMCLRh9y0sbhXqpXhFubUGYVCLZfULy5jv7iHeND-klMkwoBnbrUuIJ-HpTXrKKhrhaoj-6PEBKnWLVAJ9ZUepvaUKusY8PilOZCFiGJ5nBiUJQ"
+        }
+      ]
+    },
+    {
+      "name": "Orion · Original",
+      "type": "hls",
+      "url": "/vdr/embed.vidrift.net/api/orion/e803ef091ed908cf916f57edfd8fffe4/master.m3u8?exp=1795733265&sig=569a97ae9ac15c5106d3c743a885c9777af335c197702b84c1f70ad56f3d9eec",
+      "expiresAt": 1795733265000,
+      "direct": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.PP84_MzmRsDmNftW.Qxl6T0PJHlVwBNIUw4rizMcNDoIpAoxUWR1BGCdzrcqdxyXhs8Lh-7tzSDRB5K9ji1wp8i3D-O6dlIj50uNh8tBWFNmLiVaSeBYxM6e1hUwrLfGpAL2vltnOpoCu8v5G",
+      "referer": "https://embed.vidrift.net/",
+      "provider": "orion"
+    },
+    {
+      "name": "Orion · French",
+      "type": "hls",
+      "url": "/vdr/embed.vidrift.net/api/orion/ce6bc32eae354d21e0164e89df39d749/master.m3u8?exp=1795733265&sig=6adb9b029a28c27499c5e25451990d829070ab8329b3ee8562b517d9e04e8c63",
+      "expiresAt": 1795733265000,
+      "direct": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.b7luXVSI-hDCs495.8lXxBQbYPo8sr9nzcX5OrhBqOmCpUzRLXXKK2hlwsW1EDyQuV-tbAFyZT90IKUX7IGyzts9HwO1onTdT2HYkZ-mvExiNqvGB-gxrUHpyLIlb9Ix-rxQAAJxwEaV7KXCp",
+      "referer": "https://embed.vidrift.net/",
+      "provider": "orion"
+    },
+    {
+      "name": "Orion · Russian",
+      "type": "mp4",
+      "url": "/vdr/mb.vidrift.net/api/orion/5abf0ba9915a00f849eb42bd9a6dd3a7/video.mp4?exp=1795733265&sig=3c40ce3d2f083b43b278df9d2286c08323d3cbfdbc4bb6950100ae6c828e4535",
+      "expiresAt": 1795733265000,
+      "direct": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.0z6yHOQ1QYG_dOT_.E4BI5VRwd9WudtGGFzSPc80cy2agsb5jbYGA0FynS4GxaOG3w-bv0rMC52LUbeeo5--nqzzRP6XglbYWyX1Rby5khtp9yxhJ3H_9c7fJT-gTmFdovrkG_GwTYg",
+      "referer": "https://embed.vidrift.net/",
+      "provider": "orion"
+    },
+    {
+      "name": "Evion",
+      "type": "hls",
+      "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.wgrf5MK07zYcJwQV.z9pzUkVfYCVNaVZGALHrDCPb4ynJt7VzY71_pMvbYdxFu75QQjNlbSco6K73v-UBOefnTEHa-I4KXLj8z4dJsTnHns_S_9TG2bo0gPh0uO6zNwLa5tGcl_bhF8w8FbHyBUbcABGGRM04qS2Mdz44bYbZ_whLBGMXLiD7zldcynnkD4Cauhm_MlX3Dn-LuHiWVOwIuy8vkLo",
+      "direct": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.wgrf5MK07zYcJwQV.z9pzUkVfYCVNaVZGALHrDCPb4ynJt7VzY71_pMvbYdxFu75QQjNlbSco6K73v-UBOefnTEHa-I4KXLj8z4dJsTnHns_S_9TG2bo0gPh0uO6zNwLa5tGcl_bhF8w8FbHyBUbcABGGRM04qS2Mdz44bYbZ_whLBGMXLiD7zldcynnkD4Cauhm_MlX3Dn-LuHiWVOwIuy8vkLo",
+      "proxy": false,
+      "referer": null,
+      "provider": "evion"
+    }
+  ],
+  "resolvedFrom": "https://embed.vidrift.net",
+  "encrypted": true
+}

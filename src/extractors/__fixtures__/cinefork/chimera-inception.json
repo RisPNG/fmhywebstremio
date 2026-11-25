@@ -1,0 +1,191 @@
+{
+  "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.rbOo_TvMb2vsWWDs.ltPzEL4fha2hrYNDogktUT0ofCeV1aOWffy76k3BtHHz0UhMzsvFFSkri1oc8vhy4MRd51UZYuMEhiAIdr77-R44lkb8J1JRRJuK8hT6QHbaegcrT30EzXMlxGyma5McQD5RAX0LruEay6Q2m791Q1ANpWopQHIvXjQ-lm9oRkqiIPWi66SVqCM5hw4RPuqQj1DdfE50l48rA2JYeMaegNZL2jwHsf8BPLRhUEiBojaZt750SHno47YgiFuxqJfesi9f3CZfIA",
+  "source": "bigbang",
+  "servers": [
+    {
+      "name": "BigBang",
+      "type": "hls",
+      "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.rbOo_TvMb2vsWWDs.ltPzEL4fha2hrYNDogktUT0ofCeV1aOWffy76k3BtHHz0UhMzsvFFSkri1oc8vhy4MRd51UZYuMEhiAIdr77-R44lkb8J1JRRJuK8hT6QHbaegcrT30EzXMlxGyma5McQD5RAX0LruEay6Q2m791Q1ANpWopQHIvXjQ-lm9oRkqiIPWi66SVqCM5hw4RPuqQj1DdfE50l48rA2JYeMaegNZL2jwHsf8BPLRhUEiBojaZt750SHno47YgiFuxqJfesi9f3CZfIA",
+      "direct": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.rbOo_TvMb2vsWWDs.ltPzEL4fha2hrYNDogktUT0ofCeV1aOWffy76k3BtHHz0UhMzsvFFSkri1oc8vhy4MRd51UZYuMEhiAIdr77-R44lkb8J1JRRJuK8hT6QHbaegcrT30EzXMlxGyma5McQD5RAX0LruEay6Q2m791Q1ANpWopQHIvXjQ-lm9oRkqiIPWi66SVqCM5hw4RPuqQj1DdfE50l48rA2JYeMaegNZL2jwHsf8BPLRhUEiBojaZt750SHno47YgiFuxqJfesi9f3CZfIA",
+      "proxy": false,
+      "referer": null,
+      "provider": "bigbang",
+      "expiresAt": 1795818600000,
+      "subtitles": [
+        {
+          "code": "bb-ar",
+          "lang": "ar",
+          "label": "Arabic · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.2cUHrl_OHp8bf7Uc.WqmNtwUhYBgaz11l-cMc28no3dojTLlS5S9pZ4HWAMCmod3QK3GefXdlCdylNNe_4-muzSGpDkP4uMKju-8ot_I4jmVBIOvLLZPnUONFSe8rfoWzxG7aaI-s2Y8crxf8KX1eZY0sBswOC7Lxxpihxtab853NdGR8FoMCHU9irFRhFTP1EVTjybEXNwEwmLjcKumg42xPquiAWu_xLm6RkH58f5vaZQuEbOsUl1EN-rU5JE1eCZGiRZ27GCl4mGB7h2UrdM46uRAR5SWEZjzNafk"
+        },
+        {
+          "code": "bb-bn",
+          "lang": "bn",
+          "label": "Bangla · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.OQobigZVELv7M2vK.UnGYi3rd1VmhFFIT2tLYs91p91ae0PhuHwQLfHgZrW9TLtyVCtEUSbG4CDFhlU_OcUBQM1vBieibupNoHe2aPPDQuvqpRrsd0w7lAyipnrXcGaH9T5hsbptPt9XQcEndK7sAkWdNVT2NggBnb4wtIukfl-rws3m-TMJ0AfIYcqQB6i3AOAaFf_JQtKa9s1lgbpt2yG3snEBT_RIZs9wLKvE2oVt-ernZswgngvwPCY8qp5Al7qc4ZJ7B_zTudsuCCPFmjmR-zQoxiRIWlghmTy0"
+        },
+        {
+          "code": "bb-en",
+          "lang": "en",
+          "label": "English · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.Zp6ScK_CUzGRHW5S.HDx2Hg2nV533wvUTlhmUP5Gzwa5AmBYyifcG_IE9QSiWY--eQq9i0VNXfo9y0XlNjpSZJJwT-oaPxctEhI2B0DhkVMOZUsgEaPzaBy4obIk-2xE9mZ17qFaGlJPOq3gcwAIut5i6fkECyIEz9F7Y75aMHL4eJRQ4jj-XSll5LyPPvxBSh9afg70ndRDeP701z7oALXGK-urDmCwhkZlcc57RGlc36K8L1WcRnW3RWEB1DgpICiZy-Esq_jzilSWjG26qeI1Sqq5UexV3593n5II"
+        },
+        {
+          "code": "bb-fil",
+          "lang": "fil",
+          "label": "Filipino · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.YoWofqTdkdQZiZ44.MNsvEULd-PuiUx60Mgyby0BmIn_Uz5wZOBg-WUWhFZqQ5-hItH3F4phGrFoyx5YHTxtWLO3D2q0xYSXJcD0KER2N3XHkatgkR8rObMjK9x8Yhqehs8IX2hpq8_COQSXQ3CC7Z7AtFl15sRRpdXfRNTjx3Pi3w9VnwR_b9NxUZTvXBqfQLKg6LDsKESmSuqCImA1lRaHJ6tJ1lpGuuIZZPbInhe12vFbH1nwM38_qUZa4Ik74rD54EGSoniTBFj4pcAQtoYlTCN1kRbeL6iDOWEah"
+        },
+        {
+          "code": "bb-fr",
+          "lang": "fr",
+          "label": "French · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.XiAgtw6uX83GjzlM.4KRS3lE3U6I0PATkktltYeT2YQSqoaPPS9A3gU-51cb5UX0ZhgOWqiUos8KexfUU3HNO7SpDDvNAafEaCXNcHMO-nqs77ZKTUCE64pY67-btIFH1dSRF5XfbChLt8p7hdImUUBdRmL_Mw_gvfxgzvGiQinAyK1diudXitX2MenqAdlkc6yGt-sQ1Ssq_ve2qAMxXAGqn1Vb0BJ0Hbf2Q80N83ZQ8Qws6Oz7lLdJ1lSfVEwR6bp-PQ6Z3fdpsFlLHXRoEADEc3WkIhJPMctasNEY"
+        },
+        {
+          "code": "bb-ha",
+          "lang": "ha",
+          "label": "Hausa · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.aBUCsXcIWK4trilf.JczOFCp9aJ57fIS0z8Iuq-DARlVmFFYBi9jfxypAb_tLoq1MvXP7gIh1FbcpoZ67Baw4lOwh_a5ZeaOpS9dSYsu9am1hcm17hTY9aj8qXHBoLDJduYw4DdObanmtw5de7qJ17vfa4bFHoLl2Z6Ux6YequIHbC741yu6iUclwpQDLwaaj6vpV0we47lQvedx7Zh32kPe3Rh10d3AyhijflItppwJhzTpyScLIp6uod1epgbTy6jmklaMWO2Tm5wnOJspBLrDYR7mLlV9aJgepCQs"
+        },
+        {
+          "code": "bb-hi",
+          "lang": "hi",
+          "label": "Hindi · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.jIgpMLIVPNMeFm7H.ifnvsSQwWWB4tUOEXVA5KIXW6fG9Bb7C974_4v649KCLJfAGy2UWaHS8TGgBkFPvLIml1lg83y9uC8RRXEFJS-_i-EEcIA6wZ57yFK-fEfA81ABblX7u1WCYj6NOwcd-e-d0rfbeX7AinFF1MkmsqZTZwG1kaE3zwy6gf8j22u3sYhNeNoivgkzkI4X5tjZadM78fY-PnsjY6H0DX7-HgWuXew7vCBUD5vIYB5pGRxUzVWPIc2bEY3IZDfXqZlKU0QMyO9gV5TvAevfiH6bEG2s"
+        },
+        {
+          "code": "bb-in_id",
+          "lang": "in_id",
+          "label": "Indonesian · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.wAVKgF9Zvb9JHaqk.bcngoGGMxWHMvb2ffrI0YToPuosU7BAkIeaDYCeSv8fHNXpM5cURFQG_YfGyKRwpFLRnBmGd2a82LTlHqiS--kpo0a2euidXGrEEDvrn8YQMRtWgIeTh7KzILHul7jhZtKv8nCR9arPR7ecDgDqQpYJK7w76Dc8g1Llk98VktjJT__vY6Sp0URCr7k7yc5jHuf-87AE-_8bzRPrDX5GkC64ltgsOFa0CxwXxDjcvy9s9KOIcNkjaahlNjQ3zMQopfLjRTImJ6JyyKxSPFQeGgDosl8A"
+        },
+        {
+          "code": "bb-ms",
+          "lang": "ms",
+          "label": "Malay · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.Y9yIrStA0UZbou7k.lmMTewL2MjBVxzIMxmchX7jQd7SBakPEmM1VqZZjwN-s6wfTfp0EYZtX6ha3DbvSWyVahV53fiyDzIlTVELukq3ys4xNziDFNudIETYE0MDeP9WIxHva5wANpkCSvRWgd7L6hu3s3uXmYBtFQCU2ILNh24o11eHshmK4teQ3rzNSCTBEmFo1h2V8vMICtcAUBmWbvU-A_xRYLimGtPcneDu_1HF4BiL0GwC5yyEJUNu3xsumDvQ39qpsu-tYIk4t5LmDMOr8AxI9SWsgsWcz5Q0"
+        },
+        {
+          "code": "bb-pa",
+          "lang": "pa",
+          "label": "Punjabi · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.QmKrl1Bj9Vgt0SMo.UQciRY1-K7oqNUsPWyqbuJxXy88SpAB8tZ7tJF8i2DO7VT7KGo_0K-YCqAbafjXwxIlDL7VkLAX5tZeXR7rwcfR5DAI9snxwZrUBKClObNJ9vn0vv-sXjVkE-f950rKdIuzCFaKJr27C_ufJsEmaRxLCUxSIkpAGhdcBsw0TmpB9Y0PMMwc1sSqaopG_7JogaSA_VhF2uEiwdXRpNbR75QRKQaKX41sMVx2-cRo_LO4dP9YPHiO7AC48QhCZPh3ojQv5AUKndFVHDVIzJwBJF6s"
+        },
+        {
+          "code": "bb-pt",
+          "lang": "pt",
+          "label": "Portuguese · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.NNMvQh5EYjD26H9T.ZPQSz5xuaHz0GI6tZbiUCzMAOdVvhKj6S1nrMaXx_krZXdY5e18GWIk58HSQUC5qskqUNibCLVy0IhzG4qfUxieUDZHfkuXYwFIomiy279lkZCX7yYl2ss5yMBQCWu9IrdoGKptubU7KcetZahrOPeNG0rHnbRxbkYYFFUk1C-9V5Q94MD9DpIfQ7sowM36MN-UtgZ2zLKS_CL2b7WNaDwwZyRmYVe3UQMx06POtlMtqeeFLm88EBn9AW8xIfcrbvLdsejYgUy_Th3dd7jVhijA"
+        },
+        {
+          "code": "bb-ru",
+          "lang": "ru",
+          "label": "Russian · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.jAHQPhBUIDnEGAF_.vFXgEZ6_2Q3PrYErfg8wnAVCnyfVnHtERwN38MWO42xrmrSPn_tmmnBD8gV6eui7z0xQgrIbjgTdMBh2cclUiF1lfdPXv8lLcf4iPjogk44DI_YakUrYQW1QxnsjjFOOGy5TC21n3jxQCoqqbED_YmJc-ttZJSzAcx3Av-xQ9v1SoEN7b20E_DRAfSak8rnvZ0s56T3X8-hyXKoxdfHOXx2b8B0hJYVqhTZUNQ9awjpNME8otGngoJ9wUf5MwtSRtw0TWF5ekz9J0uouzzPwhuo"
+        },
+        {
+          "code": "bb-sw",
+          "lang": "sw",
+          "label": "Swahili · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.GX_MJSdyEy-OWKJQ.e1ylLly6MYAP1S3r7Zl_ss2xlXGzr7sp9JS4f11-z2M7sAN9L-7S6TVzUEx_zFwso4YR9ygZA0IkZxRUxyuo8-B3GDIUWcRKzVkZHC8dHbvNar75MtVlwYrZAY79e462xFJ6QVMzj5UQAYFFZvHY1ZUzvxjqPx1wL9O6ANC1wATgyR2XwERqfaSA0yfmdMxXT7FlAQGWR_fkU5YzWik2AGMEE1OkQw3kV3-ycKWZ4iv_JSyuhq1_D0nqsAhx4-Eu7HO37pPYDa79BB9wgGPAH90"
+        },
+        {
+          "code": "bb-ur",
+          "lang": "ur",
+          "label": "Urdu · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.TL1GUAa41lfPVkc_.8rgn3Ij2VF40y8RWjhcApgRrdab0RSlaVrmecMpxgE0re_DMjpyvwudvOfHmDLvyG1KsCgg-EaV0FuJkfDBGRtSvP0XKHktWFzvU7Dycuj6htkCuax7QEf-8SXXA3LyB2wNwcEYEqnVTC8Os9QRC9eKjceIdx0L8bfuGm7f7iQo5N-kGjhWkk85OqKd1JibuxU6jHfmJfmm7MhpDef1T3g6vvi_MCXF6s2LPJUG_ZYfQn5xTf7LQDJvdeLxwmGwKodGAvlOunlRPRHOQdjfbxjA"
+        },
+        {
+          "code": "bb-zh",
+          "lang": "zh",
+          "label": "Chinese · Wyzie",
+          "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.833HLQsYUGke4KZn.EF3RrAMh6lIFBLh_hRuMOsb9nmOQJeICRTVyflxEbGT3k-9ykD6qy-B7l4gdMAH8kORO04pjcXaouASbeRS1C-krDNdYl7ZnweENj1Dgt1-W0M1gsCFNZuPh8mfTBc_vedqWsSgJa21Oq4lkEtSVcV3h1PU6zT67TuiZfJir8jqU0OpiZdsHppmZ0r65OAGoDEolKOBXJtqcdWPvnOcw_ty64p2e7CRnWdy4L7GNn1fqSZrMdI4Q0H_bCVeKUw9EkLNys13j9mT2OkCtJT_4m7o"
+        }
+      ]
+    },
+    {
+      "name": "Orion · Original",
+      "type": "hls",
+      "url": "/vdr/embed.vidrift.net/api/orion/bf7c77d95f9ae1ad819a5bece01ba140/master.m3u8?exp=1795733265&sig=936b6cc8833c3d7519ae168a862d429d280ff46f1855f4b16cf0781ebb480ca9",
+      "expiresAt": 1795733265000,
+      "direct": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.VvJF44aX89wwQr2P.q6KNknYNl8yFPghLFEgF4eDeABNvMBjzwDalflES-IKntcHyC-V7_HrXCZLfw3mnKAet9Ch9AfLfpXX9Rl-I3o4njoejBRcIxnlJWyl7Q9L6BYz8NjHv54qh6fuxQAnE",
+      "referer": "https://embed.vidrift.net/",
+      "provider": "orion"
+    },
+    {
+      "name": "Orion · Hindi",
+      "type": "hls",
+      "url": "/vdr/embed.vidrift.net/api/orion/e341819a861af01d0e272b8fd9a83680/master.m3u8?exp=1795733265&sig=219a47d5d2d6d6dbfa16858eb630e284051e82c150dd62da13a290954ea2175a",
+      "expiresAt": 1795733265000,
+      "direct": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.RMDyDdK42HZJSmES.vamQhMq7Wx3ewL-7sj6cfFDeigfBY5lGaQR97lp_wlhMkko3n_obwuLVi8EUGxn04gWDbv3PSG1AP9I3wxSyZdl7-qwqdVfuboXTdShawGRnsK5K5epCY1Yu4jNSiQgQ",
+      "referer": "https://embed.vidrift.net/",
+      "provider": "orion"
+    },
+    {
+      "name": "Orion · Tamil",
+      "type": "mp4",
+      "url": "/vdr/mb.vidrift.net/api/orion/524a4873afa5b7f44ae987ede8f93b8b/video.mp4?exp=1795733265&sig=8a46f2c0377ac14f76a80c4f4259900e2cccd78494a7780bf9516b4dd1907768",
+      "expiresAt": 1795733265000,
+      "direct": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.lQt6IdAMmID7MW4W.h-7pjhKD-rq3Hl3jvqlHnn7ZpgFKd0hz5hWNlAbzxKeKiX2kQpuEAlNQAatbzQQF82fq3AspoVWJTIwzA3rTMwtR9eRQSxfWDSLqv9yjok9jmAX_Zd1_i0JHow",
+      "referer": "https://embed.vidrift.net/",
+      "provider": "orion"
+    },
+    {
+      "name": "Orion · Telugu",
+      "type": "hls",
+      "url": "/vdr/embed.vidrift.net/api/orion/ab822c333628a13a5c78cc9344743e21/master.m3u8?exp=1795733265&sig=534e79f54e8dd369e3cc646f189ba7ff63f5096b3767bf94b30b36e29dc19a9f",
+      "expiresAt": 1795733265000,
+      "direct": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.rok__QT5cQWSaAmB.F_dUDVHPaY8TcsuthreA7tcgVv3BYAmmC9Phkecw_FALU8eW9etD2OvGoEx9JNZp7aWTYamJHayIPf5zEhdSHeq0vGJnFDCX_-tty_jBPIpAb5fvJaPhJCfnp-4PRI6-",
+      "referer": "https://embed.vidrift.net/",
+      "provider": "orion"
+    },
+    {
+      "name": "Orion · French",
+      "type": "hls",
+      "url": "/vdr/embed.vidrift.net/api/orion/921354ca9d6c5bebe7814920decee252/master.m3u8?exp=1795733265&sig=f5da96bd8193b1a001e6f9289e1dfc3c9bc5afcef80993f766512a7c716d247f",
+      "expiresAt": 1795733265000,
+      "direct": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.jpnXI14U2dRQtkha.UpJ1BAPp9ymi1mAhb4l_cmqKxJ2AsCMuavJduXkZWAb2JiWO90tCvb2QrnDMSzyuOVauXmmPzdpXyqfAlmAdIikCpx5hm1JuYYKMnlrKlO1YjyqweXr0LEjxQnRuwORV",
+      "referer": "https://embed.vidrift.net/",
+      "provider": "orion"
+    },
+    {
+      "name": "Orion · Russian",
+      "type": "mp4",
+      "url": "/vdr/mb.vidrift.net/api/orion/cbcba99bf44224b802295b7213767cb2/video.mp4?exp=1795733265&sig=2243d4304872e9e8b73cc204f56dbea0db2d133d2a8bc957f9df7ede98dc7b5d",
+      "expiresAt": 1795733265000,
+      "direct": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.RPJqioZloOVL-lup.que5IfW5Z6FAcotHHreiIFUGj7fUo-EGzocf89UHkFckORBfC_-QdtvSy4ufQRfpNqL5m_9z6Hyd54Jcb74v0Hqh6L9Yxn5FL_xBNh0gvL8H-2OSlnf3uIzSUQ",
+      "referer": "https://embed.vidrift.net/",
+      "provider": "orion"
+    },
+    {
+      "name": "Orion · Spanish",
+      "type": "mp4",
+      "url": "/vdr/mb.vidrift.net/api/orion/8bf9b39754f3f7b2392a215c84878354/video.mp4?exp=1795733265&sig=0914afe20b5fcca5cb583d7f5ffe06d6c2340f65fd165993a19bd1dfb805db61",
+      "expiresAt": 1795733265000,
+      "direct": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.auAn5jmNKRSMWgS7.SZAWWx6uUXaEDz8N5nGK18DrPZ-U0CiF-BtUWyJao3FY8gwl9JMp-XQ1sVuFoKGDBdb3CzNTM1ZuzF94L8nPlSZlZYpJ-Ei7O_Idz3Z23QepqZgc73d6xWU4oA",
+      "referer": "https://embed.vidrift.net/",
+      "provider": "orion"
+    },
+    {
+      "name": "Orion · Latin American Spanish",
+      "type": "mp4",
+      "url": "/vdr/mb.vidrift.net/api/orion/0ac122336eb442452391b0ff97272bf4/video.mp4?exp=1795733265&sig=98de87cac20dcc986950b8a926e5d55bddf7c6a04e76422dc32a9de47049dbbd",
+      "expiresAt": 1795733265000,
+      "direct": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.kz0ho_6xSmFKMLnG.MdegXs_XVBv190qsLmyqxuXG2Bv7bpWF0VRD9RLTFPOPgm6PgPKysWOFHV3309xoAxqIKuyn6dnEFlSAGDxcWh9XXibISs23U905BNTQG6h_E5c6EJks1QR2WA",
+      "referer": "https://embed.vidrift.net/",
+      "provider": "orion"
+    },
+    {
+      "name": "Vexon",
+      "type": "hls",
+      "url": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.3_AYlENUal7SOjCu.I9uJ0MPilPJmic56X8R7uGZfZwNWcs4KaSr2RkNqa4QpjgA_i7_wBLq75s-gq-MpiZd8nEhdWZfWqv_ROk2Xv8mTR10qwbN3-KEp8DnqTsWiD_On31NgVc2zaJSYzhiEyppkpCF4BGh8_HQDx9aM1yg-gNgLah4BStEsVwF0hPKzlgCR4ZzGR6m-QrAzc4xhlULDo5BB",
+      "direct": "https://noisy-feather-adb6.ryklcd0086.workers.dev/vt/v1.3_AYlENUal7SOjCu.I9uJ0MPilPJmic56X8R7uGZfZwNWcs4KaSr2RkNqa4QpjgA_i7_wBLq75s-gq-MpiZd8nEhdWZfWqv_ROk2Xv8mTR10qwbN3-KEp8DnqTsWiD_On31NgVc2zaJSYzhiEyppkpCF4BGh8_HQDx9aM1yg-gNgLah4BStEsVwF0hPKzlgCR4ZzGR6m-QrAzc4xhlULDo5BB",
+      "proxy": false,
+      "referer": null,
+      "provider": "vexon"
+    }
+  ],
+  "resolvedFrom": "https://embed.vidrift.net",
+  "encrypted": true
+}

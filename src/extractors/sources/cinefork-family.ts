@@ -17,9 +17,10 @@ interface CineforkPlayback {
   url?: string;
   playlist?: string;
   sources?: readonly { url?: string; file?: string; type?: string; quality?: string; language?: string }[];
+  servers?: readonly { url?: string; type?: string }[];
 }
 
-const supportedResponseTypes = ['vidfast', 'xpass', 'sources', 'lordflix'];
+const supportedResponseTypes = ['vidfast', 'xpass', 'sources', 'lordflix', 'cipher'];
 const envelopeVersion = 1;
 const envelopeNonceBytes = 12;
 
@@ -90,11 +91,11 @@ export class CineforkFamily implements SourceFamily {
       }
       const payload = readPlayback(response, envelopeKey);
       if (payload.success === false || payload.error) return { type: 'empty', reason: 'no-streams' };
-      if (Number(payload.tmdbId ?? payload.tmdb_id ?? payload.tv_id ?? payload.id) !== media.tmdbId
+      if (server[4] !== 'cipher' && (Number(payload.tmdbId ?? payload.tmdb_id ?? payload.tv_id ?? payload.id) !== media.tmdbId
         || (payload.title !== undefined && payload.title.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim() !== expectedTitle)
-        || (media.type === 'episode' && (Number(payload.season) !== media.season || Number(payload.episode) !== media.episode))) return { type: 'empty', reason: 'not-found' };
+        || (media.type === 'episode' && (Number(payload.season) !== media.season || Number(payload.episode) !== media.episode)))) return { type: 'empty', reason: 'not-found' };
       const provider = (server[1] as string).split('/').at(-1);
-      const entries: readonly { url?: string | undefined; quality?: string | undefined; language?: string | undefined }[] = server[4] === 'vidfast' ? [{ url: payload.url }] : server[4] === 'lordflix' ? [{ url: payload.playlist }] : (payload.sources ?? []).map(entry => ({ url: entry.file ?? entry.url, quality: entry.quality, language: entry.language }));
+      const entries: readonly { url?: string | undefined; quality?: string | undefined; language?: string | undefined }[] = server[4] === 'vidfast' ? [{ url: payload.url }] : server[4] === 'lordflix' ? [{ url: payload.playlist }] : server[4] === 'cipher' ? (payload.servers ?? []).filter(entry => entry.type === 'hls' && entry.url !== undefined && URL.canParse(entry.url)).map(entry => ({ url: entry.url })) : (payload.sources ?? []).map(entry => ({ url: entry.file ?? entry.url, quality: entry.quality, language: entry.language }));
       const streams: StreamCandidate[] = entries.flatMap((entry) => {
         if (!entry.url) return [];
         const height = Number(entry.quality?.match(/\d+/)?.[0]);
