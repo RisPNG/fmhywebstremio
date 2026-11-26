@@ -8,7 +8,7 @@ export const hlsMediaFormats = {
 } as const;
 
 export type HlsMediaFormat = keyof typeof hlsMediaFormats;
-export type HlsRelayResource = { kind: 'playlist'; format?: HlsMediaFormat } | { kind: 'segment' | 'initialization'; format: HlsMediaFormat } | { kind: 'key' } | { kind: 'file'; format?: 'dash' };
+export type HlsRelayResource = { kind: 'playlist'; format?: HlsMediaFormat } | { kind: 'segment' | 'initialization'; format: HlsMediaFormat } | { kind: 'key' } | { kind: 'file'; format?: 'dash' } | { kind: 'directory' };
 export interface HlsRelayTarget { url: URL; headers?: Readonly<Record<string, string>>; resource: HlsRelayResource }
 
 export class HlsRelay {
@@ -26,7 +26,9 @@ export class HlsRelay {
           ? `init.${resource.format === 'fmp4' ? 'mp4' : hlsMediaFormats[resource.format].extension}`
           : resource.kind === 'key'
             ? 'key.key'
-            : resource.format === 'dash' ? 'manifest.mpd' : 'media.bin';
+            : resource.kind === 'directory'
+              ? ''
+              : resource.format === 'dash' ? 'manifest.mpd' : 'media.bin';
     return new URL(`/hls-relay/${signature}/${payload}/${filename}`, origin);
   }
 

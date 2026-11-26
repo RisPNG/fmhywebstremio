@@ -21,13 +21,18 @@ export class HlsRelayController {
       return;
     }
     const resource = target.resource;
+    const upstreamUrl = resource.kind === 'directory' ? new URL(String(req.params['filename'] ?? ''), target.url) : target.url;
+    if (!upstreamUrl.href.startsWith(target.url.href)) {
+      res.status(403).send('Invalid relay URL');
+      return;
+    }
     const controller = new AbortController();
     req.once('aborted', () => controller.abort());
     res.once('close', () => controller.abort());
     const timeout = setTimeout(() => controller.abort(), 30000);
     let upstream: globalThis.Response;
     try {
-      upstream = await fetch(target.url, { method: req.method, headers: { ...target.headers, ...(resource.kind !== 'playlist' && req.headers.range && { range: req.headers.range }) }, redirect: 'follow', signal: controller.signal });
+      upstream = await fetch(upstreamUrl, { method: req.method, headers: { ...target.headers, ...(resource.kind !== 'playlist' && !(resource.kind === 'file' && resource.format === 'dash') && req.headers.range && { range: req.headers.range }) }, redirect: 'follow', signal: controller.signal });
     } catch {
       if (!res.destroyed) res.status(502).send('Upstream media request failed');
       return;
@@ -46,6 +51,12 @@ export class HlsRelayController {
         res.removeHeader('content-range');
         res.removeHeader('accept-ranges');
         res.setHeader('content-type', 'application/vnd.apple.mpegurl');
+      } else if (resource.kind === 'file' && resource.format === 'dash') {
+        res.status(200);
+        res.removeHeader('content-length');
+        res.removeHeader('content-range');
+        res.removeHeader('accept-ranges');
+        res.setHeader('content-type', 'application/dash+xml');
       } else if (resource.kind === 'segment' || resource.kind === 'initialization') res.setHeader('content-type', hlsMediaFormats[resource.format].contentType);
       else if (resource.kind === 'key') res.setHeader('content-type', 'application/octet-stream');
     }
@@ -89,6 +100,19 @@ export class HlsRelayController {
       res.removeHeader('content-range');
       res.removeHeader('accept-ranges');
       res.setHeader('content-type', 'application/vnd.apple.mpegurl');
+      res.setHeader('cache-control', 'private, no-store');
+      res.send(rewritten);
+      return;
+    }
+    if (upstream.ok && resource.kind === 'file' && resource.format === 'dash') {
+      const manifest = await upstream.text();
+      const origin = resolveHostUrl(req);
+      const rewritten = /<BaseURL[\s>]/.test(manifest)
+        ? manifest.replace(/<BaseURL([^>]*)>([^<]*)<\/BaseURL>/g, (_match, attributes: string, base: string) => {
+          const url = new URL(base.trim().replaceAll('&amp;', '&'), finalUrl);
+          return `<BaseURL${attributes}>${this.relay.createUrl(origin, { url, ...(target.headers && { headers: target.headers }), resource: url.pathname.endsWith('/') ? { kind: 'directory' } : { kind: 'file' } }).href}</BaseURL>`;
+        })
+        : manifest.replace(/<MPD\b[^>]*>/, mpd => `${mpd}<BaseURL>${this.relay.createUrl(origin, { url: new URL('.', finalUrl), ...(target.headers && { headers: target.headers }), resource: { kind: 'directory' } }).href}</BaseURL>`);
       res.setHeader('cache-control', 'private, no-store');
       res.send(rewritten);
       return;

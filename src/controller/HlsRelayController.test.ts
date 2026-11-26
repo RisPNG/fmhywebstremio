@@ -198,6 +198,40 @@ describe('media relay controller', () => {
     expect(media.body.toString()).toBe('rendition-media');
   });
 
+  test('relays DASH segment templates through the manifest base directory with the source headers', async () => {
+    const manifest = '<?xml version="1.0"?>\n<MPD type="static"><BaseURL>/dash-seg/opaque/</BaseURL><Period><AdaptationSet><SegmentTemplate initialization="init-stream$RepresentationID$.m4s" media="chunk-stream$RepresentationID$-$Number%05d$.m4s"/><Representation id="0" width="1920" height="1080"/></AdaptationSet></Period></MPD>';
+    const fetchUpstream = jest.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = input as URL;
+      const response = new Response(url.pathname === '/dash-mpd' ? manifest : 'fragment', { headers: url.pathname === '/dash-mpd' ? { 'content-type': 'application/dash+xml', 'content-length': String(manifest.length) } : { 'content-type': 'video/mp4' } });
+      Object.defineProperty(response, 'url', { value: url.href });
+      return response;
+    });
+    const result = await requestRelay(relay.createUrl(origin, { url: new URL('https://cdn.test/dash-mpd?blob=fixture'), headers: { referer: 'https://player.test/' }, resource: { kind: 'file', format: 'dash' } }), { method: 'GET', headers: { range: 'bytes=0-' } });
+    expect(fetchUpstream).toHaveBeenCalledWith(new URL('https://cdn.test/dash-mpd?blob=fixture'), expect.objectContaining({ headers: { referer: 'https://player.test/' } }));
+    expect(result).toMatchObject({ status: 200, headers: { 'content-type': expect.stringContaining('application/dash+xml') } });
+    expect(Number(result.headers['content-length'])).toBe(result.body.byteLength);
+    const base = new URL(result.body.toString().match(/<BaseURL>([^<]+)<\/BaseURL>/)?.[1] as string);
+    const parts = base.pathname.split('/');
+    expect(relay.resolveTarget(parts.at(-3) as string, parts.at(-2) as string)).toEqual({ url: new URL('https://cdn.test/dash-seg/opaque/'), headers: { referer: 'https://player.test/' }, resource: { kind: 'directory' } });
+    const segment = await requestRelay(new URL('chunk-stream0-00001.m4s', base), { method: 'GET' });
+    expect(segment.body.toString()).toBe('fragment');
+    expect(fetchUpstream).toHaveBeenLastCalledWith(new URL('https://cdn.test/dash-seg/opaque/chunk-stream0-00001.m4s'), expect.objectContaining({ headers: { referer: 'https://player.test/' } }));
+    expect((await requestRelay(new URL(`${base.href}%2Fdash-mpd`), { method: 'GET' })).status).toBe(403);
+  });
+
+  test('gives a DASH manifest without a base URL the relayed directory of the manifest', async () => {
+    const manifest = '<MPD type="static"><Period><AdaptationSet><SegmentTemplate media="chunk-$Number$.m4s"/></AdaptationSet></Period></MPD>';
+    jest.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const response = new Response(manifest, { headers: { 'content-type': 'application/dash+xml' } });
+      Object.defineProperty(response, 'url', { value: (input as URL).href });
+      return response;
+    });
+    const result = await requestRelay(relay.createUrl(origin, { url: new URL('https://cdn.test/movie/manifest.mpd'), resource: { kind: 'file', format: 'dash' } }), { method: 'GET' });
+    const base = new URL(result.body.toString().match(/^<MPD type="static"><BaseURL>([^<]+)<\/BaseURL><Period>/)?.[1] as string);
+    const parts = base.pathname.split('/');
+    expect(relay.resolveTarget(parts.at(-3) as string, parts.at(-2) as string)).toEqual({ url: new URL('https://cdn.test/movie/'), resource: { kind: 'directory' } });
+  });
+
   test('continues an active media transfer beyond the response deadline', async () => {
     jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate', 'performance', 'hrtime'] });
     jest.spyOn(AbortSignal, 'timeout').mockImplementation((delay) => {

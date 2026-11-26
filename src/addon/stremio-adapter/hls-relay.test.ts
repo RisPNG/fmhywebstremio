@@ -25,6 +25,7 @@ describe('HlsRelay', () => {
     { resource: { kind: 'key' }, filename: 'key.key' },
     { resource: { kind: 'file' }, filename: 'media.bin' },
     { resource: { kind: 'file', format: 'dash' }, filename: 'manifest.mpd' },
+    { resource: { kind: 'directory' }, filename: '' },
   ])('uses the signed resource semantics for $filename regardless of the upstream path', ({ resource, filename }) => {
     const relay = new HlsRelay();
     const origin = new URL('https://addon.example/');
