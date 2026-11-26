@@ -20,6 +20,7 @@ interface ProviderResponse {
 const catalogApi = 'https://db.hls.lol/3';
 const providers = [
   { id: 'vidbox-api', url: (_media: MediaIdentity, query: URLSearchParams) => new URL(`https://stream.hls.lol/vidbox?${query}`), playlist: (payload: ProviderResponse) => payload.sources?.Vidbox?.type === 'hls' ? payload.sources.Vidbox.url : undefined },
+  { id: 'play4u-api', url: (_media: MediaIdentity, query: URLSearchParams) => new URL(`https://stream.hls.lol/play4u?${query}`), playlist: (payload: ProviderResponse) => payload.url },
   { id: 'q62-api', url: (_media: MediaIdentity, query: URLSearchParams) => new URL(`https://stream.hls.lol/q62?${query}`), playlist: (payload: ProviderResponse) => payload.releases?.[0]?.master },
   { id: 'shegu-api', url: (media: MediaIdentity) => new URL(media.type === 'movie' ? `/resolve/movie/${media.tmdbId}` : `/resolve/tv/${media.season}/${media.episode}/${media.tmdbId}`, 'https://shegu.hls.lol'), playlist: (payload: ProviderResponse) => payload.found ? payload.url : undefined },
   { id: 'vixsrc-api', url: (_media: MediaIdentity, query: URLSearchParams) => new URL(`https://it.hls.lol/resolve?${query}`), playlist: (payload: ProviderResponse) => payload.sources?.Vixsrc?.type === 'hls' ? payload.sources.Vixsrc.url : undefined },

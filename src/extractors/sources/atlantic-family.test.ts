@@ -22,6 +22,7 @@ describe('Atlantic source family', () => {
       'db.hls.lol/3/tv/1396': fixture('tv-breaking-bad.json'),
       'db.hls.lol/3/tv/1396/season/1': fixture('season-breaking-bad-1.json'),
       'stream.hls.lol/vidbox': fixture(`vidbox-${media}.json`),
+      ...(media === 'episode' && { 'stream.hls.lol/play4u': fixture('play4u-episode.json') }),
       ...(media === 'movie' && { 'stream.hls.lol/q62': fixture('q62-movie.json') }),
       'shegu.hls.lol/resolve/movie/27205': fixture('shegu-movie.json'),
       'shegu.hls.lol/resolve/tv/1/1/1396': fixture('shegu-episode.json'),
@@ -50,7 +51,7 @@ describe('Atlantic source family', () => {
     expect(result.streams.every(stream => stream.protocol === 'hls' && stream.delivery === 'relayed' && stream.sourceId === source.id && stream.sourceExtractor === 'atlantic')).toBe(true);
     expect(result.streams.map(stream => stream.url.hostname)).toEqual(['edge-02.transcode.cfd', 'proxy.7movie.ws', 'shegu.hls.lol', 'route.transcode.cfd', 'route.transcode.cfd']);
     expect(result.streams[0]?.headers).toEqual({ origin: 'https://atlantic.bz', referer: 'https://atlantic.bz/' });
-    expect(requested(services).map(request => `${request.url.hostname}${request.url.pathname}`)).toEqual(['db.hls.lol/3/movie/27205', 'stream.hls.lol/vidbox', 'stream.hls.lol/q62', 'shegu.hls.lol/resolve/movie/27205', 'it.hls.lol/resolve', 'pal.hls.lol/resolve']);
+    expect(requested(services).map(request => `${request.url.hostname}${request.url.pathname}`)).toEqual(['db.hls.lol/3/movie/27205', 'stream.hls.lol/vidbox', 'stream.hls.lol/play4u', 'stream.hls.lol/q62', 'shegu.hls.lol/resolve/movie/27205', 'it.hls.lol/resolve', 'pal.hls.lol/resolve']);
     expect(Object.fromEntries(requested(services).at(-1)?.url.searchParams ?? [])).toEqual({ tmdbId: '27205', type: 'movie', title: 'Inception', year: '2010' });
   });
 
@@ -58,7 +59,8 @@ describe('Atlantic source family', () => {
     const services = servicesFor();
     const result = await new AtlanticFamily().discoverMedia(episode, source, services, signal);
     if (result.type !== 'streams') throw new Error('Expected Atlantic episode streams');
-    expect(result.streams.map(stream => stream.hostExtractor)).toEqual(['vidbox-api', 'shegu-api', 'vixsrc-api', 'dizipal-api']);
+    expect(result.streams.map(stream => stream.hostExtractor)).toEqual(['vidbox-api', 'play4u-api', 'shegu-api', 'vixsrc-api', 'dizipal-api']);
+    expect(result.streams[1]?.url.hostname).toBe('totallyacdn.cc');
     const calls = requested(services);
     expect(calls.slice(0, 2).map(request => request.url.pathname)).toEqual(['/3/tv/1396', '/3/tv/1396/season/1']);
     expect(calls.map(request => request.url.pathname)).toContain('/resolve/tv/1/1/1396');
