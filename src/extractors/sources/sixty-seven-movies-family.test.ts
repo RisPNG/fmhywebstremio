@@ -16,12 +16,12 @@ const fixture = (name: string) => readFileSync(resolve(__dirname, `../__fixtures
 const response = (url: string, body: string, contentType = 'application/json'): ExtractionResponse => ({ status: 200, headers: { 'content-type': contentType }, finalUrl: new URL(url), redirectChain: [], body: Buffer.from(body), text: () => body, json: () => JSON.parse(body) as unknown, truncated: false, timing: { startedAt: new Date(0), elapsedMs: 1 } });
 
 describe('67Movies source family with its configured player architectures', () => {
-  const source: SourceRecord = { id: '67movies:67movies.net', canonicalDomain: '67movies.st', aliases: ['67movies.net', 'phantomflix.net', 'ravenflix.net', 'shows.st'], fmhy: { section: 'Stream Aggregators', tags: ['recommended'], firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'sixty-seven-movies', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'unknown' };
+  const source: SourceRecord = { id: 'sweetfox:111flix.net', canonicalDomain: '111flix.net', aliases: ['sweetfox.st', 'sweetfox.app'], fmhy: { section: 'Stream Aggregators', tags: [], firstSeenAt: new Date(0), lastSeenAt: new Date(0) }, family: { id: 'sixty-seven-movies', confidence: 1, evidence: [], lastProbedAt: new Date(0) }, status: 'unknown' };
 
   test('recognizes the shared catalog client fingerprint', () => {
-    const html = fixture('home.html').replaceAll('67movies.net', '67movies.st');
+    const html = fixture('home.html');
     const $ = cheerio.load(html);
-    const snapshot: SourceProbeSnapshot = { finalUrl: new URL('https://67movies.nl/'), status: 200, headers: {}, htmlSample: html, assetPaths: $('script[src]').map((_index, element) => $(element).attr('src')).get(), scriptSignatures: [], routeHints: [] };
+    const snapshot: SourceProbeSnapshot = { finalUrl: new URL('https://111flix.net/'), status: 200, headers: {}, htmlSample: html, assetPaths: $('script[src]').map((_index, element) => $(element).attr('src')).get(), scriptSignatures: [], routeHints: [] };
     expect(new SixtySevenMoviesFamily().classify(source, snapshot)).toMatchObject({ familyId: 'sixty-seven-movies', confidence: 1, evidence: [{ fingerprint: 'sixty-seven-movies-brand' }, { value: 'sixty-seven-movies-catalog' }, { value: 'sixty-seven-movies-next-client' }] });
   });
 

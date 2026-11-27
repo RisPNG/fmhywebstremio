@@ -17,8 +17,8 @@ export class SixtySevenMoviesFamily implements SourceFamily {
 
   public classify(_source: SourceRecord, snapshot: SourceProbeSnapshot): FamilyMatch | null {
     const evidence: FamilyEvidence[] = [];
-    if (snapshot.htmlSample && /(?:<title>|application-name[^>]+content=)[^<>"]*67movies/i.test(snapshot.htmlSample)) evidence.push({ type: 'script-signature', fingerprint: 'sixty-seven-movies-brand' });
-    if (snapshot.htmlSample && /67movies\.[a-z]+[^<]{0,160}(?:movies|tv shows)|(?:movies|tv shows)[^<]{0,160}67movies\.[a-z]+/i.test(snapshot.htmlSample)) evidence.push({ type: 'route-shape', value: 'sixty-seven-movies-catalog' });
+    if (snapshot.htmlSample && /(?:<title>|application-name[^>]+content=)[^<>"]*(?:67movies|111flix)/i.test(snapshot.htmlSample)) evidence.push({ type: 'script-signature', fingerprint: 'sixty-seven-movies-brand' });
+    if (snapshot.htmlSample && /(?:67movies|111flix)\.[a-z]+[^<]{0,160}(?:movies|tv shows)|(?:movies|tv shows)[^<]{0,160}(?:67movies|111flix)\.[a-z]+/i.test(snapshot.htmlSample)) evidence.push({ type: 'route-shape', value: 'sixty-seven-movies-catalog' });
     if (snapshot.assetPaths.some(path => /\/_next\/static\/chunks\/(?:app\/)?(?:page|layout)-[a-z0-9]+\.js$/i.test(path))) evidence.push({ type: 'asset-path', value: 'sixty-seven-movies-next-client' });
     if (evidence.length < 3) return null;
     return { familyId: this.id, confidence: 1, evidence };

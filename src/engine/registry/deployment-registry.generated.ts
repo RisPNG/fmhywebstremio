@@ -236,8 +236,8 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       status: 'supported',
     },
     {
-      id: 'sweetfox:67movies.st',
-      canonicalDomain: '67movies.st',
+      id: 'sweetfox:111flix.net',
+      canonicalDomain: '111flix.net',
       aliases: [
         'sweetfox.st',
         'sweetfox.app',
@@ -249,6 +249,12 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         firstSeenAt: new Date(0),
         lastSeenAt: new Date(0),
       },
+      probe: {
+        outcome: 'matched',
+        observedAt: new Date(0),
+        finalUrl: 'https://111flix.net/',
+      },
+      status: 'supported',
       family: {
         id: 'sixty-seven-movies',
         confidence: 1,
@@ -268,12 +274,6 @@ export const deploymentSourceRegistry: SourceRegistryState = {
         ],
         lastProbedAt: new Date(0),
       },
-      probe: {
-        outcome: 'matched',
-        observedAt: new Date(0),
-        finalUrl: 'https://67movies.st/',
-      },
-      status: 'supported',
     },
   ],
   health: [
@@ -320,10 +320,10 @@ export const deploymentSourceRegistry: SourceRegistryState = {
       observedAt: new Date(0),
     },
     {
-      sourceId: 'sweetfox:67movies.st',
+      sourceId: 'sweetfox:111flix.net',
       lastOutcome: 'healthy',
-      recentSuccesses: 3,
-      recentFailures: 0,
+      recentSuccesses: 2,
+      recentFailures: 1,
       observedAt: new Date(0),
     },
   ],
